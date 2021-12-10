@@ -13,3 +13,12 @@ FLASK_APP=glint_server FLASK_ENV=development flask run
 ```
 
 ### Frontend
+
+## Milestones
+
+### Milestone 1
+
+- Only Python
+- No Projects
+- One File
+- UI only lint output
