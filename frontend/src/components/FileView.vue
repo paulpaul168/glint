@@ -1,3 +1,3 @@
 <template>
-  <v-textarea no-resize></v-textarea>
+  <v-textarea no-resize filled></v-textarea>
 </template>
