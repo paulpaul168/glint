@@ -2,11 +2,11 @@
   <div class="hello">
     <h1>{{ msg }}</h1>
     <p>
-      For a guide and recipes on how to configure / customize this project,<br />
+      {{ god }}! For a guide and recipes on how to configure / customize this project,<br />
       check out the
       <a href="https://cli.vuejs.org" target="_blank" rel="noopener"
         >vue-cli documentation</a
-      >.
+      >
     </p>
     <h3>Installed CLI Plugins</h3>
     <ul>
@@ -104,10 +104,34 @@
 
 <script lang="ts">
 import { Component, Prop, Vue } from "vue-property-decorator";
+import * as api from "@/services/TestAPI";
 
 @Component
 export default class HelloWorld extends Vue {
   @Prop() private msg!: string;
+  private god = "God is dead";
+
+  async mounted() {
+    this.god = await api.getGod().then();
+  }
+  /*data() {
+    return {
+      god: "God is dead"
+    };
+  }*/
+
+  /*mounted() {
+    this;
+    this.msg;
+    //this.data.god;
+  }*/
+
+  /*methods: {
+    setGod() {
+      this;
+      god = api.getGod();
+    }
+  }*/
 }
 </script>
 
