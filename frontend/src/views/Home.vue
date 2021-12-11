@@ -1,18 +1,16 @@
 <template>
-  <div class="home">
-    <img alt="Vue logo" src="../assets/logo.png" />
-    <HelloWorld msg="Who is the God?" />
-  </div>
+  <FileView />
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
-import HelloWorld from "@/components/HelloWorld.vue"; // @ is an alias to /src
+import Vue from "vue";
+import FileView from "../components/FileView.vue";
 
-@Component({
+export default Vue.extend({
+  name: "Home",
+
   components: {
-    HelloWorld,
+    FileView,
   },
-})
-export default class Home extends Vue {}
+});
 </script>
