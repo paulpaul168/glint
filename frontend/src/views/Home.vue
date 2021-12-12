@@ -1,14 +1,14 @@
 <template>
-  <v-item-group>
-    <v-row>
-      <v-col>
+  <v-container fluid style="width: 90%">
+    <v-row dense>
+      <v-col cols="2">
         <project-list />
       </v-col>
-      <v-col>
+      <v-col cols="10">
         <file-view />
       </v-col>
     </v-row>
-  </v-item-group>
+  </v-container>
 </template>
 
 <script lang="ts">

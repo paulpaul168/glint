@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <v-app-bar app color="primary" elevation="0" dark>
+    <v-app-bar app color="primary" elevation="0">
       <div class="d-flex align-center">
         <v-img
           alt="Vuetify Logo"
@@ -8,7 +8,7 @@
           contain
           src="https://cdn.vuetifyjs.com/images/logos/vuetify-logo-dark.png"
           transition="scale-transition"
-          width="40"
+          width="30"
         />
         glint
       </div>
@@ -22,7 +22,9 @@
     </v-app-bar>
 
     <v-main>
-      <router-view />
+      <v-container fluid>
+        <router-view />
+      </v-container>
     </v-main>
   </v-app>
 </template>
@@ -38,3 +40,35 @@ export default Vue.extend({
   }),
 });
 </script>
+
+<style>
+html {
+  scrollbar-color: #252525 #121212;
+  overflow-y: hidden !important; /*remove in case scrolling becomes necessary at some point*/
+}
+
+html::-webkit-scrollbar {
+  width: 15px;
+}
+
+html::-webkit-scrollbar-track {
+  background: #121212;
+  border-left: 1px solid #121212;
+}
+
+html::-webkit-scrollbar-track:hover {
+  background: #171717;
+  border-left: 1px solid #171717;
+}
+
+html::-webkit-scrollbar-thumb {
+  background: #252525;
+  border: solid 4px #121212;
+  border-radius: 7px;
+}
+
+html::-webkit-scrollbar-thumb:hover {
+  background: #333333;
+  border: solid 4px #171717;
+}
+</style>

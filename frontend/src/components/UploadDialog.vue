@@ -2,13 +2,14 @@
   <v-dialog v-model="dialog">
     <template v-slot:activator="{ on, attrs }">
       <v-btn
-        class="rounded-sm"
+        class="rounded-md dialog-button"
+        elevation="0"
         v-bind="attrs"
         v-on="on"
         @drop.prevent="dropFile"
         @dragover.prevent
       >
-        <v-icon large>mdi-upload</v-icon>
+        <v-icon x-large>mdi-plus</v-icon>
       </v-btn>
     </template>
 
@@ -16,14 +17,14 @@
       <v-card-title>Upload File</v-card-title>
       <v-card-text>
         <v-file-input
-          class="rounded-sm"
+          class="rounded-md"
           accept="text/*"
           label="Select one or more files to upload or .zip of project"
           multiple
           show-size
           prepend-icon="mdi-file-code"
           @change="selectFiles"
-          @drop.prevent="dropFile(files)"
+          @drop="dropFile(files)"
           @dragover.prevent
         ></v-file-input>
       </v-card-text>
@@ -37,7 +38,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
+import { Component, Vue } from "vue-property-decorator";
 import * as API from "../services/BackendAPI";
 import { FileHandle, FileEvent } from "./types/upload-dialog-types";
 
@@ -46,33 +47,43 @@ export default class UploadDialog extends Vue {
   private name = "UploadDialog";
   private dialog = false;
   private selectedFiles: FileHandle[] = [];
-  private selectedFile!: File;
 
   private close(): void {
     this.selectedFiles = [];
     this.dialog = false;
   }
 
-  private dropFile(files: File): void {
-    console.log("dropped file", files);
+  private async dropFile(event: DragEvent): Promise<void> {
+    if (event.dataTransfer != null) {
+      await this.selectFiles(Array.from(event.dataTransfer.files));
+      this.upload();
+      //this.selectFiles(event.dataTransfer.files);
+    }
+    //console.log("dropped files", event.dataTransfer.files);
   }
 
   private async selectFiles(files: File[]): Promise<void> {
+    this.selectedFiles = [];
     for (let file of files) {
       this.selectedFiles.push({ name: file.name, content: await file.text() });
     }
   }
 
   private async upload(): Promise<boolean> {
-    let upFiles: FileHandle[];
-    let event: FileEvent;
-    upFiles = [
-      { name: "hello", content: "world" },
-      { name: "hello2", content: "world2" },
-    ];
-    event = { files: this.selectedFiles };
+    let event: FileEvent = { files: this.selectedFiles };
     this.$emit("file-event", event);
+    this.dialog = false;
     return true;
   }
 }
 </script>
+
+<style scoped>
+.dialog-button {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -100%);
+  padding: 6% !important;
+}
+</style>
