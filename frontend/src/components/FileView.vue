@@ -2,37 +2,24 @@
   <v-item-group>
     <v-row>
       <v-tabs>
-        <v-tab>file1</v-tab>
-        <v-tab>file2</v-tab>
+        <v-tab v-for="file in files" :key="file.name">{{ file.name }}</v-tab>
       </v-tabs>
     </v-row>
     <v-row justify="center">
       <prism-editor
         v-if="showFile"
         class="code-editor"
-        v-model="code"
+        v-model="activeFileContent"
         :highlight="highlighter"
         line-numbers
       ></prism-editor>
-      <div v-else>
-        <v-btn
-          class=".rounded-sm"
-          fab
-          tile
-          @click="openUploadDialog"
-          @drop.prevent="dropFile"
-          @dragover.prevent
-        >
-          <v-icon>file-upload</v-icon>
-        </v-btn>
-      </div>
-      <upload-dialog :show="showDialog"></upload-dialog>
+      <upload-dialog v-else @file-event="loadFiles($event)"></upload-dialog>
     </v-row>
   </v-item-group>
 </template>
 
 <script lang="ts">
-import Vue from "vue";
+import { Component, Vue } from "vue-property-decorator";
 import { PrismEditor } from "vue-prism-editor";
 import "vue-prism-editor/dist/prismeditor.min.css";
 
@@ -44,34 +31,32 @@ import "prismjs/themes/prism-tomorrow.css";
 
 import UploadDialog from "@/components/UploadDialog.vue";
 
-export default Vue.extend({
-  name: "FileView",
+import { FileEvent } from "./types/upload-dialog-types";
+
+@Component({
   components: {
     PrismEditor,
     UploadDialog,
   },
+})
+export default class FileView extends Vue {
+  private name = "FileView";
+  private activeFileContent = "";
+  private code = "def abc(def):\n  x = y + 4";
+  private showFile = false;
+  private showDialog = false;
+  private files: FileEvent["files"] = [{ name: "unnamed", content: "" }];
 
-  data: () => ({
-    code: "def abc(def):\n  x = y + 4",
-    showFile: false,
-    showDialog: false,
-  }),
+  highlighter(code: string): string {
+    return highlight(code, languages.python, "");
+  }
 
-  methods: {
-    highlighter(code: string): string {
-      return highlight(code, languages.python, "");
-    },
-
-    openUploadDialog(): void {
-      this.showDialog = true;
-    },
-
-    dropFile(): void {
-      console.log("dropped file");
-      this.showFile = true;
-    }
-  },
-});
+  loadFiles(event: FileEvent): void {
+    this.files = event.files;
+    this.activeFileContent = this.files[0].content;
+    this.showFile = true;
+  }
+}
 </script>
 
 <style scoped>

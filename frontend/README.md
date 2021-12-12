@@ -9,6 +9,7 @@ npm install
 ```
 npm run serve
 ```
+*Note: When running on node >=17 run* `export NODE_OPTIONS=--openssl-legacy-provider` *before executing the server. See* [this git issue](https://github.com/webpack/webpack/issues/14532) *for info*
 
 ### Compiles and minifies for production
 ```
