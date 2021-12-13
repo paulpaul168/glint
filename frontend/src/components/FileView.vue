@@ -1,7 +1,7 @@
 <template>
   <v-item-group>
     <v-row>
-      <v-tabs v-model="activeTab" show-arrows>
+      <v-tabs v-model="activeTab" show-arrows class="file-tabs">
         <v-tab v-for="state in fileStates" :key="state.file.name">
           {{ state.file.name }}<p v-if="state.unsaved">*</p>
         </v-tab>
@@ -13,7 +13,7 @@
     <v-row>
       <v-tabs-items
         v-model="activeTab"
-        class="main-file-view"
+        class="main-file-view main-pane"
         justify="center"
         align="center"
       >
@@ -76,6 +76,9 @@ export default class FileView extends Vue {
   ];
 
   codeEdited(): void {
+    if (this.showFile == false) {
+      this.showFile = true; //TODO probably more to do here once that happens (someone writing in an empty file while the upload button is showing)
+    }
     this.fileStates[this.activeTab].edited = true;
     this.fileStates[this.activeTab].unsaved = true;
   }
@@ -125,6 +128,16 @@ export default class FileView extends Vue {
 </script>
 
 <style scoped>
+.main-pane {
+  border: #1e1e1e solid 0 !important;
+  border-bottom-right-radius: 5px !important;
+}
+
+.file-tabs {
+  border: #1e1e1e solid 0 !important;
+  border-top-right-radius: 5px !important;
+}
+
 .main-file-view {
   width: 100%;
 }
@@ -140,5 +153,8 @@ export default class FileView extends Vue {
 
   overflow-y: auto !important;
   height: calc(100vh - 135px);
+
+  scrollbar-color: #252525 #1e1e1e;
+  border-bottom-right-radius: 50px;
 }
 </style>
