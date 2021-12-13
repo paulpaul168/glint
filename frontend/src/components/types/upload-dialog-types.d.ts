@@ -4,6 +4,7 @@ export interface Events {
 
 export interface FileHandle {
   name: string;
+  path: string;
   content: string;
 }
 

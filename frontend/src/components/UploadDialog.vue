@@ -16,6 +16,10 @@
     <v-card>
       <v-card-title>Upload File</v-card-title>
       <v-card-text>
+        <v-text-field
+          label="Enter Project Name"
+          v-model="projectName"
+        ></v-text-field>
         <v-file-input
           class="rounded-md"
           accept="text/*"
@@ -46,6 +50,7 @@ import { FileHandle, FileEvent } from "./types/upload-dialog-types";
 export default class UploadDialog extends Vue {
   private name = "UploadDialog";
   private dialog = false;
+  private projectName = "";
   private selectedFiles: FileHandle[] = [];
 
   private close(): void {
@@ -65,14 +70,21 @@ export default class UploadDialog extends Vue {
   private async selectFiles(files: File[]): Promise<void> {
     this.selectedFiles = [];
     for (let file of files) {
-      this.selectedFiles.push({ name: file.name, content: await file.text() });
+      this.selectedFiles.push({
+        name: file.name,
+        path: file.name, //TODO needs to be extended once .zip is supported
+        content: await file.text(),
+      });
     }
   }
 
   private async upload(): Promise<boolean> {
     let event: FileEvent = { files: this.selectedFiles };
     this.$emit("file-event", event);
+    let result = await API.submitProject(this.projectName, this.selectedFiles); //add language detection here. best to move the language detection to a separate .ts and call it in fileview for highlighting and here for sending to backend. language detection per file and for now just take eg: first file in list for detection here
+    console.log("result", result);
     this.dialog = false;
+    //TODO return the result (maybe somehow reformatted) here to allow for proper project management in the side pane. can't do right now because data structure with interfaces and all still has to be designed/planned.
     return true;
   }
 }

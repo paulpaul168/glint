@@ -68,7 +68,11 @@ export default class FileView extends Vue {
     unsaved: boolean;
     file: FileHandle;
   }[] = [
-    { edited: false, unsaved: false, file: { name: "unnamed", content: "" } },
+    {
+      edited: false,
+      unsaved: false,
+      file: { name: "unnamed", path: "unnamed", content: "" },
+    },
   ];
 
   codeEdited(): void {
@@ -106,7 +110,7 @@ export default class FileView extends Vue {
         {
           edited: false,
           unsaved: false,
-          file: { name: "unnamed", content: "" },
+          file: { name: "unnamed", path: "unnamed", content: "" },
         },
       ];
     } else {
