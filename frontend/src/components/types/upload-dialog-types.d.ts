@@ -11,3 +11,9 @@ export interface FileHandle {
 export interface FileEvent {
   files: FileHandle[];
 }
+
+export interface FileState {
+  file: FileHandle;
+  unsaved: boolean;
+  edited: boolean;
+}

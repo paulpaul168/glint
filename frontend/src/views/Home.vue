@@ -13,7 +13,7 @@
 
 <script lang="ts">
 import Vue from "vue";
-import FileView from "../components/FileView.vue";
+import FileView from "../components/ContentView.vue";
 import ProjectList from "../components/ProjectList.vue";
 
 export default Vue.extend({

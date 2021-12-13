@@ -1,7 +1,12 @@
 <template>
   <v-item-group>
     <v-row>
-      <v-tabs v-model="activeTab" show-arrows class="file-tabs">
+      <v-tabs
+        v-model="activeTab"
+        show-arrows
+        class="file-tabs"
+        background-color="bg_tertiary"
+      >
         <v-tab v-for="state in fileStates" :key="state.file.name">
           {{ state.file.name }}<p v-if="state.unsaved">*</p>
         </v-tab>
@@ -18,14 +23,29 @@
         align="center"
       >
         <v-tab-item v-for="state in fileStates" :key="state.file.name">
-          <prism-editor
-            class="code-editor"
-            v-model="state.file.content"
-            :highlight="highlighter"
-            line-numbers
-            @input="codeEdited"
-          >
-          </prism-editor>
+          <v-toolbar class="toolbar" dense elevation="0" color="transparent">
+            <v-spacer></v-spacer>
+
+            <v-tooltip bottom open-delay="1000" v-if="hasLint">
+              <template v-slot:activator="{ on, attrs }">
+                <v-btn
+                  small
+                  elevation="0"
+                  color="transparent"
+                  v-bind="attrs"
+                  v-on="on"
+                  @click="showLint = !showLint"
+                >
+                  <v-icon small v-if="showLint">mdi-pencil</v-icon>
+                  <v-icon small v-else>mdi-format-list-bulleted</v-icon>
+                </v-btn>
+              </template>
+              <span v-if="showLint">Show Source</span>
+              <span v-else>Show Lint</span>
+            </v-tooltip>
+          </v-toolbar>
+          <lint-view v-if="showLint"></lint-view>
+          <code-view v-bind:fileState="state" v-else></code-view>
           <upload-dialog
             class="file-uploader"
             v-if="!showFile"
@@ -39,35 +59,27 @@
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
-import { PrismEditor } from "vue-prism-editor";
-import "vue-prism-editor/dist/prismeditor.min.css";
-
-import { highlight, languages } from "prismjs";
-import "prismjs/components/prism-clike";
-import "prismjs/components/prism-javascript";
-import "prismjs/components/prism-python";
-import "prismjs/components/prism-markdown";
-import "prismjs/themes/prism-tomorrow.css";
 
 import UploadDialog from "@/components/UploadDialog.vue";
+import CodeView from "@/components/CodeView.vue";
+import LintView from "@/components/LintView.vue";
 
-import { FileEvent, FileHandle } from "./types/upload-dialog-types";
+import { FileEvent, FileState } from "./types/upload-dialog-types";
 
 @Component({
   components: {
-    PrismEditor,
     UploadDialog,
+    CodeView,
+    LintView,
   },
 })
-export default class FileView extends Vue {
-  private name = "FileView";
+export default class ContentView extends Vue {
+  name = "ContentView";
   private showFile = false;
+  private showLint = false;
+  private hasLint = false;
   private activeTab = 0;
-  private fileStates: {
-    edited: boolean;
-    unsaved: boolean;
-    file: FileHandle;
-  }[] = [
+  private fileStates: FileState[] = [
     {
       edited: false,
       unsaved: false,
@@ -81,30 +93,6 @@ export default class FileView extends Vue {
     }
     this.fileStates[this.activeTab].edited = true;
     this.fileStates[this.activeTab].unsaved = true;
-  }
-
-  highlighter(code: string): string {
-    let extension = this.fileStates[this.activeTab].file.name.split(".").pop(); //TODO: on tab switch this is apparently called again for each tab and then the highlight language is incorrect because active tab is incorrect. investigate
-    let language = "";
-    switch (extension) {
-      case "py":
-        language = "python";
-        break;
-      case "ts":
-      case "js":
-        language = "javascript";
-        break;
-      case "vue":
-        language = "html";
-        break;
-      case "md":
-        language = "markdown";
-        break;
-      default:
-        console.log("Couldn't find a language to apply for highlighting");
-        return code;
-    }
-    return highlight(code, languages[language], language);
   }
 
   loadFiles(event: FileEvent): void {
@@ -122,6 +110,7 @@ export default class FileView extends Vue {
         this.fileStates.push({ edited: false, unsaved: false, file: file });
       }
       this.showFile = true;
+      this.hasLint = true;
     }
   }
 }
@@ -134,7 +123,8 @@ export default class FileView extends Vue {
 }
 
 .file-tabs {
-  border: #1e1e1e solid 0 !important;
+  background-color: var(--v-bg_tertiary-base);
+  border: #1e1e1e solid 0px;
   border-top-right-radius: 5px !important;
 }
 
@@ -142,19 +132,9 @@ export default class FileView extends Vue {
   width: 100%;
 }
 
-.code-editor {
-  background: var(--bg_primary);
-  color: var(--primary);
-
-  font-family: Fira code, Fira Mono, Consolas, Menlo, Courier, monospace;
-  font-size: 15px;
-  line-height: 1.5;
-  padding: 5px;
-
-  overflow-y: auto !important;
-  height: calc(100vh - 135px);
-
-  scrollbar-color: #252525 #1e1e1e;
-  border-bottom-right-radius: 50px;
+.toolbar {
+  position: absolute;
+  width: 100%;
+  z-index: 10;
 }
 </style>
