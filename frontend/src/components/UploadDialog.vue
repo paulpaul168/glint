@@ -44,7 +44,7 @@
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
 import * as API from "../services/BackendAPI";
-import { FileHandle, FileEvent } from "./types/upload-dialog-types";
+import { FileHandle, FileEvent } from "./types/interfaces";
 
 @Component
 export default class UploadDialog extends Vue {

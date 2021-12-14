@@ -1,4 +1,4 @@
-import { FileHandle } from "@/components/types/upload-dialog-types";
+import { FileHandle } from "@/components/types/interfaces";
 import { Dictionary } from "vue-router/types/router";
 
 const apiAddress = "https://localhost:5000/api/";

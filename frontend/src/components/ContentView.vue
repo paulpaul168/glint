@@ -26,7 +26,7 @@
           <v-toolbar class="toolbar" dense elevation="0" color="transparent">
             <v-spacer></v-spacer>
 
-            <v-tooltip bottom open-delay="1000" v-if="hasLint">
+            <v-tooltip bottom open-delay="1000" v-if="lintStatus">
               <template v-slot:activator="{ on, attrs }">
                 <v-btn
                   small
@@ -34,20 +34,30 @@
                   color="transparent"
                   v-bind="attrs"
                   v-on="on"
+                  :loading="lintStatus == 'processing'"
+                  :disabled="lintStatus != 'done'"
                   @click="showLint = !showLint"
                 >
                   <v-icon small v-if="showLint">mdi-pencil</v-icon>
-                  <v-icon small v-else>mdi-format-list-bulleted</v-icon>
+                  <v-icon small v-else-if="!showLint && lintStatus == 'done'"
+                    >mdi-format-list-bulleted</v-icon
+                  >
+                  <v-icon
+                    small
+                    v-else-if="
+                      ((lintStatus != 'done') == lintStatus) != 'processing'
+                    "
+                    >mdi-alert-circle</v-icon
+                  >
                 </v-btn>
               </template>
               <span v-if="showLint">Show Source</span>
               <span v-else>Show Lint</span>
             </v-tooltip>
           </v-toolbar>
-          <lint-view v-if="showLint"></lint-view>
-          <code-view v-bind:fileState="state" v-else></code-view>
+          <lint-view v-if="showLint" :fileState="state"></lint-view>
+          <code-view v-else :fileState="state"></code-view>
           <upload-dialog
-            class="file-uploader"
             v-if="!showFile"
             @file-event="loadFiles($event)"
           ></upload-dialog>
@@ -58,13 +68,13 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+import { Component, Vue, Watch } from "vue-property-decorator";
 
 import UploadDialog from "@/components/UploadDialog.vue";
 import CodeView from "@/components/CodeView.vue";
 import LintView from "@/components/LintView.vue";
 
-import { FileEvent, FileState } from "./types/upload-dialog-types";
+import { FileEvent, FileState } from "./types/interfaces";
 
 @Component({
   components: {
@@ -77,7 +87,7 @@ export default class ContentView extends Vue {
   name = "ContentView";
   private showFile = false;
   private showLint = false;
-  private hasLint = false;
+  private lintStatus = ""; //processing means lint is ongoing/result hasn't come in yet, done means lint has been received, anything else means error on linting
   private activeTab = 0;
   private fileStates: FileState[] = [
     {
@@ -87,7 +97,12 @@ export default class ContentView extends Vue {
     },
   ];
 
-  codeEdited(): void {
+  @Watch("lintStatus")
+  private updateLintToggle(): void {
+    return;
+  }
+
+  private codeEdited(): void {
     if (this.showFile == false) {
       this.showFile = true; //TODO probably more to do here once that happens (someone writing in an empty file while the upload button is showing)
     }
@@ -95,7 +110,7 @@ export default class ContentView extends Vue {
     this.fileStates[this.activeTab].unsaved = true;
   }
 
-  loadFiles(event: FileEvent): void {
+  private loadFiles(event: FileEvent): void {
     if (event.files.length == 0) {
       this.fileStates = [
         {
@@ -110,7 +125,7 @@ export default class ContentView extends Vue {
         this.fileStates.push({ edited: false, unsaved: false, file: file });
       }
       this.showFile = true;
-      this.hasLint = true;
+      this.lintStatus = "done";
     }
   }
 }
@@ -118,18 +133,23 @@ export default class ContentView extends Vue {
 
 <style scoped>
 .main-pane {
-  border: #1e1e1e solid 0 !important;
+  border: var(--v-bg_secondary-base) solid 0 !important;
   border-bottom-right-radius: 5px !important;
 }
 
 .file-tabs {
   background-color: var(--v-bg_tertiary-base);
-  border: #1e1e1e solid 0px;
+  border: var(--v-bg_secondary-base) solid 0px;
   border-top-right-radius: 5px !important;
 }
 
 .main-file-view {
   width: 100%;
+  overflow-y: auto !important;
+  height: calc(100vh - 130px);
+
+  scrollbar-color: var(--v-bg_tertiary-base) var(--v-bg_secondary-base);
+  border-bottom-right-radius: 50px;
 }
 
 .toolbar {

@@ -3,7 +3,8 @@
     class="code-editor"
     v-model="internalState.file.content"
     :highlight="highlighter"
-    line-numbers
+    :line-numbers="lineNumbers == true"
+    :readonly="readonly == true"
     @input="codeEdited"
   >
   </prism-editor>
@@ -11,7 +12,7 @@
 
 <script lang="ts">
 import { Component, Prop, Vue, Watch } from "vue-property-decorator";
-import { FileState } from "./types/upload-dialog-types";
+import { FileState } from "./types/interfaces";
 
 import { PrismEditor } from "vue-prism-editor";
 import "vue-prism-editor/dist/prismeditor.min.css";
@@ -31,6 +32,8 @@ import "prismjs/themes/prism-tomorrow.css";
 export default class CodeView extends Vue {
   name = "CodeView";
 
+  @Prop({ default: false }) readonly!: boolean;
+  @Prop({ default: true }) lineNumbers!: boolean;
   @Prop({
     default: () => ({
       file: { name: "unnamed", path: "unnamed", content: "" },
@@ -98,10 +101,6 @@ export default class CodeView extends Vue {
   line-height: 1.5;
   padding: 5px;
 
-  overflow-y: auto !important;
-  height: calc(100vh - 135px);
-
-  scrollbar-color: #252525 #1e1e1e;
-  border-bottom-right-radius: 50px;
+  height: auto;
 }
 </style>
