@@ -1,5 +1,6 @@
 export interface Events {
-  file: FileEvent;
+  files: FileEvent;
+  lints: LintEvent;
 }
 
 export interface FileHandle {
@@ -12,6 +13,18 @@ export interface FileEvent {
   files: FileHandle[];
 }
 
+export interface LintEvent {
+  status: string;
+  linter: string;
+  lintFiles: [
+    {
+      name: string;
+      path: string;
+      lints: Lint[];
+    }
+  ];
+}
+
 export interface FileState {
   file: FileHandle;
   unsaved: boolean;
@@ -19,7 +32,7 @@ export interface FileState {
 }
 
 export interface Lint {
-  fileName: string; //a bit superfluous for the lintview, but needed in the lintcard to generate the link to the file
+  fileName?: string; //a bit superfluous for the lintview, but needed in the lintcard to generate the link to the file
 
   line: number;
   endLine: number;

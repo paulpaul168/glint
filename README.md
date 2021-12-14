@@ -140,7 +140,7 @@ Response
                 {
                     "column": 15,
                     "endColumn": 35,
-                    "endline": 2,
+                    "endLine": 2,
                     "header": "Consider using with",
                     "line": 1,
                     "message": "Using open without explicitly specifying an encoding",

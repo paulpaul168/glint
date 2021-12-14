@@ -13,8 +13,8 @@
         </v-card-text>
         <v-divider></v-divider>
         <code-view
-          lineNumbers="false"
-          readonly="true"
+          :lineNumbers="false"
+          :readonly="true"
           :fileState="internalFileState"
         ></code-view>
       </v-card>
