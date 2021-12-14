@@ -26,26 +26,30 @@
           <v-toolbar class="toolbar" dense elevation="0" color="transparent">
             <v-spacer></v-spacer>
 
-            <v-tooltip bottom open-delay="1000" v-if="lintStatus">
+            <v-tooltip bottom open-delay="1000" v-if="lintData.status">
               <template v-slot:activator="{ on, attrs }">
                 <v-btn
+                  class="toolbar-element"
                   small
                   elevation="0"
                   color="transparent"
                   v-bind="attrs"
                   v-on="on"
-                  :loading="lintStatus == 'processing'"
-                  :disabled="lintStatus != 'done'"
+                  :loading="lintData.status == 'processing'"
+                  :disabled="lintData.status != 'done'"
                   @click="showLint = !showLint"
                 >
                   <v-icon small v-if="showLint">mdi-pencil</v-icon>
-                  <v-icon small v-else-if="!showLint && lintStatus == 'done'"
+                  <v-icon
+                    small
+                    v-else-if="!showLint && lintData.status == 'done'"
                     >mdi-format-list-bulleted</v-icon
                   >
                   <v-icon
                     small
                     v-else-if="
-                      ((lintStatus != 'done') == lintStatus) != 'processing'
+                      lintData.status != 'done' &&
+                      lintData.status != 'processing'
                     "
                     >mdi-alert-circle</v-icon
                   >
@@ -59,6 +63,7 @@
           <code-view v-else :fileState="state"></code-view>
           <upload-dialog
             v-if="!showFile"
+            :uploading="uploading"
             @file-event="loadFiles($event)"
           ></upload-dialog>
         </v-tab-item>
@@ -70,11 +75,17 @@
 <script lang="ts">
 import { Component, Vue, Watch } from "vue-property-decorator";
 
+import * as API from "../services/BackendAPI";
 import UploadDialog from "@/components/UploadDialog.vue";
 import CodeView from "@/components/CodeView.vue";
 import LintView from "@/components/LintView.vue";
 
-import { FileEvent, FileState } from "./types/interfaces";
+import {
+  FileEvent,
+  FileHandle,
+  FileState,
+  LintEvent,
+} from "./types/interfaces";
 
 @Component({
   components: {
@@ -87,8 +98,20 @@ export default class ContentView extends Vue {
   name = "ContentView";
   private showFile = false;
   private showLint = false;
-  private lintStatus = ""; //processing means lint is ongoing/result hasn't come in yet, done means lint has been received, anything else means error on linting
+  private lintCheckTimer!: number;
+  private lintData: LintEvent = {
+    status: "", //processing means lint is ongoing/result hasn't come in yet, done means lint has been received, anything else means error on linting
+    linter: "",
+    lintFiles: [
+      {
+        name: "",
+        path: "",
+        lints: [],
+      },
+    ],
+  };
   private activeTab = 0;
+  private uploading = false;
   private fileStates: FileState[] = [
     {
       edited: false,
@@ -97,7 +120,7 @@ export default class ContentView extends Vue {
     },
   ];
 
-  @Watch("lintStatus")
+  @Watch("lintData")
   private updateLintToggle(): void {
     return;
   }
@@ -110,7 +133,8 @@ export default class ContentView extends Vue {
     this.fileStates[this.activeTab].unsaved = true;
   }
 
-  private loadFiles(event: FileEvent): void {
+  private async loadFiles(event: FileEvent): Promise<void> {
+    //get files from user file event and show it in UI
     if (event.files.length == 0) {
       this.fileStates = [
         {
@@ -125,7 +149,30 @@ export default class ContentView extends Vue {
         this.fileStates.push({ edited: false, unsaved: false, file: file });
       }
       this.showFile = true;
-      this.lintStatus = "done";
+
+      //upload files to backend
+      this.uploading = true;
+      let fileHandles: FileHandle[] = [];
+      for (const fileState of this.fileStates) {
+        fileHandles.push(fileState.file);
+      }
+      console.log("reached get upload");
+      let result = await API.submitProject("DefaultProject", fileHandles); //add language detection here. best to move the language detection to a separate .ts and call it in fileview for highlighting and here for sending to backend. language detection per file and for now just take eg: first file in list for detection here
+      this.uploading = false; //TODO later on I probably should look into error handling here + an event that uploading is finished to not hide the button instantly
+
+      //set interval for asking for lint status every second. handler has to deactivate asking for lint results on receiving results (or an error)
+      console.log("reached get lint");
+      this.lintData.status = "processing";
+      this.lintCheckTimer = setInterval(this.handleLintTimer, 1000);
+    }
+  }
+
+  private async handleLintTimer() {
+    let lintEvent = await API.getLint("DefaultProject"); //TODO proper project handling
+    this.lintData = lintEvent;
+
+    if (this.lintData.status != "processing") {
+      clearInterval(this.lintCheckTimer);
     }
   }
 }
@@ -154,7 +201,7 @@ export default class ContentView extends Vue {
 
 .toolbar {
   position: absolute;
-  width: 100%;
+  right: 0;
   z-index: 10;
 }
 </style>

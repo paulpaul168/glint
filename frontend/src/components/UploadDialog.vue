@@ -1,15 +1,20 @@
 <template>
-  <v-dialog v-model="dialog">
+  <v-dialog v-model="dialog" max-width="600">
     <template v-slot:activator="{ on, attrs }">
       <v-btn
-        class="rounded-md dialog-button"
+        :class="'rounded-md dialog-button ' + dragClass"
         elevation="0"
+        :loading="uploading"
         v-bind="attrs"
         v-on="on"
+        @dragover.prevent="dialogDrag = true"
+        @dragleave="dialogDrag = false"
         @drop.prevent="dropFile"
-        @dragover.prevent
       >
-        <v-icon x-large>mdi-plus</v-icon>
+        <!--<v-icon x-large v-if="dialogDrag">
+          mdi-clipboard-arrow-down-outline
+        </v-icon>-->
+        <v-icon x-large :class="dragIconClass">mdi-plus</v-icon>
       </v-btn>
     </template>
 
@@ -42,16 +47,31 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
-import * as API from "../services/BackendAPI";
+import { Component, Prop, Vue, Watch } from "vue-property-decorator";
 import { FileHandle, FileEvent } from "./types/interfaces";
 
 @Component
 export default class UploadDialog extends Vue {
   private name = "UploadDialog";
+  @Prop({ default: false }) uploading!: boolean;
+
   private dialog = false;
+  private dialogDrag = false;
+  private dragIconClass = "";
+  private dragClass = "";
   private projectName = "";
   private selectedFiles: FileHandle[] = [];
+
+  @Watch("dialogDrag")
+  private dragChange() {
+    if (this.dialogDrag) {
+      this.dragClass = "dialog-button-drag";
+      this.dragIconClass = "dialog-icon-drag";
+    } else {
+      this.dragClass = "";
+      this.dragIconClass = "";
+    }
+  }
 
   private close(): void {
     this.selectedFiles = [];
@@ -78,14 +98,12 @@ export default class UploadDialog extends Vue {
     }
   }
 
-  private async upload(): Promise<boolean> {
+  private upload(): void {
     let event: FileEvent = { files: this.selectedFiles };
     this.$emit("file-event", event);
-    let result = await API.submitProject(this.projectName, this.selectedFiles); //add language detection here. best to move the language detection to a separate .ts and call it in fileview for highlighting and here for sending to backend. language detection per file and for now just take eg: first file in list for detection here
-    console.log("result", result);
     this.dialog = false;
     //TODO return the result (maybe somehow reformatted) here to allow for proper project management in the side pane. can't do right now because data structure with interfaces and all still has to be designed/planned.
-    return true;
+    return;
   }
 }
 </script>
@@ -97,5 +115,15 @@ export default class UploadDialog extends Vue {
   top: 50%;
   transform: translate(-50%, -100%);
   padding: 6% !important;
+}
+
+.dialog-button-drag {
+  background-color: #383838 !important;
+  transition: background-color 0.2s cubic-bezier(0.4, 0, 0.6, 1);
+}
+
+.dialog-icon-drag {
+  transform: scale(1.2);
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.6, 1);
 }
 </style>

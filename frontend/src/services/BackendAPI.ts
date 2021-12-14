@@ -27,10 +27,17 @@ export async function submitProject(
     request.files.push(transmitFile);
   }
 
-  const resp = await fetch(apiAddress + "projects", {
-    method: "POST",
-    body: JSON.stringify(request),
-  });
+  let resp;
+  try {
+    resp = await fetch(apiAddress + "projects", {
+      method: "POST",
+      body: JSON.stringify(request),
+    });
+  } catch {
+    console.log("Fatal error during fetch when submitting project, aborting");
+    return ""; //TODO this should probably return some error code that can be read and properly reacted to
+  }
+
   if (!resp.ok) {
     return null as any;
   }
@@ -38,9 +45,26 @@ export async function submitProject(
 }
 
 export async function getLint(projectId: string): Promise<LintEvent> {
-  const resp = await fetch(apiAddress + "projects/" + projectId + "/lint/", {
-    method: "GET",
-  });
+  let resp;
+  try {
+    resp = await fetch(apiAddress + "projects/" + projectId + "/lint/", {
+      method: "GET",
+    });
+  } catch {
+    console.log("Fatal error during fetch when asking for lint, aborting");
+    return {
+      status:
+        "Fatal error while requesting Lint result; fetch() threw Exception",
+      linter: "unknown",
+      lintFiles: [
+        {
+          name: "",
+          path: "",
+          lints: [],
+        },
+      ],
+    };
+  }
   if (!resp.ok) {
     //TODO if we really change http header on errors this handling will need to be updated
     return null as any;
