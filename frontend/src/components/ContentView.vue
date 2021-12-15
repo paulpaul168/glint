@@ -7,7 +7,11 @@
         class="file-tabs"
         background-color="bg_tertiary"
       >
-        <v-tab v-for="state in fileStates" :key="state.file.name">
+        <v-tab
+          style="text-transform: none"
+          v-for="state in fileStates"
+          :key="state.file.name"
+        >
           {{ state.file.name }}<p v-if="state.unsaved">*</p>
         </v-tab>
         <!--<v-tab v-if="showFile">
@@ -24,8 +28,22 @@
       >
         <v-tab-item v-for="state in fileStates" :key="state.file.name">
           <v-toolbar class="toolbar" dense elevation="0" color="transparent">
-            <v-spacer></v-spacer>
-
+            <v-tooltip bottom open-delay="1000" v-if="state.unsaved">
+              <template v-slot:activator="{ on, attrs }">
+                <v-btn
+                  class="toolbar-element"
+                  small
+                  elevation="0"
+                  color="transparent"
+                  v-bind="attrs"
+                  v-on="on"
+                  @click="saveFile"
+                >
+                  <v-icon small>mdi-content-save</v-icon>
+                </v-btn>
+              </template>
+              <span>Send File to Server</span>
+            </v-tooltip>
             <v-tooltip bottom open-delay="1000" v-if="lintData.status">
               <template v-slot:activator="{ on, attrs }">
                 <v-btn
@@ -133,6 +151,10 @@ export default class ContentView extends Vue {
     this.fileStates[this.activeTab].unsaved = true;
   }
 
+  private saveFile(): void {
+    return;
+  }
+
   private async loadFiles(event: FileEvent): Promise<void> {
     //get files from user file event and show it in UI
     if (event.files.length == 0) {
@@ -200,8 +222,12 @@ export default class ContentView extends Vue {
 }
 
 .toolbar {
-  position: absolute;
-  right: 0;
+  position: fixed;
+  right: 5.8%;
   z-index: 10;
+}
+
+.toolbar-element {
+  margin-left: 0.2em;
 }
 </style>

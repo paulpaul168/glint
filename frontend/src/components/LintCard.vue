@@ -1,7 +1,30 @@
 <template>
   <v-item-group>
     <v-row>
-      <v-card-title class="lint-header">{{ lint.header }}</v-card-title>
+      <v-col class="lint-header-col" cols="9">
+        <v-card-title class="lint-header">{{ lint.header }}</v-card-title>
+      </v-col>
+      <v-col class="lint-header-col text-right" style="width: auto">
+        <v-tooltip bottom open-delay="1000">
+          <template v-slot:activator="{ on, attrs }">
+            <v-btn
+              text
+              small
+              elevation="0"
+              class="lint-file-btn"
+              v-bind="attrs"
+              v-on="on"
+              @click="goToFile"
+            >
+              {{ fileLinkText }}
+            </v-btn>
+          </template>
+          <span>Jump to location</span>
+        </v-tooltip>
+        <!--<a target="_blank" :href="lint.fileName" class="lint-url">
+          {{ fileLinkText }}
+        </a>-->
+      </v-col>
     </v-row>
     <v-row>
       <v-card outlined elevation="2" class="lint-snippet rounded-md">
@@ -47,6 +70,7 @@ export default class LintCard extends Vue {
     unsaved: false,
     edited: false,
   };
+  private fileLinkText = "";
 
   created(): void {
     this.lintChanged();
@@ -64,6 +88,15 @@ export default class LintCard extends Vue {
       .join("\n");
     this.internalFileState.file.name = this.fileState.file.name;
     this.internalFileState.file.content = codeSnippet;
+    if (this.snippetEndLine - this.snippetStartLine > 1) {
+      this.fileLinkText = "lines " + this.snippetStartLine + "-" + this.snippetEndLine;
+    } else {
+      this.fileLinkText = "line " + this.snippetStartLine;
+    }
+  }
+
+  private goToFile(): void {
+    this.$emit("show-source", this.snippetStartLine);
   }
 }
 </script>
@@ -71,7 +104,9 @@ export default class LintCard extends Vue {
 <style scoped>
 .lint-header {
   margin-top: 1em;
-  padding-bottom: 0.2em;
+  padding-left: 0;
+  padding-bottom: 0em;
+  text-align: left;
 }
 
 .lint-snippet {
@@ -94,6 +129,24 @@ export default class LintCard extends Vue {
 .lint-url:hover {
   transition: 0.2s;
   color: var(--v-accent-base);
-  text-decoration: underline;
+}
+
+.lint-header-col {
+  height: auto;
+  margin-top: auto;
+  margin-bottom: 0;
+  padding-bottom: 0.2em;
+}
+
+.lint-file-btn {
+  text-transform: none;
+  color: var(--v-primary-base);
+  transition: 0.1s;
+}
+
+.lint-file-btn:hover {
+  text-transform: none;
+  color: var(--v-accent-base);
+  transition: 0.2s;
 }
 </style>
