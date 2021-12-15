@@ -139,6 +139,7 @@ export default class LintCard extends Vue {
 }
 
 .lint-file-btn {
+  margin-right: 0.6em;
   text-transform: none;
   color: var(--v-primary-base);
   transition: 0.1s;
