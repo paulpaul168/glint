@@ -4,7 +4,7 @@
       <v-col class="lint-header-col" cols="9">
         <v-card-title class="lint-header">{{ lint.header }}</v-card-title>
       </v-col>
-      <v-col class="lint-header-col text-right" style="width: auto">
+      <v-col class="lint-header-col text-right" style="padding-right: 0">
         <v-tooltip bottom open-delay="1000">
           <template v-slot:activator="{ on, attrs }">
             <v-btn
@@ -110,8 +110,9 @@ export default class LintCard extends Vue {
 }
 
 .lint-snippet {
-  width: 98%;
+  width: 100%;
   margin-bottom: 1em;
+  margin-right: 1em;
 }
 
 .lint-text {
@@ -139,7 +140,7 @@ export default class LintCard extends Vue {
 }
 
 .lint-file-btn {
-  margin-right: 0.6em;
+  margin-right: 1.3em;
   text-transform: none;
   color: var(--v-primary-base);
   transition: 0.1s;

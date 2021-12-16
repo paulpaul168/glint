@@ -22,7 +22,7 @@
     </v-app-bar>
 
     <v-main style="height: 100vh">
-      <v-container fluid style="height: 100%; width: 90%">
+      <v-container style="height: 100%">
         <router-view />
       </v-container>
     </v-main>
