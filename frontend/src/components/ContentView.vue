@@ -1,6 +1,6 @@
 <template>
-  <v-item-group>
-    <v-row>
+  <div class="main-content-pane" style="margin-right: 15px">
+    <v-row style="margin-top: 0">
       <v-tabs
         v-model="activeTab"
         show-arrows
@@ -19,14 +19,18 @@
         </v-tab>-->
       </v-tabs>
     </v-row>
-    <v-row>
+    <v-row style="height: calc(100% - 48px)">
       <v-tabs-items
         v-model="activeTab"
-        class="main-file-view main-pane"
+        class="main-file-view"
         justify="center"
         align="center"
       >
-        <v-tab-item v-for="state in fileStates" :key="state.file.name">
+        <v-tab-item
+          style="height: 100%"
+          v-for="state in fileStates"
+          :key="state.file.name"
+        >
           <v-toolbar class="toolbar" dense elevation="0" color="transparent">
             <v-tooltip bottom open-delay="1000" v-if="state.unsaved">
               <template v-slot:activator="{ on, attrs }">
@@ -87,7 +91,7 @@
         </v-tab-item>
       </v-tabs-items>
     </v-row>
-  </v-item-group>
+  </div>
 </template>
 
 <script lang="ts">
@@ -201,11 +205,6 @@ export default class ContentView extends Vue {
 </script>
 
 <style scoped>
-.main-pane {
-  border: var(--v-bg_secondary-base) solid 0 !important;
-  border-bottom-right-radius: 5px !important;
-}
-
 .file-tabs {
   background-color: var(--v-bg_tertiary-base);
   border: var(--v-bg_secondary-base) solid 0px;
@@ -214,20 +213,20 @@ export default class ContentView extends Vue {
 
 .main-file-view {
   width: 100%;
-  overflow-y: auto !important;
-  height: calc(100vh - 130px);
+  height: 100%;
 
-  scrollbar-color: var(--v-bg_tertiary-base) var(--v-bg_secondary-base);
-  border-bottom-right-radius: 50px;
+  border: var(--v-bg_secondary-base) solid 0 !important;
+  border-bottom-right-radius: 5px !important;
 }
 
 .toolbar {
-  position: fixed;
-  right: 5.8%;
+  position: absolute;
+  right: 0.1em;
   z-index: 10;
 }
 
 .toolbar-element {
   margin-left: 0.2em;
+  min-width: 43px !important;
 }
 </style>

@@ -101,6 +101,10 @@ export default class CodeView extends Vue {
   line-height: 1.5;
   padding: 5px;
 
-  height: auto;
+  height: 100%;
+  overflow-y: auto !important;
+
+  scrollbar-color: var(--v-bg_tertiary-base) var(--v-bg_secondary-base);
+  border-bottom-right-radius: 50px;
 }
 </style>

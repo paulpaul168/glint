@@ -1,27 +1,38 @@
 <template>
-  <v-container fluid style="width: 90%">
-    <v-row dense>
-      <v-col cols="2">
-        <project-list />
-      </v-col>
-      <v-col cols="10">
-        <file-view />
-      </v-col>
-    </v-row>
-  </v-container>
+  <div class="d-flex flex-row main-pane">
+    <div style="max-width: 400px; min-width: 200px; flew-grow: 3">
+      <project-list />
+    </div>
+    <div style="flex-grow: 7">
+      <content-view />
+    </div>
+  </div>
 </template>
 
 <script lang="ts">
 import Vue from "vue";
-import FileView from "../components/ContentView.vue";
+import ContentView from "../components/ContentView.vue";
 import ProjectList from "../components/ProjectList.vue";
 
 export default Vue.extend({
   name: "Home",
 
   components: {
-    FileView,
+    ContentView,
     ProjectList,
   },
 });
 </script>
+
+<style>
+.main-pane {
+  width: 100%;
+  margin: auto;
+  height: 100%;
+  /*height: calc(97vh - 56px);*/
+}
+
+.main-content-pane {
+  height: 100%;
+}
+</style>
