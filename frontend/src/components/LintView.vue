@@ -109,5 +109,11 @@ export default class LintView extends Vue {
 .lint-view {
   border: var(--v-bg_secondary-base) solid 0 !important;
   border-bottom-right-radius: 5px !important;
+
+  height: 100%;
+  overflow-y: auto !important;
+
+  scrollbar-color: var(--v-bg_tertiary-base) var(--v-bg_secondary-base);
+  border-bottom-right-radius: 50px;
 }
 </style>
