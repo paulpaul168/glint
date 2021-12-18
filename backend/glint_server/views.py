@@ -1,10 +1,9 @@
 from glint_server import app
-from glint_server import file
 from flask import json, request
 import urllib.parse
 
 from glint_server.linter_collection import lint_project
-from file import save_file, create_project
+from glint_server.file import save_file, create_project
 
 
 @app.get("/")
@@ -28,8 +27,14 @@ def create_project():
         "name": post_content["name"],
         "projectId": project_path,
         "projectUrl": app.config["HOST"] + "/api/projects/" + project_path,
-        "sourcesUrl": app.config["HOST"] + "/api/projects/" + project_path + "/sources",
-        "lintUrl": app.config["HOST"] + "/api/projects/" + project_path + "/lint",
+        "sourcesUrl": app.config["HOST"]
+        + "/api/projects/"
+        + project_path
+        + "/sources",
+        "lintUrl": app.config["HOST"]
+        + "/api/projects/"
+        + project_path
+        + "/lint",
     }
     return prepareResponse(data)
 

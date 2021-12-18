@@ -1,5 +1,6 @@
 from glint_server import app
-import os, urllib.parse
+import os
+import urllib.parse
 
 
 def create_project(name: str) -> str:
