@@ -39,6 +39,7 @@
           :lineNumbers="false"
           :readonly="true"
           :fileState="internalFileState"
+          :height="'auto'"
         ></code-view>
       </v-card>
     </v-row>

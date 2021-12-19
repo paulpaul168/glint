@@ -10,6 +10,7 @@ export interface FileHandle {
 }
 
 export interface FileEvent {
+  projectName: string;
   files: FileHandle[];
 }
 
@@ -41,5 +42,18 @@ export interface Lint {
 
   header: string;
   message: string;
-  url?: string; //not sure if this should be optional or always defaulted to empty string
+  url?: URL; //not sure if this should be optional or always defaulted to empty string
+}
+
+export interface ProjectData {
+  name: string;
+  id: string;
+  language: string;
+  linter: string;
+
+  urls: {
+    projectUrl: URL;
+    sourcesUrl: URL;
+    lintUrl: URL;
+  };
 }

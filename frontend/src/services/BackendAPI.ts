@@ -1,14 +1,14 @@
 import { FileHandle, LintEvent, Lint } from "@/components/types/interfaces";
 import { Dictionary } from "vue-router/types/router";
 
-const apiAddress = "https://localhost:5000/api/";
+export const apiAddress = "http://localhost:5000/api/"; //don't like having to export that, but I think I need it to allow setting sensible default URLs. Do I even want that?
 
 export async function submitProject(
   name = "DefaultProject",
   files: FileHandle[],
   language = "auto",
   linter = "auto"
-): Promise<string> {
+): Promise<Dictionary<string>> {
   //init request data structure
   const request = {
     name: name,
@@ -31,15 +31,22 @@ export async function submitProject(
   try {
     resp = await fetch(apiAddress + "projects", {
       method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify(request),
     });
-  } catch {
-    console.log("Fatal error during fetch when submitting project, aborting");
-    return ""; //TODO this should probably return some error code that can be read and properly reacted to
+  } catch (error) {
+    console.log(
+      "Fatal error during fetch when submitting project:",
+      error,
+      "Aborting."
+    );
+    return { error: "fatal error" }; //TODO figure out some better error structure
   }
 
   if (!resp.ok) {
-    return null as any;
+    return { error: "non-OK status received" }; //TODO figure out some better error structure
   }
   return await resp.json();
 }
@@ -66,6 +73,31 @@ export async function getLint(projectId: string): Promise<LintEvent> {
     };
   }
   if (!resp.ok) {
+    if (resp.status == 404) { //filter 404 out individually to circumvent that the backend doesn't properly work on this part yet.
+      return {
+        status: "processing",
+        linter: "unknown",
+        lintFiles: [
+          {
+            name: "",
+            path: "",
+            lints: [],
+          },
+        ],
+      };
+    }
+    console.log("Received non-OK response when fetching lint");
+    return {
+      status: "Received non-OK response when fetching lint",
+      linter: "unknown",
+      lintFiles: [
+        {
+          name: "",
+          path: "",
+          lints: [],
+        },
+      ],
+    };
     //TODO if we really change http header on errors this handling will need to be updated
     return null as any;
   }

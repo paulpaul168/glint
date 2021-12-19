@@ -1,5 +1,6 @@
 <template>
   <prism-editor
+    :style="'height: ' + height"
     class="code-editor"
     v-model="internalState.file.content"
     :highlight="highlighter"
@@ -13,6 +14,7 @@
 <script lang="ts">
 import { Component, Prop, Vue, Watch } from "vue-property-decorator";
 import { FileState } from "./types/interfaces";
+import { getLanguage } from "@/services/LanguageDetection";
 
 import { PrismEditor } from "vue-prism-editor";
 import "vue-prism-editor/dist/prismeditor.min.css";
@@ -34,6 +36,8 @@ export default class CodeView extends Vue {
 
   @Prop({ default: false }) readonly!: boolean;
   @Prop({ default: true }) lineNumbers!: boolean;
+  @Prop({ default: "auto" }) language!: string;
+  @Prop({ default: "100%" }) height!: string;
   @Prop({
     default: () => ({
       file: { name: "unnamed", path: "unnamed", content: "" },
@@ -65,28 +69,21 @@ export default class CodeView extends Vue {
     this.$emit("input", this.internalState);
   }
 
+  @Watch("language")
   highlighter(code: string): string {
     let extension = this.internalState.file.name.split(".").pop(); //TODO: on tab switch this is apparently called again for each tab and then the highlight language is incorrect because active tab is incorrect. investigate
-    let language = "";
-    switch (extension) {
-      case "py":
-        language = "python";
-        break;
-      case "ts":
-      case "js":
-        language = "javascript";
-        break;
-      case "vue":
-        language = "html";
-        break;
-      case "md":
-        language = "markdown";
-        break;
-      default:
-        console.log("Couldn't find a language to apply for highlighting");
+    let detectedLanguage = "";
+    if (this.language == "auto") {
+      if (extension != undefined) {
+        detectedLanguage = getLanguage(extension);
+      }
+      if (detectedLanguage == "txt") {
         return code;
+      }
+    } else {
+      detectedLanguage = this.language;
     }
-    return highlight(code, languages[language], language);
+    return highlight(code, languages[detectedLanguage], detectedLanguage);
   }
 }
 </script>
@@ -101,7 +98,6 @@ export default class CodeView extends Vue {
   line-height: 1.5;
   padding: 5px;
 
-  height: 100%;
   overflow-y: auto !important;
 
   scrollbar-color: var(--v-bg_tertiary-base) var(--v-bg_secondary-base);

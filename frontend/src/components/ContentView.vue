@@ -57,15 +57,32 @@
                   color="transparent"
                   v-bind="attrs"
                   v-on="on"
-                  :loading="lintData.status == 'processing'"
-                  :disabled="lintData.status != 'done'"
-                  @click="showLint = !showLint"
+                  :loading="
+                    lintData.status == 'processing' && remainingLintChecks > 0
+                  "
+                  :disabled="
+                    !(
+                      lintData.status == 'done' ||
+                      (lintData.status == 'processing' &&
+                        remainingLintChecks == 0)
+                    )
+                  "
+                  @click="handleLintSwitcher"
                 >
                   <v-icon small v-if="showLint">mdi-pencil</v-icon>
                   <v-icon
                     small
                     v-else-if="!showLint && lintData.status == 'done'"
                     >mdi-format-list-bulleted</v-icon
+                  >
+                  <v-icon
+                    small
+                    v-else-if="
+                      !showLint &&
+                      lintData.status == 'processing' &&
+                      remainingLintChecks <= 0
+                    "
+                    >mdi-reload</v-icon
                   >
                   <v-icon
                     small
@@ -78,15 +95,28 @@
                 </v-btn>
               </template>
               <span v-if="showLint">Show Source</span>
+              <span
+                v-else-if="
+                  !showLint &&
+                  lintData.status == 'processing' &&
+                  remainingLintChecks <= 0
+                "
+              >
+                Retry fetching Lint result
+              </span>
               <span v-else>Show Lint</span>
             </v-tooltip>
           </v-toolbar>
           <lint-view v-if="showLint" :fileState="state"></lint-view>
-          <code-view v-else :fileState="state"></code-view>
+          <code-view
+            v-else
+            :fileState="state"
+            :language="projectData.language"
+          ></code-view>
           <upload-dialog
             v-if="!showFile"
             :uploading="uploading"
-            @file-event="loadFiles($event)"
+            @file-event="loadProject($event)"
           ></upload-dialog>
         </v-tab-item>
       </v-tabs-items>
@@ -95,9 +125,9 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue, Watch } from "vue-property-decorator";
+import { Component, Vue } from "vue-property-decorator";
 
-import * as API from "../services/BackendAPI";
+import * as API from "@/services/BackendAPI";
 import UploadDialog from "@/components/UploadDialog.vue";
 import CodeView from "@/components/CodeView.vue";
 import LintView from "@/components/LintView.vue";
@@ -107,6 +137,7 @@ import {
   FileHandle,
   FileState,
   LintEvent,
+  ProjectData,
 } from "./types/interfaces";
 
 @Component({
@@ -121,6 +152,19 @@ export default class ContentView extends Vue {
   private showFile = false;
   private showLint = false;
   private lintCheckTimer!: number;
+  private remainingLintChecks = 5;
+  private projectData: ProjectData = {
+    //the defaults here need to be removed at some point and synced with a separate @Prop projectdata
+    name: "DefaultProject",
+    id: "DefaultProject",
+    language: "auto",
+    linter: "auto",
+    urls: {
+      projectUrl: new URL(API.apiAddress), //I dislike these default, I'd love to not have to specify them at all, but I think I might need to because I need language defaults
+      sourcesUrl: new URL(API.apiAddress),
+      lintUrl: new URL(API.apiAddress),
+    },
+  };
   private lintData: LintEvent = {
     status: "", //processing means lint is ongoing/result hasn't come in yet, done means lint has been received, anything else means error on linting
     linter: "",
@@ -142,11 +186,6 @@ export default class ContentView extends Vue {
     },
   ];
 
-  @Watch("lintData")
-  private updateLintToggle(): void {
-    return;
-  }
-
   private codeEdited(): void {
     if (this.showFile == false) {
       this.showFile = true; //TODO probably more to do here once that happens (someone writing in an empty file while the upload button is showing)
@@ -159,7 +198,18 @@ export default class ContentView extends Vue {
     return;
   }
 
-  private async loadFiles(event: FileEvent): Promise<void> {
+  private handleLintSwitcher(): void {
+    if (this.lintData.status == "done") {
+      this.showLint = !this.showLint;
+    } else if (
+      this.lintData.status == "processing" &&
+      this.remainingLintChecks <= 0
+    ) {
+      this.remainingLintChecks = 3;
+    }
+  }
+
+  private async loadProject(event: FileEvent): Promise<void> {
     //get files from user file event and show it in UI
     if (event.files.length == 0) {
       this.fileStates = [
@@ -182,23 +232,33 @@ export default class ContentView extends Vue {
       for (const fileState of this.fileStates) {
         fileHandles.push(fileState.file);
       }
-      console.log("reached get upload");
-      let result = await API.submitProject("DefaultProject", fileHandles); //add language detection here. best to move the language detection to a separate .ts and call it in fileview for highlighting and here for sending to backend. language detection per file and for now just take eg: first file in list for detection here
+      //console.log("reached get upload");
+      let result = await API.submitProject(event.projectName, fileHandles); //add language detection here. best to move the language detection to a separate .ts and call it in fileview for highlighting and here for sending to backend. language detection per file and for now just take eg: first file in list for detection here
+      console.log("result", result);
+      //TODO better resilience against key errors (if some key is not contained in answer like on error)
+      this.projectData.name = result["name"];
+      this.projectData.id = result["projectId"];
+      this.projectData.urls.projectUrl = new URL(result["projectUrl"]);
+      this.projectData.urls.sourcesUrl = new URL(result["sourcesUrl"]);
+      this.projectData.urls.lintUrl = new URL(result["lintUrl"]);
       this.uploading = false; //TODO later on I probably should look into error handling here + an event that uploading is finished to not hide the button instantly
 
       //set interval for asking for lint status every second. handler has to deactivate asking for lint results on receiving results (or an error)
-      console.log("reached get lint");
+      //console.log("reached get lint");
       this.lintData.status = "processing";
       this.lintCheckTimer = setInterval(this.handleLintTimer, 1000);
     }
   }
 
   private async handleLintTimer() {
-    let lintEvent = await API.getLint("DefaultProject"); //TODO proper project handling
-    this.lintData = lintEvent;
+    if (this.remainingLintChecks > 0) {
+      this.remainingLintChecks--;
+      let lintEvent = await API.getLint(this.projectData.name); //TODO proper project handling. Should use ID instead?
+      this.lintData = lintEvent;
 
-    if (this.lintData.status != "processing") {
-      clearInterval(this.lintCheckTimer);
+      if (this.lintData.status != "processing") {
+        clearInterval(this.lintCheckTimer);
+      }
     }
   }
 }

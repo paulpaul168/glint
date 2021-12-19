@@ -116,4 +116,8 @@ export default class LintView extends Vue {
   scrollbar-color: var(--v-bg_tertiary-base) var(--v-bg_secondary-base);
   border-bottom-right-radius: 50px;
 }
+
+.code-editor {
+  height: auto !important;
+}
 </style>
