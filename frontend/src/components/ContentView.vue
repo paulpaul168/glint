@@ -41,6 +41,7 @@
                   color="transparent"
                   v-bind="attrs"
                   v-on="on"
+                  :loading="uploading"
                   @click="saveFile"
                 >
                   <v-icon small>mdi-content-save</v-icon>
@@ -194,7 +195,16 @@ export default class ContentView extends Vue {
     this.fileStates[this.activeTab].unsaved = true;
   }
 
-  private saveFile(): void {
+  private async saveFile(): Promise<void> {
+    this.uploading = true;
+    let result = await API.overwriteFile(
+      this.projectData.id,
+      this.fileStates[this.activeTab].file
+    );
+    if (result.status != undefined) {
+      //error on uploading
+    }
+    this.uploading = false;
     return;
   }
 

@@ -51,6 +51,38 @@ export async function submitProject(
   return await resp.json();
 }
 
+export async function overwriteFile(
+  projectId: string,
+  file: FileHandle
+): Promise<{ status?: string; name: string; fileUrl: string }> {
+  let resp;
+  try {
+    resp = await fetch(
+      `${apiAddress}projects/${projectId}/sources/${file.name}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: FileList.name,
+          path: file.path,
+          content: file.content,
+        }),
+      }
+    );
+  } catch {
+    console.log("Fatal error during saving file content (overwrite), aborting");
+    return {
+      status:
+        "Fatal error while requesting Lint result; fetch() threw Exception",
+      name: "",
+      fileUrl: "",
+    };
+  }
+  return resp.json();
+}
+
 export async function getLint(projectId: string): Promise<LintEvent> {
   let resp;
   try {
@@ -73,7 +105,8 @@ export async function getLint(projectId: string): Promise<LintEvent> {
     };
   }
   if (!resp.ok) {
-    if (resp.status == 404) { //filter 404 out individually to circumvent that the backend doesn't properly work on this part yet.
+    if (resp.status == 404) {
+      //filter 404 out individually to circumvent that the backend doesn't properly work on this part yet.
       return {
         status: "processing",
         linter: "unknown",
