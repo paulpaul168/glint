@@ -8,11 +8,15 @@
         background-color="bg_tertiary"
       >
         <v-tab
-          style="text-transform: none"
-          v-for="state in fileStates"
+          class="file-tab"
+          v-for="(state, index) in fileStates"
           :key="state.file.name"
         >
-          {{ state.file.name }}<p v-if="state.unsaved">*</p>
+          <file-tab
+            :title="state.file.name"
+            :unsaved="state.unsaved"
+            :active="activeTab == index"
+          ></file-tab>
         </v-tab>
         <!--<v-tab v-if="showUploader">
           <v-icon>mdi-plus</v-icon>
@@ -133,6 +137,7 @@ import * as API from "@/services/BackendAPI";
 import UploadDialog from "@/components/UploadDialog.vue";
 import CodeView from "@/components/CodeView.vue";
 import LintView from "@/components/LintView.vue";
+import FileTab from "@/components/FileTab.vue";
 
 import {
   FileEvent,
@@ -148,6 +153,7 @@ import { getLanguage } from "@/services/LanguageDetection";
     UploadDialog,
     CodeView,
     LintView,
+    FileTab,
   },
 })
 export default class ContentView extends Vue {
@@ -300,6 +306,11 @@ export default class ContentView extends Vue {
   background-color: var(--v-bg_tertiary-base);
   border: var(--v-bg_secondary-base) solid 0px;
   border-top-right-radius: 5px !important;
+}
+
+.file-tab {
+  text-transform: none;
+  flex-flow: column;
 }
 
 .main-file-view {
