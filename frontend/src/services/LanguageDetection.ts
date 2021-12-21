@@ -1,6 +1,10 @@
 export const supportedLanguages = ["python", "javascript", "html", "markdown"]; //I dislike this approach, but I can't think of anything better at this point in time
 
-export function getLanguage(extension: string): string {
+export function getLanguage(fileName: string): string {
+  const extension = fileName.split(".").pop();
+  if (extension == undefined) {
+    return "txt";
+  }
   let language = "";
   switch (extension) {
     case "py":

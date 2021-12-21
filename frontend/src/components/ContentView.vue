@@ -14,7 +14,7 @@
         >
           {{ state.file.name }}<p v-if="state.unsaved">*</p>
         </v-tab>
-        <!--<v-tab v-if="showFile">
+        <!--<v-tab v-if="showUploader">
           <v-icon>mdi-plus</v-icon>
         </v-tab>-->
       </v-tabs>
@@ -112,10 +112,11 @@
           <code-view
             v-else
             :fileState="state"
-            :language="projectData.language"
+            :language="detectedLanguage"
+            @input="codeEdited"
           ></code-view>
           <upload-dialog
-            v-if="!showFile"
+            v-if="showUploader"
             :uploading="uploading"
             @file-event="loadProject($event)"
           ></upload-dialog>
@@ -137,9 +138,10 @@ import {
   FileEvent,
   FileHandle,
   FileState,
-  LintEvent,
   ProjectData,
 } from "./types/interfaces";
+import { LintResponse } from "@/services/types/api_responses_interfaces";
+import { getLanguage } from "@/services/LanguageDetection";
 
 @Component({
   components: {
@@ -150,23 +152,24 @@ import {
 })
 export default class ContentView extends Vue {
   name = "ContentView";
-  private showFile = false;
+  private showUploader = true;
   private showLint = false;
   private lintCheckTimer!: number;
   private remainingLintChecks = 5;
   private projectData: ProjectData = {
     //the defaults here need to be removed at some point and synced with a separate @Prop projectdata
-    name: "DefaultProject",
-    id: "DefaultProject",
-    language: "auto",
-    linter: "auto",
-    urls: {
+    project: {
+      name: "DefaultProject",
+      projectId: "DefaultProject",
       projectUrl: new URL(API.apiAddress), //I dislike these default, I'd love to not have to specify them at all, but I think I might need to because I need language defaults
       sourcesUrl: new URL(API.apiAddress),
       lintUrl: new URL(API.apiAddress),
     },
+    language: "auto",
+    linter: "auto",
   };
-  private lintData: LintEvent = {
+  private detectedLanguage = "txt";
+  private lintData: LintResponse = {
     status: "", //processing means lint is ongoing/result hasn't come in yet, done means lint has been received, anything else means error on linting
     linter: "",
     lintFiles: [
@@ -188,8 +191,8 @@ export default class ContentView extends Vue {
   ];
 
   private codeEdited(): void {
-    if (this.showFile == false) {
-      this.showFile = true; //TODO probably more to do here once that happens (someone writing in an empty file while the upload button is showing)
+    if (this.showUploader == true) {
+      this.showUploader = false; //TODO probably more to do here once that happens (someone writing in an empty file while the upload button is showing)
     }
     this.fileStates[this.activeTab].edited = true;
     this.fileStates[this.activeTab].unsaved = true;
@@ -198,10 +201,10 @@ export default class ContentView extends Vue {
   private async saveFile(): Promise<void> {
     this.uploading = true;
     let result = await API.overwriteFile(
-      this.projectData.id,
+      this.projectData.project.projectId,
       this.fileStates[this.activeTab].file
     );
-    if (result.status != undefined) {
+    if (result.success != false) {
       //error on uploading
     }
     this.uploading = false;
@@ -234,23 +237,42 @@ export default class ContentView extends Vue {
       for (let file of event.files) {
         this.fileStates.push({ edited: false, unsaved: false, file: file });
       }
-      this.showFile = true;
 
       //upload files to backend
       this.uploading = true;
+      //extract file handles from file states
       let fileHandles: FileHandle[] = [];
       for (const fileState of this.fileStates) {
         fileHandles.push(fileState.file);
       }
       //console.log("reached get upload");
-      let result = await API.submitProject(event.projectName, fileHandles); //add language detection here. best to move the language detection to a separate .ts and call it in fileview for highlighting and here for sending to backend. language detection per file and for now just take eg: first file in list for detection here
-      console.log("result", result);
-      //TODO better resilience against key errors (if some key is not contained in answer like on error)
-      this.projectData.name = result["name"];
-      this.projectData.id = result["projectId"];
-      this.projectData.urls.projectUrl = new URL(result["projectUrl"]);
-      this.projectData.urls.sourcesUrl = new URL(result["sourcesUrl"]);
-      this.projectData.urls.lintUrl = new URL(result["lintUrl"]);
+      console.log("detect in content view");
+      if (this.projectData.language == "auto") {
+        //TODO right now the whole project's language is being read from the first file. this is not great but I don't really know what else to do.
+        this.detectedLanguage = getLanguage(fileHandles[0].name);
+      }
+      let result = await API.submitProject({
+        name: event.projectName,
+        files: fileHandles,
+        language: this.detectedLanguage,
+        linter: this.projectData.linter,
+      });
+      if (result.errorMessage != undefined) {
+        console.log(result.errorMessage);
+        this.uploading = false;
+        this.fileStates = [
+          {
+            edited: false,
+            unsaved: false,
+            file: { name: "unnamed", path: "unnamed", content: "" },
+          },
+        ];
+        this.showUploader = true;
+        //TODO show error message
+        return;
+      }
+      this.showUploader = false;
+      this.projectData.project = result;
       this.uploading = false; //TODO later on I probably should look into error handling here + an event that uploading is finished to not hide the button instantly
 
       //set interval for asking for lint status every second. handler has to deactivate asking for lint results on receiving results (or an error)
@@ -263,8 +285,7 @@ export default class ContentView extends Vue {
   private async handleLintTimer() {
     if (this.remainingLintChecks > 0) {
       this.remainingLintChecks--;
-      let lintEvent = await API.getLint(this.projectData.name); //TODO proper project handling. Should use ID instead?
-      this.lintData = lintEvent;
+      this.lintData = await API.getLint(this.projectData.project.name); //TODO proper project handling. Should use ID instead?
 
       if (this.lintData.status != "processing") {
         clearInterval(this.lintCheckTimer);

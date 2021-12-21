@@ -40,6 +40,7 @@
           :readonly="true"
           :fileState="internalFileState"
           :height="'auto'"
+          :language="'auto'"
         ></code-view>
       </v-card>
     </v-row>

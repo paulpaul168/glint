@@ -1,3 +1,5 @@
+import { ProjectResponse } from "@/services/types/api_responses_interfaces";
+
 export interface Events {
   files: FileEvent;
   lints: LintEvent;
@@ -12,18 +14,7 @@ export interface FileHandle {
 export interface FileEvent {
   projectName: string;
   files: FileHandle[];
-}
-
-export interface LintEvent {
-  status: string;
-  linter: string;
-  lintFiles: [
-    {
-      name: string;
-      path: string;
-      lints: Lint[];
-    }
-  ];
+  error?: unknown;
 }
 
 export interface FileState {
@@ -46,14 +37,7 @@ export interface Lint {
 }
 
 export interface ProjectData {
-  name: string;
-  id: string;
+  project: ProjectResponse;
   language: string;
   linter: string;
-
-  urls: {
-    projectUrl: URL;
-    sourcesUrl: URL;
-    lintUrl: URL;
-  };
 }

@@ -45,7 +45,8 @@ export default class CodeView extends Vue {
       edited: false,
     }),
   })
-  fileState!: FileState;
+  private fileState!: FileState;
+  private detectedLanguage = "txt";
 
   private internalState: FileState = {
     file: { name: "unnamed", path: "unnamed", content: "" },
@@ -55,6 +56,7 @@ export default class CodeView extends Vue {
 
   created(): void {
     this.internalState = this.fileState;
+    this.languageChanged();
   }
 
   @Watch("fileState")
@@ -63,27 +65,32 @@ export default class CodeView extends Vue {
     console.log("state changed", this.internalState.file.name);
   }
 
+  @Watch("language")
+  private languageChanged() {
+    if (this.language == "auto") {
+      this.detectedLanguage = getLanguage(this.internalState.file.name);
+    } else {
+      this.detectedLanguage = this.language;
+    }
+    this.highlighter(this.internalState.file.content);
+  }
+
   private codeEdited(): void {
     this.internalState.edited = true;
     this.internalState.unsaved = true;
     this.$emit("input", this.internalState);
   }
 
-  @Watch("language")
   highlighter(code: string): string {
-    let extension = this.internalState.file.name.split(".").pop(); //TODO: on tab switch this is apparently called again for each tab and then the highlight language is incorrect because active tab is incorrect. investigate
-    let detectedLanguage = "";
-    if (this.language == "auto") {
-      if (extension != undefined) {
-        detectedLanguage = getLanguage(extension);
-      }
-      if (detectedLanguage == "txt") {
-        return code;
-      }
-    } else {
-      detectedLanguage = this.language;
+    //TODO: on tab switch this is apparently called again for each tab and then the highlight language is incorrect because active tab is incorrect. investigate
+    if (this.detectedLanguage == "txt") {
+      return code;
     }
-    return highlight(code, languages[detectedLanguage], detectedLanguage);
+    return highlight(
+      code,
+      languages[this.detectedLanguage],
+      this.detectedLanguage
+    );
   }
 }
 </script>

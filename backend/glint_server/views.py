@@ -5,6 +5,7 @@ import urllib.parse
 from glint_server.linter_collection import lint_project
 from glint_server.file import save_file, create_project_folder
 
+import time #sometimes needed to test frontend behavior for slow answers
 
 @app.get("/")
 def home():
@@ -36,6 +37,7 @@ def create_project():
         + project_path
         + "/lint",
     }
+    #time.sleep(1)
     return prepareResponse(data)
 
 # needed because browser sends "options" request to same link before sending POST to check if CORS is allowed and I don't see another way to respond to the OPTIONS http request (@app.options doesn't exist)

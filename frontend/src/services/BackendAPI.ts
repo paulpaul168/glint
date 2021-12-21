@@ -1,31 +1,22 @@
-import { FileHandle, LintEvent, Lint } from "@/components/types/interfaces";
-import { Dictionary } from "vue-router/types/router";
+import { FileHandle, Lint } from "@/components/types/interfaces";
+import { SubmitProject } from "./types/api_requests_interfaces";
+import {
+  ProjectResponse,
+  LintResponse,
+} from "./types/api_responses_interfaces";
 
 export const apiAddress = "http://localhost:5000/api/"; //don't like having to export that, but I think I need it to allow setting sensible default URLs. Do I even want that?
 
 export async function submitProject(
-  name = "DefaultProject",
-  files: FileHandle[],
-  language = "auto",
-  linter = "auto"
-): Promise<Dictionary<string>> {
-  //init request data structure
-  const request = {
-    name: name,
-    files: [] as Dictionary<string>[], //there has to be a nicer way of doing this
-    language: language,
-    linter: linter,
+  project: SubmitProject
+): Promise<ProjectResponse> {
+  const emptyProjectResp: ProjectResponse = {
+    name: "",
+    projectId: "",
+    projectUrl: new URL(apiAddress),
+    sourcesUrl: new URL(apiAddress),
+    lintUrl: new URL(apiAddress),
   };
-
-  //enter files to push in request data
-  for (const file of files) {
-    const transmitFile = {
-      name: file.name,
-      path: file.path,
-      content: file.content,
-    };
-    request.files.push(transmitFile);
-  }
 
   let resp;
   try {
@@ -34,7 +25,7 @@ export async function submitProject(
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(request),
+      body: JSON.stringify(project),
     });
   } catch (error) {
     console.log(
@@ -42,11 +33,15 @@ export async function submitProject(
       error,
       "Aborting."
     );
-    return { error: "fatal error" }; //TODO figure out some better error structure
+    emptyProjectResp.errorMessage =
+      "Fatal error during fetch when submitting project: " + error;
+    return emptyProjectResp;
   }
 
   if (!resp.ok) {
-    return { error: "non-OK status received" }; //TODO figure out some better error structure
+    emptyProjectResp.errorMessage =
+      "non-OK message received while submitting project";
+    return emptyProjectResp;
   }
   return await resp.json();
 }
@@ -54,7 +49,7 @@ export async function submitProject(
 export async function overwriteFile(
   projectId: string,
   file: FileHandle
-): Promise<{ status?: string; name: string; fileUrl: string }> {
+): Promise<{ success: boolean; errorMessage?: string }> {
   let resp;
   try {
     resp = await fetch(
@@ -71,19 +66,26 @@ export async function overwriteFile(
         }),
       }
     );
-  } catch {
+  } catch (error) {
     console.log("Fatal error during saving file content (overwrite), aborting");
     return {
-      status:
-        "Fatal error while requesting Lint result; fetch() threw Exception",
-      name: "",
-      fileUrl: "",
+      success: false,
+      errorMessage:
+        "Fatal error during saving file content (overwrite), aborting",
     };
   }
-  return resp.json();
+
+  if (!resp.ok) {
+    return {
+      success: false,
+      errorMessage: "non-OK status received while overwriting file",
+    };
+  }
+
+  return { success: true };
 }
 
-export async function getLint(projectId: string): Promise<LintEvent> {
+export async function getLint(projectId: string): Promise<LintResponse> {
   let resp;
   try {
     resp = await fetch(apiAddress + "projects/" + projectId + "/lint/", {
@@ -136,7 +138,7 @@ export async function getLint(projectId: string): Promise<LintEvent> {
   }
   const respJson = await resp.json();
 
-  const lintEvent: LintEvent = {
+  const lintEvent: LintResponse = {
     status: respJson["status"],
     linter: respJson["linter"],
     lintFiles: [
@@ -168,16 +170,6 @@ export async function getLint(projectId: string): Promise<LintEvent> {
         for (const lint of file.lints) {
           const lintFile: Lint = lint;
           lintFile.fileName = file.name;
-          /*const lintFile: Lint = {
-            fileName: file.name,
-            line: lint.line,
-            endLine: lint.endLine,
-            column: lint.column,
-            endColumn: lint.endColumn,
-            header: lint.header,
-            message: lint.message,
-            url: lint.url,
-          };*/
           lintEvent.lintFiles[index].lints.push(lintFile);
         }
       }
