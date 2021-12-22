@@ -9,13 +9,15 @@
       >
         <v-tab
           class="file-tab"
-          v-for="(state, index) in fileStates"
-          :key="state.file.name"
+          v-for="(state, index) in openFileStates"
+          :key="state.id"
         >
           <file-tab
             :title="state.file.name"
             :unsaved="state.unsaved"
             :active="activeTab == index"
+            @file-close="closeFile"
+            @file-rename="renameFile"
           ></file-tab>
         </v-tab>
         <!--<v-tab v-if="showUploader">
@@ -32,8 +34,8 @@
       >
         <v-tab-item
           style="height: 100%"
-          v-for="state in fileStates"
-          :key="state.file.name"
+          v-for="state in openFileStates"
+          :key="state.id"
         >
           <v-toolbar class="toolbar" dense elevation="0" color="transparent">
             <v-tooltip bottom open-delay="1000" v-if="state.unsaved">
@@ -195,26 +197,59 @@ export default class ContentView extends Vue {
       file: { name: "unnamed", path: "unnamed", content: "" },
     },
   ];
+  private openFileStates: FileState[] = [
+    {
+      id: 0,
+      edited: false,
+      unsaved: false,
+      file: { name: "unnamed", path: "unnamed", content: "" },
+    },
+  ];
+  private fileIdCounter = 0;
 
   private codeEdited(): void {
     if (this.showUploader == true) {
       this.showUploader = false; //TODO probably more to do here once that happens (someone writing in an empty file while the upload button is showing)
     }
-    this.fileStates[this.activeTab].edited = true;
-    this.fileStates[this.activeTab].unsaved = true;
+    this.openFileStates[this.activeTab].edited = true;
+    this.openFileStates[this.activeTab].unsaved = true;
   }
 
   private async saveFile(): Promise<void> {
     this.uploading = true;
     let result = await API.overwriteFile(
       this.projectData.project.projectId,
-      this.fileStates[this.activeTab].file
+      this.openFileStates[this.activeTab].file
     );
     if (result.success != false) {
       //error on uploading
+      return;
     }
     this.uploading = false;
+    this.openFileStates[this.activeTab].unsaved = false;
     return;
+  }
+
+  private closeFile(): void {
+    this.openFileStates.splice(this.activeTab, 1);
+    if (this.activeTab >= this.openFileStates.length) {
+      //if the last file in the list was active and then closed the activeTab index is out of boudns
+      this.activeTab = this.openFileStates.length - 1;
+    }
+    //TODO if unsaved ask if it really should be closed?
+  }
+
+  private renameFile(name: string): void {
+    //TODO this doesn't handle path changes on the rename yet
+    const oldName = this.openFileStates[this.activeTab].file.name;
+    this.openFileStates[this.activeTab].file.name = name;
+    this.fileStates.forEach((state, index) => {
+      if (state.file.name == oldName) {
+        this.fileStates[index].file.name = name;
+        return;
+      }
+    });
+    this.openFileStates[this.activeTab].unsaved = true;
   }
 
   private handleLintSwitcher(): void {
@@ -231,7 +266,7 @@ export default class ContentView extends Vue {
   private async loadProject(event: FileEvent): Promise<void> {
     //get files from user file event and show it in UI
     if (event.files.length == 0) {
-      this.fileStates = [
+      this.openFileStates = [
         {
           edited: false,
           unsaved: false,
@@ -243,6 +278,13 @@ export default class ContentView extends Vue {
       for (let file of event.files) {
         this.fileStates.push({ edited: false, unsaved: false, file: file });
       }
+      this.fileIdCounter = 0;
+      this.openFileStates = this.fileStates.slice();
+      //generate unique ID for the v-for :key directive
+      this.openFileStates.forEach((state, index) => {
+        this.openFileStates[index].id = this.fileIdCounter;
+        this.fileIdCounter++;
+      });
 
       //upload files to backend
       this.uploading = true;
@@ -251,8 +293,6 @@ export default class ContentView extends Vue {
       for (const fileState of this.fileStates) {
         fileHandles.push(fileState.file);
       }
-      //console.log("reached get upload");
-      console.log("detect in content view");
       if (this.projectData.language == "auto") {
         //TODO right now the whole project's language is being read from the first file. this is not great but I don't really know what else to do.
         this.detectedLanguage = getLanguage(fileHandles[0].name);
@@ -273,6 +313,7 @@ export default class ContentView extends Vue {
             file: { name: "unnamed", path: "unnamed", content: "" },
           },
         ];
+        this.openFileStates = this.fileStates.slice();
         this.showUploader = true;
         //TODO show error message
         return;
@@ -282,7 +323,6 @@ export default class ContentView extends Vue {
       this.uploading = false; //TODO later on I probably should look into error handling here + an event that uploading is finished to not hide the button instantly
 
       //set interval for asking for lint status every second. handler has to deactivate asking for lint results on receiving results (or an error)
-      //console.log("reached get lint");
       this.lintData.status = "processing";
       this.lintCheckTimer = setInterval(this.handleLintTimer, 1000);
     }

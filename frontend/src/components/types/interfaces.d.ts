@@ -18,6 +18,7 @@ export interface FileEvent {
 }
 
 export interface FileState {
+  id?: number;
   file: FileHandle;
   unsaved: boolean;
   edited: boolean;
@@ -34,6 +35,11 @@ export interface Lint {
   header: string;
   message: string;
   url?: URL; //not sure if this should be optional or always defaulted to empty string
+}
+
+export interface Project {
+  data: ProjectData;
+  files: FileState[];
 }
 
 export interface ProjectData {
