@@ -140,6 +140,7 @@ import UploadDialog from "@/components/UploadDialog.vue";
 import CodeView from "@/components/CodeView.vue";
 import LintView from "@/components/LintView.vue";
 import FileTab from "@/components/FileTab.vue";
+import ErrorNotifier from "@/components/ErrorNotifier.vue";
 
 import {
   FileEvent,
@@ -156,6 +157,7 @@ import { getLanguage } from "@/services/LanguageDetection";
     CodeView,
     LintView,
     FileTab,
+    ErrorNotifier,
   },
 })
 export default class ContentView extends Vue {
