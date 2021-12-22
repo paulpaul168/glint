@@ -1,16 +1,14 @@
 <template>
-  <div>
-    <v-alert
-      :value="show"
-      class="global-notifier"
-      dense
-      :type="notification.type"
-      :dismissible="notification.timeout <= 0"
-      transition="scroll-y-transition"
-    >
-      {{ notification.message }}
-    </v-alert>
-  </div>
+  <v-alert
+    :value="show"
+    class="global-notifier"
+    dense
+    :type="notification.type"
+    :dismissible="notification.timeout <= 0"
+    transition="scroll-y-transition"
+  >
+    {{ notification.message }}
+  </v-alert>
 </template>
 
 <script lang="ts">

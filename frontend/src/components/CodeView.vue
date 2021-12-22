@@ -62,7 +62,6 @@ export default class CodeView extends Vue {
   @Watch("fileState")
   fileStateChanged(newState: FileState): void {
     this.internalState.file = newState.file; //TODO not sure if I should copy the other parameters as well (= entire object). depends on what the state changed would even be used for, right now it'll just never happen.
-    console.log("state changed", this.internalState.file.name);
   }
 
   @Watch("language")

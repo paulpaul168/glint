@@ -353,7 +353,6 @@ export default class ContentView extends Vue {
             type: "error",
             message: this.lintData.errorMessage,
           });
-          console.log("emitting");
         }
       }
     } else {
