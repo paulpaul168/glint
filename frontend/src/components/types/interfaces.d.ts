@@ -3,6 +3,13 @@ import { ProjectResponse } from "@/services/types/api_responses_interfaces";
 export interface Events {
   files: FileEvent;
   lints: LintEvent;
+  notifs: Notification;
+}
+
+export interface Notification {
+  type: string;
+  message: string;
+  timeout?: number;
 }
 
 export interface FileHandle {

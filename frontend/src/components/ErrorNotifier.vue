@@ -1,36 +1,44 @@
 <template>
-  <v-alert
-    :value="showNotification"
-    class="global-notifier"
-    dense
-    transition="slide-y-transition"
-    :type="type"
-    :dismissible="timeout <= 0"
-  >
-    {{ message }}
-  </v-alert>
+  <div>
+    <v-alert
+      :value="show"
+      class="global-notifier"
+      dense
+      :type="notification.type"
+      :dismissible="notification.timeout <= 0"
+      transition="scroll-y-transition"
+    >
+      {{ notification.message }}
+    </v-alert>
+  </div>
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
+import { Component, Prop, Vue, Watch } from "vue-property-decorator";
+import { Notification } from "./types/interfaces";
 
 @Component({
   components: {},
 })
 export default class ErrorNotifier extends Vue {
   name = "ErrorNotifier";
-  @Prop({ default: "Empty Message" }) message!: string;
-  @Prop({ default: "info" }) type!: string;
-  @Prop({ default: 3000 }) timeout!: number;
-  private showNotification = false;
+  @Prop({ default: { type: "info", message: "Empty Message", timeout: 3000 } })
+  notification!: Notification;
+  private show = false;
+  private timeout = 0;
 
-  show(): void {
-    setTimeout(this.hide, this.timeout);
-    this.showNotification = true;
+  @Watch("notification")
+  displayNotification(): void {
+    this.show = true;
+    clearTimeout(this.timeout);
+    this.timeout = setTimeout(
+      this.hide,
+      this.notification.timeout == undefined ? 3000 : this.notification.timeout
+    );
   }
 
   hide(): void {
-    this.showNotification = false;
+    this.show = false;
   }
 }
 </script>
@@ -38,8 +46,8 @@ export default class ErrorNotifier extends Vue {
 <style scoped>
 .global-notifier {
   position: fixed;
-  bottom: 3em;
-  margin-left: auto;
-  margin-right: auto;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 2em;
 }
 </style>

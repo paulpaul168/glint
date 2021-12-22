@@ -140,13 +140,13 @@ import UploadDialog from "@/components/UploadDialog.vue";
 import CodeView from "@/components/CodeView.vue";
 import LintView from "@/components/LintView.vue";
 import FileTab from "@/components/FileTab.vue";
-import ErrorNotifier from "@/components/ErrorNotifier.vue";
 
 import {
   FileEvent,
   FileHandle,
   FileState,
   ProjectData,
+  Notification,
 } from "./types/interfaces";
 import { LintResponse } from "@/services/types/api_responses_interfaces";
 import { getLanguage } from "@/services/LanguageDetection";
@@ -157,7 +157,6 @@ import { getLanguage } from "@/services/LanguageDetection";
     CodeView,
     LintView,
     FileTab,
-    ErrorNotifier,
   },
 })
 export default class ContentView extends Vue {
@@ -209,6 +208,10 @@ export default class ContentView extends Vue {
   ];
   private fileIdCounter = 0;
 
+  private emitNotification(notification: Notification): void {
+    this.$emit("notification", notification);
+  }
+
   private codeEdited(): void {
     if (this.showUploader == true) {
       this.showUploader = false; //TODO probably more to do here once that happens (someone writing in an empty file while the upload button is showing)
@@ -223,8 +226,12 @@ export default class ContentView extends Vue {
       this.projectData.project.projectId,
       this.openFileStates[this.activeTab].file
     );
-    if (result.success != false) {
-      //error on uploading
+    if (result.success == false) {
+      this.$emit("notification", {
+        type: "error",
+        message: result.errorMessage,
+      });
+      this.uploading = false;
       return;
     }
     this.uploading = false;
@@ -262,6 +269,7 @@ export default class ContentView extends Vue {
       this.remainingLintChecks <= 0
     ) {
       this.remainingLintChecks = 3;
+      setInterval(this.handleLintTimer, 1000);
     }
   }
 
@@ -317,7 +325,10 @@ export default class ContentView extends Vue {
         ];
         this.openFileStates = this.fileStates.slice();
         this.showUploader = true;
-        //TODO show error message
+        this.$emit("notification", {
+          type: "error",
+          message: result.errorMessage,
+        });
         return;
       }
       this.showUploader = false;
@@ -337,7 +348,21 @@ export default class ContentView extends Vue {
 
       if (this.lintData.status != "processing") {
         clearInterval(this.lintCheckTimer);
+        if (this.lintData.status != "done") {
+          this.$emit("notification", {
+            type: "error",
+            message: this.lintData.errorMessage,
+          });
+          console.log("emitting");
+        }
       }
+    } else {
+      clearInterval(this.lintCheckTimer);
+      this.$emit("notification", {
+        type: "info",
+        message:
+          "Fetching lint results timed out. Server may still be processing, you can retry.",
+      });
     }
   }
 }

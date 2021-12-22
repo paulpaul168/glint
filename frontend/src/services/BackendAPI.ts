@@ -123,7 +123,8 @@ export async function getLint(projectId: string): Promise<LintResponse> {
     }
     console.log("Received non-OK response when fetching lint");
     return {
-      status: "Received non-OK response when fetching lint",
+      status: "error",
+      errorMessage: "Received non-OK response when fetching lint",
       linter: "unknown",
       lintFiles: [
         {

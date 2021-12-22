@@ -17,5 +17,5 @@ export interface LintResponse {
       lints: Lint[];
     }
   ];
-  error?: unknown;
+  errorMessage?: string;
 }
