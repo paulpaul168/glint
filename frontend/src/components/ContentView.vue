@@ -133,7 +133,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+import { Component, Prop, Vue, Watch } from "vue-property-decorator";
 
 import * as API from "@/services/BackendAPI";
 import UploadDialog from "@/components/UploadDialog.vue";
@@ -161,13 +161,15 @@ import { getLanguage } from "@/services/LanguageDetection";
 })
 export default class ContentView extends Vue {
   name = "ContentView";
+  @Prop() language!: string;
+  @Prop() linter!: string;
   private showUploader = true;
   private showLint = false;
   private lintCheckTimer!: number;
   private remainingLintChecks = 5;
   private projectData: ProjectData = {
     //the defaults here need to be removed at some point and synced with a separate @Prop projectdata
-    project: {
+    data: {
       name: "DefaultProject",
       projectId: "DefaultProject",
       projectUrl: new URL(API.apiAddress), //I dislike these default, I'd love to not have to specify them at all, but I think I might need to because I need language defaults
@@ -212,6 +214,22 @@ export default class ContentView extends Vue {
     this.$emit("notification", notification);
   }
 
+  @Watch("language")
+  private languageChange() {
+    this.projectData.language = this.language;
+    if (this.projectData.language == "auto") {
+      //TODO right now the whole project's language is being read from the first file. this is not great but I don't really know what else to do.
+      this.detectedLanguage = getLanguage(this.fileStates[0].file.name);
+    } else {
+      this.detectedLanguage = this.language;
+    }
+  }
+
+  @Watch("linter")
+  private linterChange() {
+    this.projectData.linter = this.linter;
+  }
+
   private codeEdited(): void {
     if (this.showUploader == true) {
       this.showUploader = false; //TODO probably more to do here once that happens (someone writing in an empty file while the upload button is showing)
@@ -223,7 +241,7 @@ export default class ContentView extends Vue {
   private async saveFile(): Promise<void> {
     this.uploading = true;
     let result = await API.overwriteFile(
-      this.projectData.project.projectId,
+      this.projectData.data.projectId,
       this.openFileStates[this.activeTab].file
     );
     if (result.success == false) {
@@ -332,8 +350,13 @@ export default class ContentView extends Vue {
         return;
       }
       this.showUploader = false;
-      this.projectData.project = result;
-      this.uploading = false; //TODO later on I probably should look into error handling here + an event that uploading is finished to not hide the button instantly
+      this.projectData.data = result;
+      this.uploading = false;
+      console.log("project", this.projectData.data.name);
+      this.$emit("new-project", {
+        settings: this.projectData,
+        files: this.fileStates,
+      });
 
       //set interval for asking for lint status every second. handler has to deactivate asking for lint results on receiving results (or an error)
       this.lintData.status = "processing";
@@ -344,7 +367,7 @@ export default class ContentView extends Vue {
   private async handleLintTimer() {
     if (this.remainingLintChecks > 0) {
       this.remainingLintChecks--;
-      this.lintData = await API.getLint(this.projectData.project.name); //TODO proper project handling. Should use ID instead?
+      this.lintData = await API.getLint(this.projectData.data.name); //TODO proper project handling. Should use ID instead?
 
       if (this.lintData.status != "processing") {
         clearInterval(this.lintCheckTimer);

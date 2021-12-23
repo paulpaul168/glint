@@ -45,12 +45,18 @@ export interface Lint {
 }
 
 export interface Project {
-  data: ProjectData;
+  settings: ProjectData;
   files: FileState[];
 }
 
 export interface ProjectData {
-  project: ProjectResponse;
+  data: ProjectResponse;
   language: string;
   linter: string;
+}
+
+export interface ProjectTreeEntry {
+  id: number;
+  name: string;
+  children?: ProjectTreeEntry[];
 }

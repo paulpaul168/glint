@@ -1,10 +1,19 @@
 <template>
   <div class="d-flex flex-row main-pane">
-    <div style="max-width: 400px; min-width: 200px; flew-grow: 3">
-      <project-list />
+    <div class="project-list">
+      <project-list
+        :projects="activeProjects"
+        @language-set="passLanguage"
+        @linter-set="passLinter"
+      />
     </div>
-    <div style="flex-grow: 7">
-      <content-view @notification="passNotification" />
+    <div class="content-view">
+      <content-view
+        :language="language"
+        :linter="linter"
+        @notification="passNotification"
+        @new-project="addProject"
+      />
     </div>
     <global-notifier :notification="notification"></global-notifier>
   </div>
@@ -16,7 +25,7 @@ import ContentView from "@/components/ContentView.vue";
 import ProjectList from "@/components/ProjectList.vue";
 import GlobalNotifier from "@/components/GlobalNotifier.vue";
 
-import { Notification } from "@/components/types/interfaces";
+import { Notification, Project } from "@/components/types/interfaces";
 
 @Component({
   components: {
@@ -28,6 +37,14 @@ import { Notification } from "@/components/types/interfaces";
 export default class Home extends Vue {
   name = "Home";
 
+  private activeProjects: Project[] = [];
+  private language = "auto";
+  private linter = "auto";
+
+  private addProject(newProject: Project) {
+    this.activeProjects.push(newProject);
+  }
+
   private notification: Notification = {
     type: "info",
     message: "Empty Message",
@@ -35,6 +52,13 @@ export default class Home extends Vue {
   };
   private passNotification(newNotification: Notification) {
     this.notification = newNotification;
+  }
+
+  private passLanguage(language: string) {
+    this.language = language;
+  }
+  private passLinter(linter: string) {
+    this.linter = linter;
   }
 }
 </script>
@@ -49,5 +73,16 @@ export default class Home extends Vue {
 
 .main-content-pane {
   height: 100%;
+}
+
+.project-list {
+  max-width: 250px;
+  min-width: 250px;
+  /*min-width: 200px; the automatic content based resizing doesn't quite work, fixed size is better for now*/
+  flex: 1 1 content;
+}
+
+.content-view {
+  flex-grow: 20;
 }
 </style>

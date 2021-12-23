@@ -59,7 +59,7 @@ export default class UploadDialog extends Vue {
   private dialogDrag = false;
   private dragIconClass = "";
   private dragClass = "";
-  private projectName = "";
+  private projectName = "New Project";
   private selectedFiles: FileHandle[] = [];
 
   @Watch("dialogDrag")
