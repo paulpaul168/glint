@@ -6,7 +6,7 @@
     <div style="flex-grow: 7">
       <content-view @notification="passNotification" />
     </div>
-    <error-notifier :notification="notification"></error-notifier>
+    <global-notifier :notification="notification"></global-notifier>
   </div>
 </template>
 
@@ -14,7 +14,7 @@
 import { Component, Vue } from "vue-property-decorator";
 import ContentView from "@/components/ContentView.vue";
 import ProjectList from "@/components/ProjectList.vue";
-import ErrorNotifier from "@/components/ErrorNotifier.vue";
+import GlobalNotifier from "@/components/GlobalNotifier.vue";
 
 import { Notification } from "@/components/types/interfaces";
 
@@ -22,7 +22,7 @@ import { Notification } from "@/components/types/interfaces";
   components: {
     ContentView,
     ProjectList,
-    ErrorNotifier,
+    GlobalNotifier,
   },
 })
 export default class Home extends Vue {

@@ -18,8 +18,8 @@ import { Notification } from "./types/interfaces";
 @Component({
   components: {},
 })
-export default class ErrorNotifier extends Vue {
-  name = "ErrorNotifier";
+export default class GlobalNotifier extends Vue {
+  name = "GlobalNotifier";
   @Prop({ default: { type: "info", message: "Empty Message", timeout: 5000 } })
   notification!: Notification;
   private show = false;
