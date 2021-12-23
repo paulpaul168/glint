@@ -269,7 +269,7 @@ export default class ContentView extends Vue {
       this.remainingLintChecks <= 0
     ) {
       this.remainingLintChecks = 3;
-      setInterval(this.handleLintTimer, 1000);
+      this.lintCheckTimer = setInterval(this.handleLintTimer, 1000);
     }
   }
 

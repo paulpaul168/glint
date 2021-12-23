@@ -2,19 +2,20 @@
   <div class="d-flex flex-row" style="width: 100%">
     <div class="unsaved-indicator" v-if="unsaved">*</div>
     <v-text-field
-      style="margin-right: auto"
-      :class="'tab-title ' + (active ? 'title-active' : '')"
+      :class="
+        'tab-title ' +
+        (active ? (hasFocus ? 'title-focus' : 'title-active') : '')
+      "
       v-model="internalTitle"
       label="File Name"
       solo
       dense
       flat
       hide-details="auto"
-      :color="active ? 'primary' : 'accent'"
-      :background-color="backgroundColor"
+      :background-color="hasFocus ? 'bg_secondary' : 'transparent'"
       :disabled="!active"
-      @focus="backgroundColor = 'bg_secondary'"
-      @blur="backgroundColor = 'transparent'"
+      @focus="hasFocus = true"
+      @blur="hasFocus = false"
       @change="emitRename"
     ></v-text-field>
     <v-spacer></v-spacer>
@@ -43,7 +44,7 @@ export default class FileTab extends Vue {
   @Prop() title!: string;
   @Prop({ default: false }) unsaved!: boolean;
   @Prop({ default: false }) active!: boolean; //whether or not this tab is currently active
-  private backgroundColor = "transparent";
+  private hasFocus = false;
   private internalTitle = "";
 
   created(): void {
@@ -68,7 +69,8 @@ export default class FileTab extends Vue {
 <style scoped>
 .tab-title {
   margin-left: -12px;
-  margin-bottom: 3px;
+  margin-right: auto;
+  transition: color 0.1s;
 }
 
 .unsaved-indicator {
@@ -88,7 +90,21 @@ export default class FileTab extends Vue {
   margin-bottom: auto;
 }
 
+.title-active {
+  margin-bottom: 3px;
+}
+
 .title-active::v-deep input {
   color: var(--v-primary-base);
+  transition: color 0.2s;
+}
+
+.title-focus {
+  margin-bottom: 3px;
+}
+
+.title-focus::v-deep input {
+  color: lightgrey;
+  transition: color 0.2s;
 }
 </style>
