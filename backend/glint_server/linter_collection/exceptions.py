@@ -1,0 +1,2 @@
+class LintError(Exception):
+    pass

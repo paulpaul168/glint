@@ -1,20 +1,21 @@
-from json.decoder import JSONDecodeError
 import os
 import subprocess
 import json
 
+from glint_server.linter_collection.exceptions import LintError
+
 
 def lint_python_project(path: str):
-    # TODO: check that path is only ever a path and that there is no
-    # attack-surface
     # TODO: maybe there should be special treatment for packages 🤷‍♂️
     files = find_python_files(path)
+    print("Hello")
     if files == []:
         return normalize_pylint([])
 
     process = subprocess.run(
         ["python3", "-m", "pylint", "--output-format=json", "--jobs=0"]
-        + files,
+        # + files
+        ,
         text=True,
         capture_output=True,
     )
@@ -25,13 +26,13 @@ def lint_python_project(path: str):
     if process.returncode & 32 == 32:
         print(process.args)
         print(process.stdout)
-        raise Exception(
+        raise LintError(
             f"Pylint returned with usage error {process.returncode}"
         )
 
     if process.returncode & 1 == 1:
         print(process.stderr)
-        raise Exception(
+        raise LintError(
             f"Pylint returned with a fatal error {process.returncode}"
         )
 
