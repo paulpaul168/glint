@@ -1,7 +1,6 @@
 from glint_server import app
 from glint_server.linter_collection import lint_project_error
-import os
-import urllib.parse
+import os, json, urllib.parse
 
 
 def create_project_folder(name: str) -> str:
@@ -21,9 +20,9 @@ def save_file(file_name: str, content: str) -> None:
         f.write(content)
 
 
-def load_file(file_name: str) -> str:
+def load_file(file_name: str) -> json:
     file_name = app.config["LINT_DIR"] + file_name
     if not os.path.exists(file_name):
         return lint_project_error("Project ID unkown")
     with open(urllib.parse.unquote(file_name), "r") as f:
-        return f.read()
+        return json.loads(f.read())

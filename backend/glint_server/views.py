@@ -1,8 +1,7 @@
 from glint_server import app
 from flask import json, request
-import urllib.parse
 
-from glint_server.linter_collection import lint_project
+from glint_server.linter_collection import lint_project, lint_project_error
 from glint_server.file import save_file, create_project_folder, load_file
 from glint_server.threading import do_lint
 
@@ -33,7 +32,8 @@ def create_project():
         "lintUrl": app.config["HOST"] + "/api/projects/" + project_name + "/lint",
     }
     # time.sleep(1)
-    do_lint("python", project_name)
+    save_file(project_path + "/lint", json.dumps(lint_project_error("processing")))
+    do_lint(project_name)
     return prepareResponse(data)
 
 
