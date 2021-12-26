@@ -20,7 +20,8 @@ def home():
 @app.post("/api/projects")
 def create_project():
     post_content = request.json
-    project_path = str(create_project_folder(post_content["name"]))
+    project_name = post_content["name"]
+    project_path = str(create_project_folder(project_name))
     for file in post_content["files"]:
         save_file(project_path + "/" + file["path"], file["content"])
         print(file)
@@ -28,9 +29,9 @@ def create_project():
     data = {
         "name": post_content["name"],
         "projectId": project_path,
-        "projectUrl": app.config["HOST"] + "/api/projects" + project_path,
-        "sourcesUrl": app.config["HOST"] + "/api/projects" + project_path + "/sources",
-        "lintUrl": app.config["HOST"] + "/api/projects" + project_path + "/lint",
+        "projectUrl": app.config["HOST"] + "/api/projects/" + project_name,
+        "sourcesUrl": app.config["HOST"] + "/api/projects/" + project_name + "/sources",
+        "lintUrl": app.config["HOST"] + "/api/projects/" + project_name + "/lint",
     }
     # time.sleep(1)
     return prepareResponse(data)
