@@ -4,13 +4,14 @@ import json
 
 
 def lint_python_project(path: str):
-    # TODO: path is not actually what we want here, as pylint needs the name
-    # of a module. Don't quite know how to solve that right now
-
     # TODO: check that path is only ever a path and that there is no
     # attack-surface
+    # TODO: maybe there should be special treatment for packages 🤷‍♂️
+    files = find_python_files(path)
+
     process = subprocess.run(
-        ["python3", "-m", "pylint", "--output-format=json", path],
+        ["python3", "-m", "pylint", "--output-format=json", "--jobs=0"]
+        + files,
         text=True,
         capture_output=True,
     )
@@ -28,6 +29,17 @@ def lint_python_project(path: str):
     # TODO: Maybe we should filter the pylint output so that we don't get
     # styleing stuff as this is almost never relevant during a CTF
     return normalize_pylint(pylint_res)
+
+
+def find_python_files(path: str) -> list[str]:
+    python_files = []
+    for root, _, files in os.walk(path):
+        for name in files:
+            name = os.path.join(root, name)
+            if os.path.splitext(name)[1] == ".py":
+                python_files.append(name)
+
+    return python_files
 
 
 def normalize_pylint(results: list[dict]) -> dict:
