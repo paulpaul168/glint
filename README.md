@@ -131,7 +131,9 @@ Response
 ```json
 {
     "status": "done",
-    "linter": "{usedLinter}",
+    "linters": [
+            "{usedLinter}"
+    ],
     "files": [
         {
             "name": "fileName",
