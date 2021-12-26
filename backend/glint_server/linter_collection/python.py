@@ -1,3 +1,4 @@
+from json.decoder import JSONDecodeError
 import os
 import subprocess
 import json
@@ -8,6 +9,8 @@ def lint_python_project(path: str):
     # attack-surface
     # TODO: maybe there should be special treatment for packages 🤷‍♂️
     files = find_python_files(path)
+    if files == []:
+        return normalize_pylint([])
 
     process = subprocess.run(
         ["python3", "-m", "pylint", "--output-format=json", "--jobs=0"]
@@ -19,6 +22,13 @@ def lint_python_project(path: str):
     # Pylint return codes are weired but here is the official documentation
     # explaining it:
     # https://pylint.pycqa.org/en/latest/user_guide/run.html#exit-codes
+    if process.returncode & 32 == 32:
+        print(process.args)
+        print(process.stdout)
+        raise Exception(
+            f"Pylint returned with usage error {process.returncode}"
+        )
+
     if process.returncode & 1 == 1:
         print(process.stderr)
         raise Exception(
