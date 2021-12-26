@@ -37,7 +37,7 @@ export default class CodeView extends Vue {
   @Prop({ default: false }) readonly!: boolean;
   @Prop({ default: true }) lineNumbers!: boolean;
   @Prop({ default: "auto" }) language!: string;
-  @Prop({ default: "100%" }) height!: string;
+  @Prop({ default: "calc(100% - 36px)" }) height!: string;
   @Prop({
     default: () => ({
       file: { name: "unnamed", path: "unnamed", content: "" },

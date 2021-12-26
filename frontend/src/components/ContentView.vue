@@ -20,9 +20,6 @@
             @file-rename="renameFile"
           ></file-tab>
         </v-tab>
-        <!--<v-tab v-if="showUploader">
-          <v-icon>mdi-plus</v-icon>
-        </v-tab>-->
       </v-tabs>
     </v-row>
     <v-row style="height: calc(100% - 48px)">
@@ -76,16 +73,18 @@
                   "
                   @click="handleLintSwitcher"
                 >
-                  <v-icon small v-if="showLint">mdi-pencil</v-icon>
+                  <v-icon small v-if="viewMode == 'lint'">mdi-pencil</v-icon>
                   <v-icon
                     small
-                    v-else-if="!showLint && lintData.status == 'done'"
+                    v-else-if="
+                      viewMode == 'source' && lintData.status == 'done'
+                    "
                     >mdi-format-list-bulleted</v-icon
                   >
                   <v-icon
                     small
                     v-else-if="
-                      !showLint &&
+                      viewMode == 'source' &&
                       lintData.status == 'processing' &&
                       remainingLintChecks <= 0
                     "
@@ -101,35 +100,36 @@
                   >
                 </v-btn>
               </template>
-              <span v-if="showLint">Show Source</span>
+              <span v-if="viewMode == 'lint'">Show Source</span>
               <span
                 v-else-if="
-                  !showLint &&
+                  viewMode == 'source' &&
                   lintData.status == 'processing' &&
                   remainingLintChecks <= 0
                 "
               >
                 Retry fetching Lint result
               </span>
-              <span v-else>Show Lint</span>
+              <span v-if="viewMode == 'source'">Show Lint</span>
             </v-tooltip>
           </v-toolbar>
           <lint-view
-            v-if="showLint"
+            v-if="viewMode == 'lint'"
             :fileState="state"
             :lints="lintsByFile[state.file.name]"
           ></lint-view>
           <code-view
-            v-else
+            v-if="viewMode == 'source'"
             :fileState="state"
             :language="detectedLanguage"
             @input="codeEdited"
           ></code-view>
           <upload-dialog
-            v-if="showUploader"
+            v-if="viewMode == 'uploader'"
             :uploading="uploading"
             @file-event="loadProject($event)"
           ></upload-dialog>
+          <file-footer v-if="viewMode == 'source'"></file-footer>
         </v-tab-item>
       </v-tabs-items>
     </v-row>
@@ -144,6 +144,7 @@ import UploadDialog from "@/components/UploadDialog.vue";
 import CodeView from "@/components/CodeView.vue";
 import LintView from "@/components/LintView.vue";
 import FileTab from "@/components/FileTab.vue";
+import FileFooter from "@/components/FileFooter.vue";
 
 import {
   FileEvent,
@@ -163,14 +164,14 @@ import { Dictionary } from "vue-router/types/router";
     CodeView,
     LintView,
     FileTab,
+    FileFooter,
   },
 })
 export default class ContentView extends Vue {
   name = "ContentView";
   @Prop() language!: string;
   @Prop() linter!: string;
-  private showUploader = true;
-  private showLint = false;
+  private viewMode = "uploader"; //which state the UI is in, can be "uploader" = empty with upload "+" button, "source" = show project source, "lint" = show lint results, "project" = show project spanning data like stats and found secrets
   private lintCheckTimer!: number;
   private remainingLintChecks = 5;
   private projectData: ProjectData = {
@@ -238,8 +239,8 @@ export default class ContentView extends Vue {
   }
 
   private codeEdited(): void {
-    if (this.showUploader == true) {
-      this.showUploader = false; //TODO probably more to do here once that happens (someone writing in an empty file while the upload button is showing)
+    if (this.viewMode == "uploader") {
+      this.viewMode = "source"; //TODO probably more to do here once that happens (someone writing in an empty file while the upload button is showing)
     }
     this.openFileStates[this.activeTab].edited = true;
     this.openFileStates[this.activeTab].unsaved = true;
@@ -288,7 +289,11 @@ export default class ContentView extends Vue {
 
   private handleLintSwitcher(): void {
     if (this.lintData.status == "done") {
-      this.showLint = !this.showLint;
+      if (this.viewMode == "source") {
+        this.viewMode = "lint";
+      } else if (this.viewMode == "lint") {
+        this.viewMode = "source";
+      }
     } else if (
       this.lintData.status == "processing" &&
       this.remainingLintChecks <= 0
@@ -349,14 +354,14 @@ export default class ContentView extends Vue {
           },
         ];
         this.openFileStates = this.fileStates.slice();
-        this.showUploader = true;
+        this.viewMode = "uploader";
         this.$emit("notification", {
           type: "error",
           message: result.errorMessage,
         });
         return;
       }
-      this.showUploader = false;
+      this.viewMode = "source";
       this.projectData.data = result;
       this.uploading = false;
       this.$emit("new-project", {
