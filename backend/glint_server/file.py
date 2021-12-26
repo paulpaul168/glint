@@ -26,3 +26,11 @@ def load_file(file_name: str) -> json:
         return lint_project_error("Project ID unkown")
     with open(urllib.parse.unquote(file_name), "r") as f:
         return json.loads(f.read())
+
+
+def list_dirs() -> dict:
+    path = app.config["LINT_DIR"]
+    dirs = []
+    for dir in os.listdir(path):
+        dirs.append(dir)
+    return dirs

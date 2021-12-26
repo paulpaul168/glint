@@ -1,8 +1,9 @@
+from werkzeug.wrappers import response
 from glint_server import app
 from flask import json, request
 
-from glint_server.linter_collection import lint_project, lint_project_error
-from glint_server.file import save_file, create_project_folder, load_file
+from glint_server.linter_collection import lint_project_error
+from glint_server.file import save_file, create_project_folder, load_file, list_dirs
 from glint_server.threading import do_lint
 
 import time  # sometimes needed to test frontend behavior for slow answers
@@ -17,6 +18,45 @@ def home():
     return prepareResponse(data)
 
 
+@app.get("/api/projects")
+def get_project_list():
+    projects = []
+    for dir in list_dirs():
+        project_data = {"name": dir, "projectId": dir}
+        projects.append(project_data)
+    data = {"projects": [projects]}
+    return prepareResponse(data)
+
+
+@app.delete("/api/projects/<project_id>/sources/<file_id>")
+def delete_file(project_id, file_id):
+    data = {
+        "status": "Not implemented",
+    }
+    error_code = 501
+    return prepareResponse(data), error_code
+
+
+@app.put("/api/projects/<project_id>/sources/<file_id>")
+def upload_file(project_id, file_id):
+    content = request.json["content"]
+    data = {
+        "status": "Not implemented",
+    }
+    error_code = 501
+    return prepareResponse(data), error_code
+
+
+@app.patch("/api/projects/<project_id>")
+def change_linter(project_id):
+    request_data = request.json
+    data = {
+        "status": "Not implemented",
+    }
+    error_code = 501
+    return prepareResponse(data), error_code
+
+
 @app.post("/api/projects")
 def create_project():
     post_content = request.json
@@ -25,7 +65,7 @@ def create_project():
     for file in post_content["files"]:
         save_file(project_path + "/" + file["path"], file["content"])
     data = {
-        "name": post_content["name"],
+        "name": project_name,
         "projectId": project_name,
         "projectUrl": app.config["HOST"] + "/api/projects/" + project_name,
         "sourcesUrl": app.config["HOST"] + "/api/projects/" + project_name + "/sources",
