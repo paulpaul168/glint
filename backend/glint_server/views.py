@@ -3,7 +3,8 @@ from flask import json, request
 import urllib.parse
 
 from glint_server.linter_collection import lint_project
-from glint_server.file import save_file, create_project_folder
+from glint_server.file import save_file, create_project_folder, load_file
+from glint_server.threading import do_lint
 
 import time  # sometimes needed to test frontend behavior for slow answers
 
@@ -32,6 +33,7 @@ def create_project():
         "lintUrl": app.config["HOST"] + "/api/projects/" + project_name + "/lint",
     }
     # time.sleep(1)
+    do_lint("python", project_name)
     return prepareResponse(data)
 
 
@@ -46,7 +48,7 @@ def return_allow_cors(resp):
 
 @app.get("/api/projects/<project_id>/lint")
 def get_lint(project_id):
-    lint_result = lint_project(urllib.parse.unquote(project_id))
+    lint_result = load_file(project_id + "/lint")
     return prepareResponse(lint_result)
 
 
