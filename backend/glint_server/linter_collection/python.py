@@ -77,4 +77,8 @@ def normalize_pylint(results: list[dict]) -> dict:
 
         files[path]["lints"].append(lint)
 
-    return {"files": list(files.values())}
+    return {
+        "status": "done",
+        "linter": ["pylint"],
+        "files": list(files.values()),
+    }
