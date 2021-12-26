@@ -8,7 +8,7 @@ def lint_project(path: str) -> dict:
     # TODO catch errors while linting
     result = {
         "status": "done",
-        "linter": [],
+        "linters": [],
         "files": [],
     }
     for lang in langs:
