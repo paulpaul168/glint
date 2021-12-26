@@ -79,6 +79,6 @@ def normalize_pylint(results: list[dict]) -> dict:
 
     return {
         "status": "done",
-        "linter": ["pylint"],
+        "linters": ["pylint"],
         "files": list(files.values()),
     }
