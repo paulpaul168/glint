@@ -14,8 +14,7 @@ def lint_python_project(path: str):
 
     process = subprocess.run(
         ["python3", "-m", "pylint", "--output-format=json", "--jobs=0"]
-        # + files
-        ,
+        + files,
         text=True,
         capture_output=True,
     )
