@@ -10,12 +10,10 @@ export interface ProjectResponse {
 export interface LintResponse {
   status: string;
   linter: string;
-  lintFiles: [
-    {
-      name: string;
-      path: string;
-      lints: Lint[];
-    }
-  ];
+  lintFiles: {
+    name: string;
+    path: string;
+    lints: Lint[];
+  }[];
   errorMessage?: string;
 }

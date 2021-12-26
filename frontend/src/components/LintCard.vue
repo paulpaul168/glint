@@ -83,7 +83,11 @@ export default class LintCard extends Vue {
   private lintChanged(): void {
     let codeSnippet = "";
     this.snippetStartLine = this.lint.line;
-    this.snippetEndLine = this.lint.endLine;
+    if (this.lint.endLine == null || this.lint.endLine <= this.lint.line) {
+      this.snippetEndLine = this.lint.line + 1;
+    } else {
+      this.snippetEndLine = this.lint.endLine;
+    }
     codeSnippet = this.fileState.file.content
       .split("\n")
       .slice(this.snippetStartLine, this.snippetEndLine)

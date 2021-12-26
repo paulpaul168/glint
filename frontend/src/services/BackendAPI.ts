@@ -87,29 +87,29 @@ export async function overwriteFile(
 
 export async function getLint(projectId: string): Promise<LintResponse> {
   let resp;
+  const returnLint: LintResponse = {
+    status: "",
+    linter: "unknown",
+    lintFiles: [],
+  };
+
   try {
-    resp = await fetch(apiAddress + "projects/" + projectId + "/lint/", {
+    resp = await fetch(apiAddress + "projects/" + projectId + "/lint", {
       method: "GET",
     });
   } catch {
     console.log("Fatal error during fetch when asking for lint, aborting");
-    return {
-      status:
-        "Fatal error while requesting Lint result; fetch() threw Exception",
-      linter: "unknown",
-      lintFiles: [
-        {
-          name: "",
-          path: "",
-          lints: [],
-        },
-      ],
-    };
+    returnLint.status = "error";
+    returnLint.errorMessage =
+      "Fatal error while requesting Lint result; fetch() threw Exception";
+    return returnLint;
   }
+
   if (!resp.ok) {
     if (resp.status == 404) {
       //filter 404 out individually to circumvent that the backend doesn't properly work on this part yet.
-      return {
+      console.log("404 trying to get lint");
+      /*return {
         status: "processing",
         linter: "unknown",
         lintFiles: [
@@ -119,40 +119,18 @@ export async function getLint(projectId: string): Promise<LintResponse> {
             lints: [],
           },
         ],
-      };
+      };*/
     }
     console.log("Received non-OK response when fetching lint");
-    return {
-      status: "error",
-      errorMessage: "Received non-OK response when fetching lint",
-      linter: "unknown",
-      lintFiles: [
-        {
-          name: "",
-          path: "",
-          lints: [],
-        },
-      ],
-    };
-    //TODO if we really change http header on errors this handling will need to be updated
-    return null as any;
+    returnLint.status = "error";
+    returnLint.errorMessage =
+      "Received non-OK response when fetching lint: " + resp.status;
+    return returnLint;
   }
   const respJson = await resp.json();
 
-  const lintEvent: LintResponse = {
-    status: respJson["status"],
-    linter: respJson["linter"],
-    lintFiles: [
-      {
-        //data format between internal lintevent interface and json api differs slightly, needs to be converted after the fact
-        name: "",
-        path: "",
-        lints: [],
-      },
-    ],
-  };
-
-  if (lintEvent.status == "done") {
+  const lintFilesBuffer: { name: string; path: string; lints: Lint[] }[] = [];
+  if (respJson["status"] == "done") {
     respJson["files"].forEach(
       (
         file: {
@@ -162,7 +140,7 @@ export async function getLint(projectId: string): Promise<LintResponse> {
         },
         index: number
       ) => {
-        lintEvent.lintFiles.push({
+        lintFilesBuffer.push({
           name: file.name,
           path: file.path,
           lints: [],
@@ -171,13 +149,16 @@ export async function getLint(projectId: string): Promise<LintResponse> {
         for (const lint of file.lints) {
           const lintFile: Lint = lint;
           lintFile.fileName = file.name;
-          lintEvent.lintFiles[index].lints.push(lintFile);
+          lintFilesBuffer[index].lints.push(lintFile);
         }
       }
     );
-  } else if (lintEvent.status != "processing") {
+  } else if (respJson["status"] != "processing") {
     //if linting is not done or still processing, an error occurred. right now we don't do anything special here, but we might get a "message" field or need to handle the status field differently in the future to get decent error messages
   }
 
-  return lintEvent;
+  returnLint.status = respJson["status"];
+  returnLint.linter = respJson["linter"];
+  returnLint.lintFiles = lintFilesBuffer;
+  return returnLint;
 }

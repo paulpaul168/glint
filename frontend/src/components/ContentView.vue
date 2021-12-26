@@ -114,7 +114,11 @@
               <span v-else>Show Lint</span>
             </v-tooltip>
           </v-toolbar>
-          <lint-view v-if="showLint" :fileState="state"></lint-view>
+          <lint-view
+            v-if="showLint"
+            :fileState="state"
+            :lints="lintsByFile[state.file.name]"
+          ></lint-view>
           <code-view
             v-else
             :fileState="state"
@@ -147,9 +151,11 @@ import {
   FileState,
   ProjectData,
   Notification,
+  Lint,
 } from "./types/interfaces";
 import { LintResponse } from "@/services/types/api_responses_interfaces";
 import { getLanguage } from "@/services/LanguageDetection";
+import { Dictionary } from "vue-router/types/router";
 
 @Component({
   components: {
@@ -191,6 +197,7 @@ export default class ContentView extends Vue {
       },
     ],
   };
+  private lintsByFile: Dictionary<Lint[]> = { none: [] };
   private activeTab = 0;
   private uploading = false;
   private fileStates: FileState[] = [
@@ -352,7 +359,6 @@ export default class ContentView extends Vue {
       this.showUploader = false;
       this.projectData.data = result;
       this.uploading = false;
-      console.log("project", this.projectData.data.name);
       this.$emit("new-project", {
         settings: this.projectData,
         files: this.fileStates,
@@ -364,14 +370,23 @@ export default class ContentView extends Vue {
     }
   }
 
+  private convertLintFilesToDict(): void {
+    for (const lintFile of this.lintData.lintFiles) {
+      this.lintsByFile[lintFile.name] = lintFile.lints;
+    }
+  }
+
   private async handleLintTimer() {
     if (this.remainingLintChecks > 0) {
       this.remainingLintChecks--;
-      this.lintData = await API.getLint(this.projectData.data.name); //TODO proper project handling. Should use ID instead?
+      this.lintData = await API.getLint(this.projectData.data.projectId); //TODO proper project handling. Should use ID instead?
+      console.log("lintData", this.lintData.lintFiles);
 
       if (this.lintData.status != "processing") {
         clearInterval(this.lintCheckTimer);
-        if (this.lintData.status != "done") {
+        if (this.lintData.status == "done") {
+          this.convertLintFilesToDict();
+        } else {
           this.$emit("notification", {
             type: "error",
             message: this.lintData.errorMessage,

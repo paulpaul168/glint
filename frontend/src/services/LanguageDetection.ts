@@ -17,6 +17,8 @@ export function getLanguage(fileName: string): string {
       language = "python";
       break;
     case "ts":
+      language = "typescript";
+      break;
     case "js":
       language = "javascript";
       break;
