@@ -24,11 +24,9 @@ def create_project():
     project_path = str(create_project_folder(project_name))
     for file in post_content["files"]:
         save_file(project_path + "/" + file["path"], file["content"])
-        print(file)
-    project_path = urllib.parse.quote(project_path)
     data = {
         "name": post_content["name"],
-        "projectId": project_path,
+        "projectId": project_name,
         "projectUrl": app.config["HOST"] + "/api/projects/" + project_name,
         "sourcesUrl": app.config["HOST"] + "/api/projects/" + project_name + "/sources",
         "lintUrl": app.config["HOST"] + "/api/projects/" + project_name + "/lint",
