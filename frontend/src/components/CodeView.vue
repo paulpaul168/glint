@@ -14,13 +14,13 @@
 <script lang="ts">
 import { Component, Prop, Vue, Watch } from "vue-property-decorator";
 import { FileState } from "./types/interfaces";
-import { getLanguage } from "@/services/LanguageDetection";
 
 import { PrismEditor } from "vue-prism-editor";
 import "vue-prism-editor/dist/prismeditor.min.css";
 
 import { highlight, languages } from "prismjs";
 import "prismjs/components/prism-clike";
+import "prismjs/components/prism-typescript";
 import "prismjs/components/prism-javascript";
 import "prismjs/components/prism-python";
 import "prismjs/components/prism-markdown";
@@ -36,41 +36,33 @@ export default class CodeView extends Vue {
 
   @Prop({ default: false }) readonly!: boolean;
   @Prop({ default: true }) lineNumbers!: boolean;
-  @Prop({ default: "auto" }) language!: string;
-  @Prop({ default: "calc(100% - 36px)" }) height!: string;
+  @Prop({ default: "calc(100% - 26px)" }) height!: string;
   @Prop({
     default: () => ({
+      language: "auto",
+      detectedLanguage: "auto",
       file: { name: "unnamed", path: "unnamed", content: "" },
       unsaved: false,
       edited: false,
     }),
   })
   private fileState!: FileState;
-  private detectedLanguage = "txt";
 
   private internalState: FileState = {
+    language: "auto",
+    detectedLanguage: "auto",
     file: { name: "unnamed", path: "unnamed", content: "" },
     unsaved: false,
     edited: false,
   };
 
   created(): void {
-    this.internalState = this.fileState;
-    this.languageChanged();
+    this.fileStateChanged();
   }
 
   @Watch("fileState")
-  fileStateChanged(newState: FileState): void {
-    this.internalState.file = newState.file; //TODO not sure if I should copy the other parameters as well (= entire object). depends on what the state changed would even be used for, right now it'll just never happen.
-  }
-
-  @Watch("language")
-  private languageChanged() {
-    if (this.language == "auto") {
-      this.detectedLanguage = getLanguage(this.internalState.file.name);
-    } else {
-      this.detectedLanguage = this.language;
-    }
+  fileStateChanged(): void {
+    this.internalState = this.fileState;
     this.highlighter(this.internalState.file.content);
   }
 
@@ -81,15 +73,15 @@ export default class CodeView extends Vue {
   }
 
   highlighter(code: string): string {
+    let highlightLanguage = this.internalState.language;
+    if (highlightLanguage == "auto") {
+      highlightLanguage = this.internalState.detectedLanguage;
+    }
     //TODO: on tab switch this is apparently called again for each tab and then the highlight language is incorrect because active tab is incorrect. investigate
-    if (this.detectedLanguage == "txt") {
+    if (highlightLanguage == "txt") {
       return code;
     }
-    return highlight(
-      code,
-      languages[this.detectedLanguage],
-      this.detectedLanguage
-    );
+    return highlight(code, languages[highlightLanguage], highlightLanguage);
   }
 }
 </script>

@@ -121,7 +121,9 @@
           <code-view
             v-if="viewMode == 'source'"
             :fileState="state"
-            :language="detectedLanguage"
+            :language="
+              state.language == 'auto' ? state.detectedLanguage : state.language
+            "
             @input="codeEdited"
           ></code-view>
           <upload-dialog
@@ -129,7 +131,11 @@
             :uploading="uploading"
             @file-event="loadProject($event)"
           ></upload-dialog>
-          <file-footer v-if="viewMode == 'source'"></file-footer>
+          <file-footer
+            v-if="viewMode == 'source'"
+            :languageLabel="state.detectedLanguage"
+            @language-set="changeLanguage($event)"
+          ></file-footer>
         </v-tab-item>
       </v-tabs-items>
     </v-row>
@@ -169,7 +175,6 @@ import { Dictionary } from "vue-router/types/router";
 })
 export default class ContentView extends Vue {
   name = "ContentView";
-  @Prop() language!: string;
   @Prop() linter!: string;
   private viewMode = "uploader"; //which state the UI is in, can be "uploader" = empty with upload "+" button, "source" = show project source, "lint" = show lint results, "project" = show project spanning data like stats and found secrets
   private lintCheckTimer!: number;
@@ -186,7 +191,6 @@ export default class ContentView extends Vue {
     language: "auto",
     linter: "auto",
   };
-  private detectedLanguage = "txt";
   private lintData: LintResponse = {
     status: "", //processing means lint is ongoing/result hasn't come in yet, done means lint has been received, anything else means error on linting
     linter: "",
@@ -205,6 +209,8 @@ export default class ContentView extends Vue {
     {
       edited: false,
       unsaved: false,
+      language: "auto",
+      detectedLanguage: "txt",
       file: { name: "unnamed", path: "unnamed", content: "" },
     },
   ];
@@ -213,6 +219,8 @@ export default class ContentView extends Vue {
       id: 0,
       edited: false,
       unsaved: false,
+      language: "auto",
+      detectedLanguage: "txt",
       file: { name: "unnamed", path: "unnamed", content: "" },
     },
   ];
@@ -222,15 +230,21 @@ export default class ContentView extends Vue {
     this.$emit("notification", notification);
   }
 
-  @Watch("language")
-  private languageChange() {
-    this.projectData.language = this.language;
-    if (this.projectData.language == "auto") {
-      //TODO right now the whole project's language is being read from the first file. this is not great but I don't really know what else to do.
-      this.detectedLanguage = getLanguage(this.fileStates[0].file.name);
-    } else {
-      this.detectedLanguage = this.language;
-    }
+  private changeLanguage(newLanguage: string) {
+    this.openFileStates[this.activeTab].language = newLanguage;
+    let detectedLanguage = "txt";
+    detectedLanguage = getLanguage(
+      this.openFileStates[this.activeTab].file.name
+    );
+    this.openFileStates[this.activeTab].detectedLanguage = detectedLanguage;
+
+    this.fileStates.forEach((state, index) => {
+      if (state.file.name == this.openFileStates[this.activeTab].file.name) {
+        this.fileStates[index].language = newLanguage;
+        this.fileStates[index].detectedLanguage = detectedLanguage;
+        return;
+      }
+    });
   }
 
   @Watch("linter")
@@ -310,13 +324,21 @@ export default class ContentView extends Vue {
         {
           edited: false,
           unsaved: false,
+          language: "auto",
+          detectedLanguage: "txt",
           file: { name: "unnamed", path: "unnamed", content: "" },
         },
       ];
     } else {
       this.fileStates = [];
       for (let file of event.files) {
-        this.fileStates.push({ edited: false, unsaved: false, file: file });
+        this.fileStates.push({
+          edited: false,
+          unsaved: false,
+          language: "auto",
+          detectedLanguage: getLanguage(file.name),
+          file: file,
+        });
       }
       this.fileIdCounter = 0;
       this.openFileStates = this.fileStates.slice();
@@ -333,14 +355,10 @@ export default class ContentView extends Vue {
       for (const fileState of this.fileStates) {
         fileHandles.push(fileState.file);
       }
-      if (this.projectData.language == "auto") {
-        //TODO right now the whole project's language is being read from the first file. this is not great but I don't really know what else to do.
-        this.detectedLanguage = getLanguage(fileHandles[0].name);
-      }
       let result = await API.submitProject({
         name: event.projectName,
         files: fileHandles,
-        language: this.detectedLanguage,
+        language: this.openFileStates[0].detectedLanguage,
         linter: this.projectData.linter,
       });
       if (result.errorMessage != undefined) {
@@ -350,6 +368,8 @@ export default class ContentView extends Vue {
           {
             edited: false,
             unsaved: false,
+            language: "auto",
+            detectedLanguage: "txt",
             file: { name: "unnamed", path: "unnamed", content: "" },
           },
         ];
@@ -385,7 +405,6 @@ export default class ContentView extends Vue {
     if (this.remainingLintChecks > 0) {
       this.remainingLintChecks--;
       this.lintData = await API.getLint(this.projectData.data.projectId); //TODO proper project handling. Should use ID instead?
-      console.log("lintData", this.lintData.lintFiles);
 
       if (this.lintData.status != "processing") {
         clearInterval(this.lintCheckTimer);

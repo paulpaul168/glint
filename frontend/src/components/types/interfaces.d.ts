@@ -26,6 +26,8 @@ export interface FileEvent {
 
 export interface FileState {
   id?: number;
+  language: string;
+  detectedLanguage: string;
   file: FileHandle;
   unsaved: boolean;
   edited: boolean;
