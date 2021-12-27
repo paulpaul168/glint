@@ -1,11 +1,7 @@
 <template>
   <div class="d-flex flex-row main-pane">
     <div class="project-list">
-      <project-list
-        :projects="activeProjects"
-        @language-set="passLanguage"
-        @linter-set="passLinter"
-      />
+      <project-list :projects="activeProjects" @linter-set="passLinter" />
     </div>
     <div class="content-view">
       <content-view
@@ -54,9 +50,6 @@ export default class Home extends Vue {
     this.notification = newNotification;
   }
 
-  private passLanguage(language: string) {
-    this.language = language;
-  }
   private passLinter(linter: string) {
     this.linter = linter;
   }

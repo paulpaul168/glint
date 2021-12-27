@@ -2,23 +2,6 @@
   <div class="project-settings-panel">
     <v-row class="settings-row">
       <v-select
-        v-model="language"
-        class="dropdown"
-        dense
-        outlined
-        label="Language"
-        placeholder="auto"
-        hide-details="auto"
-        clearable
-        :menu-props="{ top: true, offsetY: true, nudgeTop: 14 }"
-        :items="languageList"
-        @change="emitLanguageSet"
-      >
-        <v-icon slot="append-inner" small>mdi-window-close</v-icon>
-      </v-select>
-    </v-row>
-    <v-row class="settings-row">
-      <v-select
         v-model="linter"
         class="dropdown"
         dense
@@ -39,24 +22,13 @@
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
 
-import { supportedLanguages } from "@/services/LanguageDetection";
-
 @Component({
   components: {},
 })
 export default class ProjectSettings extends Vue {
   name = "ProjectSettings";
-  private language = "auto";
   private linter = "auto";
-  private languageList = supportedLanguages;
   private linterList = ["linterA", "linterB", "linterC"];
-
-  private emitLanguageSet() {
-    if (this.language == null) {
-      this.language = "auto";
-    }
-    this.$emit("language-set", this.language);
-  }
 
   private emitLinterSet() {
     if (this.linter == null) {

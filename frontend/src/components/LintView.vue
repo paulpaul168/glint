@@ -32,6 +32,8 @@ export default class LintView extends Vue {
   @Prop({
     default: () => ({
       file: { name: "unnamed", path: "unnamed", content: "" },
+      language: "auto",
+      detectedLanguage: "txt",
       unsaved: false,
       edited: false,
     }),

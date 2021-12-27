@@ -18,25 +18,25 @@ FLASK_APP=glint_server FLASK_ENV=development flask run
 
 ### Milestone 1
 
-- Only Python
-- No Projects
-- One File
-- UI only lint output
+- [x] Only Python
+- [x] No Projects
+- [x] One File
+- [x] lint output
 
 ### Milestone 2
 
-- File handling (I can edit files and store them to lint the new file)
-- File Project handling (frontend: ability to reopen files after closing, jump to source buttons & shareable links)
-- Secret Finder UI + basic functionality
-- languages: js, go, python
+- [ ] File handling (I can edit files and store them to lint the new file)
+- [ ] File Project handling (frontend: ability to reopen files after closing, jump to source buttons & shareable links)
+- [ ] Secret Finder UI + basic functionality
+- [ ] languages: js, go, python
 
 ### Milestone 3
 
-- Manual linter selection
-- Zip file handling (, URL download handling)
-- Docker file
-- Easter eggs
-- User defined & stored secret finder regexes
+- [ ] Manual linter selection
+- [ ] Zip file handling (, URL download handling)
+- [ ] Docker file
+- [ ] Easter eggs
+- [ ] User defined & stored secret finder regexes
 
 ## RESTful API
 

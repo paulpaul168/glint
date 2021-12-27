@@ -3,17 +3,22 @@
     <v-spacer></v-spacer>
     <v-select
       v-model="languageSelect"
-      :class="'dropdown ' + selectLabelClass"
+      :class="'dropdown ' + languageSelectLabelClass"
       dense
       :label="'auto: ' + languageLabel"
       placeholder="auto"
       hide-details="auto"
       clearable
-      :menu-props="{ top: true, offsetY: true, nudgeTop: 16 }"
+      :menu-props="{
+        top: true,
+        offsetY: true,
+        nudgeTop: 16,
+        transition: 'scroll-y-reverse-transition',
+      }"
       :items="languageList"
       @change="emitLanguageSet"
-      @blur="selectLabelClass = 'hide-label'"
-      @focus="selectLabelClass = ''"
+      @blur="languageSelectLabelClass = 'hide-label'"
+      @focus="languageSelectLabelClass = ''"
     >
       <v-icon slot="append-inner" small>mdi-window-close</v-icon>
     </v-select>
@@ -21,7 +26,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
+import { Component, Prop, Vue, Watch } from "vue-property-decorator";
 
 import { supportedLanguages } from "@/services/LanguageDetection";
 
@@ -32,8 +37,20 @@ export default class FileFooter extends Vue {
   name = "FileFooter";
   private languageList = supportedLanguages;
   private languageSelect = "auto";
+  @Prop({ default: "auto" }) language!: string;
   @Prop({ default: "Language" }) languageLabel!: string;
-  private selectLabelClass = "";
+  private languageSelectLabelClass = "hide-label";
+
+  created(): void {
+    this.languageChange();
+  }
+
+  @Watch("language")
+  private languageChange(): void {
+    if (this.language != "auto") {
+      this.languageSelect = this.language;
+    }
+  }
 
   private emitLanguageSet() {
     if (this.languageSelect == null) {
@@ -78,5 +95,12 @@ export default class FileFooter extends Vue {
 .hide-label::v-deep label.v-label--active {
   visibility: hidden;
   transition: 0.1s;
+}
+</style>
+
+<style>
+.v-select-list {
+  background-color: var(--v-bg_tertiary-base) !important;
+  /*TODO is there a better way to do this than a global important style?*/
 }
 </style>

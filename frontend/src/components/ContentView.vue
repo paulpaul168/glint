@@ -133,6 +133,7 @@
           ></upload-dialog>
           <file-footer
             v-if="viewMode == 'source'"
+            :language="state.language"
             :languageLabel="state.detectedLanguage"
             @language-set="changeLanguage($event)"
           ></file-footer>

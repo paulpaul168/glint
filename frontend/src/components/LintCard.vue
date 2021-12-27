@@ -69,6 +69,8 @@ export default class LintCard extends Vue {
   private snippetEndLine = 0;
   private internalFileState: FileState = {
     file: { name: "unnamed", path: "unnamed", content: "" },
+    language: "auto",
+    detectedLanguage: "txt",
     unsaved: false,
     edited: false,
   };
@@ -93,9 +95,12 @@ export default class LintCard extends Vue {
       .slice(this.snippetStartLine, this.snippetEndLine)
       .join("\n");
     this.internalFileState.file.name = this.fileState.file.name;
+    this.internalFileState.language = this.fileState.language;
+    this.internalFileState.detectedLanguage = this.fileState.detectedLanguage;
     this.internalFileState.file.content = codeSnippet;
     if (this.snippetEndLine - this.snippetStartLine > 1) {
-      this.fileLinkText = "lines " + this.snippetStartLine + "-" + this.snippetEndLine;
+      this.fileLinkText =
+        "lines " + this.snippetStartLine + "-" + this.snippetEndLine;
     } else {
       this.fileLinkText = "line " + this.snippetStartLine;
     }
