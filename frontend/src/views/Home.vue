@@ -5,7 +5,6 @@
     </div>
     <div class="content-view">
       <content-view
-        :language="language"
         :linter="linter"
         @notification="passNotification"
         @new-project="addProject"
@@ -22,6 +21,7 @@ import ProjectList from "@/components/ProjectList.vue";
 import GlobalNotifier from "@/components/GlobalNotifier.vue";
 
 import { Notification, Project } from "@/components/types/interfaces";
+import { apiAddress } from "@/services/BackendAPI";
 
 @Component({
   components: {
@@ -33,11 +33,31 @@ import { Notification, Project } from "@/components/types/interfaces";
 export default class Home extends Vue {
   name = "Home";
 
-  private activeProjects: Project[] = [];
-  private language = "auto";
+  private activeProjects: Project[] = [
+    {
+      settings: {
+        data: {
+          name: "none",
+          projectId: "none",
+          projectUrl: new URL(apiAddress),
+          sourcesUrl: new URL(apiAddress),
+          lintUrl: new URL(apiAddress),
+        },
+        language: "auto",
+        linter: "auto",
+      },
+      files: [],
+    },
+  ];
   private linter = "auto";
 
   private addProject(newProject: Project) {
+    if (
+      this.activeProjects.length == 1 &&
+      this.activeProjects[0].settings.data.name == "none"
+    ) {
+      this.activeProjects = [];
+    }
     this.activeProjects.push(newProject);
   }
 

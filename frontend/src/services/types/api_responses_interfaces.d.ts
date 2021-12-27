@@ -1,3 +1,5 @@
+import { SearchPattern } from "@/components/types/interfaces";
+
 export interface ProjectResponse {
   name: string;
   projectId: string;
@@ -16,4 +18,8 @@ export interface LintResponse {
     lints: Lint[];
   }[];
   errorMessage?: string;
+}
+
+export interface SearchPatternsResponse {
+  patterns: SearchPattern[];
 }

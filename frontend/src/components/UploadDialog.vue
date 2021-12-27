@@ -52,7 +52,7 @@ import { FileHandle, FileEvent } from "./types/interfaces";
 
 @Component
 export default class UploadDialog extends Vue {
-  private name = "UploadDialog";
+  name = "UploadDialog";
   @Prop({ default: false }) uploading!: boolean;
 
   private dialog = false;

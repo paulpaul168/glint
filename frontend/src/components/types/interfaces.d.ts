@@ -62,3 +62,9 @@ export interface ProjectTreeEntry {
   name: string;
   children?: ProjectTreeEntry[];
 }
+
+export interface SearchPattern {
+  name: string;
+  id: string;
+  regex: string;
+}

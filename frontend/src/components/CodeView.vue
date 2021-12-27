@@ -91,7 +91,8 @@ export default class CodeView extends Vue {
   background: var(--bg_primary);
   color: var(--primary);
 
-  font-family: Fira code, Fira Mono, Consolas, Menlo, Courier, monospace;
+  font-family: "Fira code", "Fira Mono", "Consolas", "Menlo", "Courier New",
+    monospace;
   font-size: 15px;
   line-height: 1.5;
   padding: 5px;

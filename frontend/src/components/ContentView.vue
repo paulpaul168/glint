@@ -34,8 +34,14 @@
           v-for="state in openFileStates"
           :key="state.id"
         >
-          <v-toolbar class="toolbar" dense elevation="0" color="transparent">
-            <v-tooltip bottom open-delay="1000" v-if="state.unsaved">
+          <v-toolbar
+            v-if="viewMode == 'source' || viewMode == 'lint'"
+            class="toolbar"
+            dense
+            elevation="0"
+            color="transparent"
+          >
+            <v-tooltip v-if="state.unsaved" bottom open-delay="1000">
               <template v-slot:activator="{ on, attrs }">
                 <v-btn
                   class="toolbar-element"
@@ -52,7 +58,7 @@
               </template>
               <span>Send File to Server</span>
             </v-tooltip>
-            <v-tooltip bottom open-delay="1000" v-if="lintData.status">
+            <v-tooltip v-if="lintData.status" bottom open-delay="1000">
               <template v-slot:activator="{ on, attrs }">
                 <v-btn
                   class="toolbar-element"
@@ -73,31 +79,34 @@
                   "
                   @click="handleLintSwitcher"
                 >
-                  <v-icon small v-if="viewMode == 'lint'">mdi-pencil</v-icon>
+                  <v-icon v-if="viewMode == 'lint'" small>mdi-pencil</v-icon>
                   <v-icon
-                    small
                     v-else-if="
                       viewMode == 'source' && lintData.status == 'done'
                     "
-                    >mdi-format-list-bulleted</v-icon
-                  >
-                  <v-icon
                     small
+                  >
+                    mdi-format-list-bulleted
+                  </v-icon>
+                  <v-icon
                     v-else-if="
                       viewMode == 'source' &&
                       lintData.status == 'processing' &&
                       remainingLintChecks <= 0
                     "
-                    >mdi-reload</v-icon
-                  >
-                  <v-icon
                     small
+                  >
+                    mdi-reload
+                  </v-icon>
+                  <v-icon
                     v-else-if="
                       lintData.status != 'done' &&
                       lintData.status != 'processing'
                     "
-                    >mdi-alert-circle</v-icon
+                    small
                   >
+                    mdi-alert-circle
+                  </v-icon>
                 </v-btn>
               </template>
               <span v-if="viewMode == 'lint'">Show Source</span>

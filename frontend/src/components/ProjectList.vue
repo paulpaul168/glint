@@ -2,19 +2,23 @@
   <div class="d-flex flex-column main-content-pane projects-panel">
     <v-treeview class="projects-view" :items="projectTrees"></v-treeview>
     <v-spacer></v-spacer>
+    <div class="active-project-label">
+      <span style="color: gray; font-size: smaller">Active Project</span><br />
+      {{ projects[0].settings.data.name }}
+    </div>
     <v-divider></v-divider>
-    <project-settings v-on="$listeners"></project-settings>
+    <settings-panel v-on="$listeners"></settings-panel>
   </div>
 </template>
 
 <script lang="ts">
 import { Component, Prop, Vue, Watch } from "vue-property-decorator";
-import ProjectSettings from "@/components/ProjectSettings.vue";
+import SettingsPanel from "@/components/SettingsPanel.vue";
 import { Project, ProjectTreeEntry } from "./types/interfaces";
 
 @Component({
   components: {
-    ProjectSettings,
+    SettingsPanel,
   },
 })
 export default class ProjectList extends Vue {
@@ -59,5 +63,11 @@ export default class ProjectList extends Vue {
   border-bottom-left-radius: 5px !important;
   border-top-left-radius: 5px !important;
   padding-right: 11px;
+}
+
+.active-project-label {
+  text-align: center;
+  color: var(--v-primary-base);
+  margin-bottom: 0.3em;
 }
 </style>

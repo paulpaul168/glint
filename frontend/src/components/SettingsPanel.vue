@@ -1,5 +1,5 @@
 <template>
-  <div class="project-settings-panel">
+  <div class="settings-panel">
     <v-row class="settings-row">
       <v-select
         v-model="linter"
@@ -16,14 +16,21 @@
         @change="emitLinterSet"
       ></v-select>
     </v-row>
+    <v-row class="settings-row">
+      <secrets-search-settings></secrets-search-settings>
+    </v-row>
   </div>
 </template>
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
 
+import SecretsSearchSettings from "@/components/SecretsSearchSettings.vue";
+
 @Component({
-  components: {},
+  components: {
+    SecretsSearchSettings,
+  },
 })
 export default class ProjectSettings extends Vue {
   name = "ProjectSettings";
@@ -40,7 +47,7 @@ export default class ProjectSettings extends Vue {
 </script>
 
 <style scoped>
-.project-settings-panel {
+.settings-panel {
   align-self: flex-start;
 }
 
