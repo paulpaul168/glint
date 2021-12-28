@@ -22,4 +22,5 @@ export interface LintResponse {
 
 export interface SearchPatternsResponse {
   patterns: SearchPattern[];
+  errorMessage?: string;
 }

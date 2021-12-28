@@ -1,0 +1,65 @@
+<template>
+  <folder
+    :class="'project-tree ' + (active ? 'project-tree-active' : '')"
+    :fileStates="project.files"
+    :folderName="project.settings.data.name"
+    :isExpanded="true"
+    :isRoot="true"
+    :isClickable="!active"
+    @click-folder="setActive"
+  ></folder>
+</template>
+
+<script lang="ts">
+import { apiAddress } from "@/services/BackendAPI";
+import { Component, Prop, Vue } from "vue-property-decorator";
+import { Project } from "../types/interfaces";
+import Folder from "./Folder.vue";
+
+@Component({
+  components: {
+    Folder,
+  },
+})
+export default class ProjectTreeView extends Vue {
+  name = "ProjectTreeView";
+
+  @Prop({ default: false }) active!: boolean;
+  @Prop({
+    default: {
+      settings: {
+        data: {
+          name: "New Project",
+          projectId: "",
+          projectUrl: new URL(apiAddress),
+          sourcesUrl: new URL(apiAddress),
+          lintUrl: new URL(apiAddress),
+        },
+        language: "",
+        linter: "",
+      },
+      files: [],
+    },
+  })
+  project!: Project;
+
+  private setActive() {
+    this.$emit("request-active", this.project.settings.data.projectId);
+  }
+}
+</script>
+
+<style scoped>
+.project-tree {
+  margin: 0.2em 0.5em;
+  background-color: transparent;
+  border-radius: 5px;
+  padding: 0.5em 0;
+  transition: background-color 0.1s;
+}
+
+.project-tree-active {
+  background-color: var(--v-bg_secondary-base);
+  transition: background-color 0.2s;
+}
+</style>

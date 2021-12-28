@@ -3,6 +3,7 @@ import { SubmitProject } from "./types/api_requests_interfaces";
 import {
   ProjectResponse,
   LintResponse,
+  SearchPatternsResponse,
 } from "./types/api_responses_interfaces";
 
 export const apiAddress = "http://localhost:5000/api/"; //don't like having to export that, but I think I need it to allow setting sensible default URLs. Do I even want that?
@@ -28,11 +29,7 @@ export async function submitProject(
       body: JSON.stringify(project),
     });
   } catch (error) {
-    console.log(
-      "Fatal error during fetch when submitting project:",
-      error,
-      "Aborting."
-    );
+    console.log("Fatal error during fetch when submitting project:", error);
     emptyProjectResp.errorMessage =
       "Fatal error during fetch when submitting project: " + error;
     return emptyProjectResp;
@@ -67,18 +64,19 @@ export async function overwriteFile(
       }
     );
   } catch (error) {
-    console.log("Fatal error during saving file content (overwrite), aborting");
+    console.log("Fatal error during saving file content (overwrite):", error);
     return {
       success: false,
       errorMessage:
-        "Fatal error during saving file content (overwrite), aborting",
+        "Fatal error during saving file content (overwrite)" + error,
     };
   }
 
   if (!resp.ok) {
     return {
       success: false,
-      errorMessage: "non-OK status received while overwriting file",
+      errorMessage:
+        "non-OK status received while overwriting file: " + resp.status,
     };
   }
 
@@ -97,31 +95,16 @@ export async function getLint(projectId: string): Promise<LintResponse> {
     resp = await fetch(apiAddress + "projects/" + projectId + "/lint", {
       method: "GET",
     });
-  } catch {
-    console.log("Fatal error during fetch when asking for lint, aborting");
+  } catch (error) {
+    console.log("Fatal error during fetch when asking for lint", error);
     returnLint.status = "error";
     returnLint.errorMessage =
-      "Fatal error while requesting Lint result; fetch() threw Exception";
+      "Fatal error while requesting Lint result: " + error;
     return returnLint;
   }
 
   if (!resp.ok) {
-    if (resp.status == 404) {
-      //filter 404 out individually to circumvent that the backend doesn't properly work on this part yet.
-      console.log("404 trying to get lint");
-      /*return {
-        status: "processing",
-        linter: "unknown",
-        lintFiles: [
-          {
-            name: "",
-            path: "",
-            lints: [],
-          },
-        ],
-      };*/
-    }
-    console.log("Received non-OK response when fetching lint");
+    console.log("Received non-OK response when fetching lint: ", resp.status);
     returnLint.status = "error";
     returnLint.errorMessage =
       "Received non-OK response when fetching lint: " + resp.status;
@@ -161,4 +144,40 @@ export async function getLint(projectId: string): Promise<LintResponse> {
   returnLint.linter = respJson["linter"];
   returnLint.lintFiles = lintFilesBuffer;
   return returnLint;
+}
+
+export async function getSearchPatterns(): Promise<SearchPatternsResponse> {
+  let resp;
+  let returnPatterns: SearchPatternsResponse = {
+    patterns: [],
+  };
+  try {
+    resp = await fetch(apiAddress + "searchPatterns", {
+      method: "GET",
+    });
+  } catch (error) {
+    console.log("Fatal error during fetch when asking for patterns", error);
+    returnPatterns.errorMessage =
+      "Fatal error while requesting secrets search patterns: " + error;
+    return returnPatterns;
+  }
+
+  if (!resp.ok) {
+    console.log(
+      "Received non-OK response when fetching search patterns: ",
+      resp.status
+    );
+    returnPatterns.errorMessage =
+      "Received non-OK response when fetching search patterns: " + resp.status;
+    return returnPatterns;
+  }
+
+  try {
+    returnPatterns = await resp.json();
+  } catch (error) {
+    returnPatterns.errorMessage =
+      "Fatal error while parsing JSON from search patterns response: " + error;
+  }
+
+  return returnPatterns;
 }

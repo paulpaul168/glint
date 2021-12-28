@@ -167,7 +167,6 @@ import {
   FileHandle,
   FileState,
   ProjectData,
-  Notification,
   Lint,
 } from "./types/interfaces";
 import { LintResponse } from "@/services/types/api_responses_interfaces";
@@ -235,10 +234,6 @@ export default class ContentView extends Vue {
     },
   ];
   private fileIdCounter = 0;
-
-  private emitNotification(notification: Notification): void {
-    this.$emit("notification", notification);
-  }
 
   private changeLanguage(newLanguage: string) {
     this.openFileStates[this.activeTab].language = newLanguage;

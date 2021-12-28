@@ -1,7 +1,11 @@
 <template>
   <div class="d-flex flex-row main-pane">
     <div class="project-list">
-      <project-list :projects="activeProjects" @linter-set="passLinter" />
+      <project-list
+        :projects="activeProjects"
+        @linter-set="passLinter"
+        @notification="passNotification"
+      />
     </div>
     <div class="content-view">
       <content-view
@@ -37,8 +41,8 @@ export default class Home extends Vue {
     {
       settings: {
         data: {
-          name: "none",
-          projectId: "none",
+          name: "No Project",
+          projectId: "1",
           projectUrl: new URL(apiAddress),
           sourcesUrl: new URL(apiAddress),
           lintUrl: new URL(apiAddress),
@@ -48,13 +52,27 @@ export default class Home extends Vue {
       },
       files: [],
     },
+    /*{
+      settings: {
+        data: {
+          name: "New Project2",
+          projectId: "2",
+          projectUrl: new URL(apiAddress),
+          sourcesUrl: new URL(apiAddress),
+          lintUrl: new URL(apiAddress),
+        },
+        language: "auto",
+        linter: "auto",
+      },
+      files: [],
+    },*/
   ];
   private linter = "auto";
 
   private addProject(newProject: Project) {
     if (
       this.activeProjects.length == 1 &&
-      this.activeProjects[0].settings.data.name == "none"
+      this.activeProjects[0].settings.data.name == "No Project"
     ) {
       this.activeProjects = [];
     }

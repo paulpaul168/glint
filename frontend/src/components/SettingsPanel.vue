@@ -17,7 +17,7 @@
       ></v-select>
     </v-row>
     <v-row class="settings-row">
-      <secrets-search-settings></secrets-search-settings>
+      <secrets-search-settings v-on="$listeners"></secrets-search-settings>
     </v-row>
   </div>
 </template>
