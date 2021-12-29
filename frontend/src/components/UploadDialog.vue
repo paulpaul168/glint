@@ -48,7 +48,7 @@
 
 <script lang="ts">
 import { Component, Prop, Vue, Watch } from "vue-property-decorator";
-import { FileHandle, FileEvent } from "./types/interfaces";
+import { FileHandle, CreateProjectEvent } from "./types/interfaces";
 
 @Component
 export default class UploadDialog extends Vue {
@@ -99,11 +99,11 @@ export default class UploadDialog extends Vue {
   }
 
   private upload(): void {
-    let event: FileEvent = {
+    const eventData: CreateProjectEvent = {
       projectName: this.projectName,
       files: this.selectedFiles,
     };
-    this.$emit("file-event", event);
+    this.$emit("create-project-event", eventData);
     this.dialog = false;
     //TODO return the result (maybe somehow reformatted) here to allow for proper project management in the side pane. can't do right now because data structure with interfaces and all still has to be designed/planned.
     return;

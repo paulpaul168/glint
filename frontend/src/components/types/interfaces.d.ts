@@ -4,12 +4,25 @@ export interface Events {
   files: CreateProjectEvent;
   lints: LintEvent;
   notifs: Notification;
+  fileChange: FileChangeEvent;
+  openFileChange: OpenFileChangeEvent;
 }
 
 export interface Notification {
   type: string;
   message: string;
   timeout?: number;
+}
+
+export interface FileChangeEvent {
+  files: FileState[];
+  openFiles: FileState[];
+  activeFile: number;
+}
+
+export interface OpenFileChangeEvent {
+  openFiles: FileState[];
+  activeFile: number;
 }
 
 export interface CreateProjectEvent {
@@ -49,6 +62,8 @@ export interface Lint {
 export interface Project {
   settings: ProjectData;
   files: FileState[];
+  openFiles?: FileState[];
+  activeFile?: number;
   lintData: LintResponse;
   lintCheckTimer?: number;
   remainingLintChecks?: number;

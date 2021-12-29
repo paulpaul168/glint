@@ -2,20 +2,20 @@
   <div class="main-content-pane" style="margin-right: 15px">
     <v-row style="margin-top: 0">
       <v-tabs
-        v-model="activeTab"
+        v-model="project.activeFile"
         show-arrows
         class="file-tabs"
         background-color="bg_tertiary"
       >
         <v-tab
           class="file-tab"
-          v-for="(state, index) in openFileStates"
+          v-for="(state, index) in internalProject.openFiles"
           :key="state.id"
         >
           <file-tab
             :title="state.file.name"
             :unsaved="state.unsaved"
-            :active="activeTab == index"
+            :active="project.activeFile == index"
             @file-close="closeFile"
             @file-rename="renameFile"
           ></file-tab>
@@ -24,14 +24,14 @@
     </v-row>
     <v-row style="height: calc(100% - 48px)">
       <v-tabs-items
-        v-model="activeTab"
+        v-model="project.activeFile"
         class="main-file-view"
         justify="center"
         align="center"
       >
         <v-tab-item
           style="height: 100%"
-          v-for="state in openFileStates"
+          v-for="state in internalProject.openFiles"
           :key="state.id"
         >
           <v-toolbar
@@ -58,7 +58,7 @@
               </template>
               <span>Send File to Server</span>
             </v-tooltip>
-            <v-tooltip v-if="lintData.status" bottom open-delay="1000">
+            <v-tooltip v-if="project.lintData.status" bottom open-delay="1000">
               <template v-slot:activator="{ on, attrs }">
                 <v-btn
                   class="toolbar-element"
@@ -68,13 +68,14 @@
                   v-bind="attrs"
                   v-on="on"
                   :loading="
-                    lintData.status == 'processing' && remainingLintChecks > 0
+                    project.lintData.status == 'processing' &&
+                    project.remainingLintChecks > 0
                   "
                   :disabled="
                     !(
-                      lintData.status == 'done' ||
-                      (lintData.status == 'processing' &&
-                        remainingLintChecks == 0)
+                      project.lintData.status == 'done' ||
+                      (project.lintData.status == 'processing' &&
+                        project.remainingLintChecks == 0)
                     )
                   "
                   @click="handleLintSwitcher"
@@ -82,7 +83,7 @@
                   <v-icon v-if="viewMode == 'lint'" small>mdi-pencil</v-icon>
                   <v-icon
                     v-else-if="
-                      viewMode == 'source' && lintData.status == 'done'
+                      viewMode == 'source' && project.lintData.status == 'done'
                     "
                     small
                   >
@@ -91,8 +92,8 @@
                   <v-icon
                     v-else-if="
                       viewMode == 'source' &&
-                      lintData.status == 'processing' &&
-                      remainingLintChecks <= 0
+                      project.lintData.status == 'processing' &&
+                      project.remainingLintChecks <= 0
                     "
                     small
                   >
@@ -100,8 +101,8 @@
                   </v-icon>
                   <v-icon
                     v-else-if="
-                      lintData.status != 'done' &&
-                      lintData.status != 'processing'
+                      project.lintData.status != 'done' &&
+                      project.lintData.status != 'processing'
                     "
                     small
                   >
@@ -113,8 +114,8 @@
               <span
                 v-else-if="
                   viewMode == 'source' &&
-                  lintData.status == 'processing' &&
-                  remainingLintChecks <= 0
+                  project.lintData.status == 'processing' &&
+                  project.remainingLintChecks <= 0
                 "
               >
                 Retry fetching Lint result
@@ -138,7 +139,7 @@
           <upload-dialog
             v-if="viewMode == 'uploader'"
             :uploading="uploading"
-            @file-event="loadProject($event)"
+            v-on="$listeners"
           ></upload-dialog>
           <file-footer
             v-if="viewMode == 'source'"
@@ -162,14 +163,7 @@ import LintView from "@/components/LintView.vue";
 import FileTab from "@/components/FileTab.vue";
 import FileFooter from "@/components/FileFooter.vue";
 
-import {
-  CreateProjectEvent,
-  FileHandle,
-  FileState,
-  ProjectData,
-  Lint,
-} from "./types/interfaces";
-import { LintResponse } from "@/services/types/api_responses_interfaces";
+import { FileState, Lint, Project } from "./types/interfaces";
 import { getLanguage } from "@/services/LanguageDetection";
 import { Dictionary } from "vue-router/types/router";
 
@@ -184,91 +178,146 @@ import { Dictionary } from "vue-router/types/router";
 })
 export default class ContentView extends Vue {
   name = "ContentView";
-  @Prop() linter!: string;
-  private viewMode = "uploader"; //which state the UI is in, can be "uploader" = empty with upload "+" button, "source" = show project source, "lint" = show lint results, "project" = show project spanning data like stats and found secrets
-  private lintCheckTimer!: number;
-  private remainingLintChecks = 5;
-  private projectData: ProjectData = {
-    //the defaults here need to be removed at some point and synced with a separate @Prop projectdata
-    data: {
-      name: "DefaultProject",
-      projectId: "DefaultProject",
-      projectUrl: new URL(API.apiAddress), //I dislike these default, I'd love to not have to specify them at all, but I think I might need to because I need language defaults
-      sourcesUrl: new URL(API.apiAddress),
-      lintUrl: new URL(API.apiAddress),
+  @Prop({ default: false }) uploading!: boolean;
+  @Prop() project!: Project;
+  private internalProject: Project = {
+    settings: {
+      data: {
+        name: "No Project",
+        projectId: "1",
+        projectUrl: new URL(API.apiAddress),
+        sourcesUrl: new URL(API.apiAddress),
+        lintUrl: new URL(API.apiAddress),
+      },
+      language: "auto",
+      linter: "auto",
     },
-    language: "auto",
-    linter: "auto",
-  };
-  private lintData: LintResponse = {
-    status: "", //processing means lint is ongoing/result hasn't come in yet, done means lint has been received, anything else means error on linting
-    linter: "",
-    lintFiles: [
+    files: [],
+    openFiles: [
       {
-        name: "",
-        path: "",
-        lints: [],
+        id: 0,
+        edited: false,
+        unsaved: false,
+        language: "auto",
+        detectedLanguage: "txt",
+        file: { name: "unnamed", path: "unnamed", content: "" },
       },
     ],
+    lintData: {
+      status: "",
+      linter: "unknown",
+      lintFiles: [],
+    },
+    viewMode: "files",
+    remainingLintChecks: 5,
   };
+  private viewMode = "uploader"; //which state the UI is in, can be "uploader" = empty with upload "+" button, "source" = show project source, "lint" = show lint results, "project" = show project spanning data like stats and found secrets
+
   private lintsByFile: Dictionary<Lint[]> = { none: [] };
-  private activeTab = 0;
-  private uploading = false;
-  private fileStates: FileState[] = [
-    {
-      edited: false,
-      unsaved: false,
-      language: "auto",
-      detectedLanguage: "txt",
-      file: { name: "unnamed", path: "unnamed", content: "" },
-    },
-  ];
-  private openFileStates: FileState[] = [
-    {
-      id: 0,
-      edited: false,
-      unsaved: false,
-      language: "auto",
-      detectedLanguage: "txt",
-      file: { name: "unnamed", path: "unnamed", content: "" },
-    },
-  ];
   private fileIdCounter = 0;
 
+  //this may need to be converted into a deep watcher, but for now I'll try not to as it makes the code a bit nicer and tidier if only a few things within a project change without the entire project being replaced
+  @Watch("project")
+  projectChanged(): void {
+    //I may need to also store openFileStates in the project data so switching back and forth is more seamless (otherwise it loses list of open vs closed files, active file etc)
+    this.internalProject = this.project;
+    this.lintsByFile = { none: [] };
+    this.filesChanged();
+    this.viewMode = "source";
+  }
+
+  @Watch("project.files")
+  filesChanged(): void {
+    console.log("files changed!");
+    //TODO iterate through all files from project prop, compare with files in internalProject and update as necessary. If we just copy the entire thing over
+    this.internalProject.files = this.project.files;
+  }
+
+  @Watch("project.openFiles")
+  openFilesChanged(): void {
+    console.log(
+      "this should never be reached I think. why would I want to edit open files from outside of content view? maybe is triggered on new project, dunno"
+    );
+    this.internalProject.openFiles = this.project.openFiles;
+  }
+
   private changeLanguage(newLanguage: string) {
-    this.openFileStates[this.activeTab].language = newLanguage;
+    const activeTab = this.internalProject.activeFile as number;
+    (this.internalProject.openFiles as FileState[])[activeTab].language =
+      newLanguage;
     let detectedLanguage = "txt";
     detectedLanguage = getLanguage(
-      this.openFileStates[this.activeTab].file.name
+      (this.internalProject.openFiles as FileState[])[activeTab].file.name
     );
-    this.openFileStates[this.activeTab].detectedLanguage = detectedLanguage;
+    (this.internalProject.openFiles as FileState[])[
+      activeTab
+    ].detectedLanguage = detectedLanguage;
 
-    this.fileStates.forEach((state, index) => {
-      if (state.file.name == this.openFileStates[this.activeTab].file.name) {
-        this.fileStates[index].language = newLanguage;
-        this.fileStates[index].detectedLanguage = detectedLanguage;
+    this.internalProject.files.forEach((state, index) => {
+      if (
+        state.file.path ==
+        (this.internalProject.openFiles as FileState[])[activeTab].file.path
+      ) {
+        this.internalProject.files[index].language = newLanguage;
+        this.internalProject.files[index].detectedLanguage = detectedLanguage;
         return;
       }
     });
+    this.$emit("files-change", {
+      files: this.internalProject.files,
+      openFiles: this.internalProject.openFiles,
+      activeFile: this.internalProject.activeFile,
+    });
   }
 
-  @Watch("linter")
-  private linterChange() {
-    this.projectData.linter = this.linter;
+  //consider moving the individual watchers into the "main" watcher (may increase code runtime but makes it a bit simpler?)
+  @Watch("project.lintData")
+  convertLintsToDict(): void {
+    //convert the array of lints of various files into a dict with one entry of many lints per file
+    for (const lintFile of this.project.lintData.lintFiles) {
+      this.lintsByFile[lintFile.name] = lintFile.lints;
+    }
   }
 
   private codeEdited(): void {
     if (this.viewMode == "uploader") {
       this.viewMode = "source"; //TODO probably more to do here once that happens (someone writing in an empty file while the upload button is showing)
     }
-    this.openFileStates[this.activeTab].edited = true;
-    this.openFileStates[this.activeTab].unsaved = true;
+    (this.internalProject.openFiles as FileState[])[
+      this.internalProject.activeFile as number
+    ].edited = true;
+    (this.internalProject.openFiles as FileState[])[
+      this.internalProject.activeFile as number
+    ].unsaved = true;
+
+    this.$emit("open-files-change", {
+      openFiles: this.internalProject.openFiles,
+      activeFile: this.internalProject.activeFile,
+    });
+    //TODO consider moving event emit away from here or change to more barebones file-edit event (each typed char moves the entire file data around) and maybe add a getChanges public function for Home.vue to call to read on project context switch
   }
 
   private async saveFile(): Promise<void> {
-    this.uploading = true;
-    let result = await API.overwriteFile(
-      this.projectData.data.projectId,
+    //this.uploading = true;
+    const activeTab = this.internalProject.activeFile as number;
+    this.internalProject.files.forEach((state, index) => {
+      if (
+        state.file.path ==
+        (this.internalProject.openFiles as FileState[])[activeTab].file.path
+      ) {
+        this.internalProject.files[index] = (
+          this.internalProject.openFiles as FileState[]
+        )[activeTab];
+      }
+    });
+
+    this.$emit("files-change", {
+      files: this.internalProject.files,
+      openFiles: this.internalProject.openFiles,
+      activeFile: this.internalProject.activeFile,
+    });
+    /*let result = await API.overwriteFile(
+      this.project.settings.data.projectId,
       this.openFileStates[this.activeTab].file
     );
     if (result.success == false) {
@@ -281,154 +330,54 @@ export default class ContentView extends Vue {
     }
     this.uploading = false;
     this.openFileStates[this.activeTab].unsaved = false;
+    this.$emit("file-edit", this.openFileStates[this.activeTab]);*/
     return;
   }
 
   private closeFile(): void {
-    this.openFileStates.splice(this.activeTab, 1);
-    if (this.activeTab >= this.openFileStates.length) {
+    let activeTab = this.internalProject.activeFile as number;
+    this.internalProject.openFiles?.splice(activeTab, 1);
+    if (activeTab >= (this.internalProject.openFiles as FileState[]).length) {
       //if the last file in the list was active and then closed the activeTab index is out of boudns
-      this.activeTab = this.openFileStates.length - 1;
+      activeTab = (this.internalProject.openFiles as FileState[]).length - 1;
+      this.internalProject.activeFile = activeTab;
     }
+    this.$emit("open-files-change", {
+      openFiles: this.internalProject.openFiles,
+      activeTab,
+    });
     //TODO if unsaved ask if it really should be closed?
   }
 
   private renameFile(name: string): void {
     //TODO this doesn't handle path changes on the rename yet
-    const oldName = this.openFileStates[this.activeTab].file.name;
-    this.openFileStates[this.activeTab].file.name = name;
-    this.fileStates.forEach((state, index) => {
+    const activeTab = this.internalProject.activeFile as number;
+    const oldName = (this.internalProject.openFiles as FileState[])[activeTab]
+      .file.name;
+    (this.internalProject.openFiles as FileState[])[activeTab].file.name = name;
+    this.internalProject.files.forEach((state, index) => {
       if (state.file.name == oldName) {
-        this.fileStates[index].file.name = name;
+        this.internalProject.files[index].file.name = name;
         return;
       }
     });
-    this.openFileStates[this.activeTab].unsaved = true;
+    (this.internalProject.openFiles as FileState[])[activeTab].unsaved = true;
   }
 
   private handleLintSwitcher(): void {
-    if (this.lintData.status == "done") {
+    if (this.project.lintData.status == "done") {
       if (this.viewMode == "source") {
         this.viewMode = "lint";
       } else if (this.viewMode == "lint") {
         this.viewMode = "source";
       }
     } else if (
-      this.lintData.status == "processing" &&
-      this.remainingLintChecks <= 0
+      this.project.lintData.status == "processing" &&
+      (this.project.remainingLintChecks || 0) <= 0
     ) {
-      this.remainingLintChecks = 3;
-      this.lintCheckTimer = setInterval(this.handleLintTimer, 1000);
-    }
-  }
-
-  private async loadProject(event: CreateProjectEvent): Promise<void> {
-    //get files from user file event and show it in UI
-    if (event.files.length == 0) {
-      this.openFileStates = [
-        {
-          edited: false,
-          unsaved: false,
-          language: "auto",
-          detectedLanguage: "txt",
-          file: { name: "unnamed", path: "unnamed", content: "" },
-        },
-      ];
-    } else {
-      this.fileStates = [];
-      for (let file of event.files) {
-        this.fileStates.push({
-          edited: false,
-          unsaved: false,
-          language: "auto",
-          detectedLanguage: getLanguage(file.name),
-          file: file,
-        });
-      }
-      this.fileIdCounter = 0;
-      this.openFileStates = this.fileStates.slice();
-      //generate unique ID for the v-for :key directive
-      this.openFileStates.forEach((state, index) => {
-        this.openFileStates[index].id = this.fileIdCounter;
-        this.fileIdCounter++;
-      });
-
-      //upload files to backend
-      this.uploading = true;
-      //extract file handles from file states
-      let fileHandles: FileHandle[] = [];
-      for (const fileState of this.fileStates) {
-        fileHandles.push(fileState.file);
-      }
-      let result = await API.submitProject({
-        name: event.projectName,
-        files: fileHandles,
-        language: this.openFileStates[0].detectedLanguage,
-        linter: this.projectData.linter,
-      });
-      if (result.errorMessage != undefined) {
-        console.log(result.errorMessage);
-        this.uploading = false;
-        this.fileStates = [
-          {
-            edited: false,
-            unsaved: false,
-            language: "auto",
-            detectedLanguage: "txt",
-            file: { name: "unnamed", path: "unnamed", content: "" },
-          },
-        ];
-        this.openFileStates = this.fileStates.slice();
-        this.viewMode = "uploader";
-        this.$emit("notification", {
-          type: "error",
-          message: result.errorMessage,
-        });
-        return;
-      }
-      this.viewMode = "source";
-      this.projectData.data = result;
-      this.uploading = false;
-      this.$emit("new-project", {
-        settings: this.projectData,
-        files: this.fileStates,
-      });
-
-      //set interval for asking for lint status every second. handler has to deactivate asking for lint results on receiving results (or an error)
-      this.lintData.status = "processing";
-      this.lintCheckTimer = setInterval(this.handleLintTimer, 1000);
-    }
-  }
-
-  private convertLintFilesToDict(): void {
-    for (const lintFile of this.lintData.lintFiles) {
-      this.lintsByFile[lintFile.name] = lintFile.lints;
-    }
-  }
-
-  private async handleLintTimer() {
-    if (this.remainingLintChecks > 0) {
-      this.remainingLintChecks--;
-      this.lintData = await API.getLint(this.projectData.data.projectId); //TODO proper project handling. Should use ID instead?
-
-      if (this.lintData.status != "processing") {
-        clearInterval(this.lintCheckTimer);
-        if (this.lintData.status == "done") {
-          this.convertLintFilesToDict();
-        } else {
-          this.$emit("notification", {
-            type: "error",
-            message: this.lintData.errorMessage,
-          });
-        }
-      }
-    } else {
-      clearInterval(this.lintCheckTimer);
-      this.$emit("notification", {
-        type: "info",
-        message:
-          "Fetching lint results timed out. Server may still be processing, you can retry.",
-      });
+      this.$emit("retry-get-lint");
+      //this.remainingLintChecks = 3;
+      //this.lintCheckTimer = setInterval(this.handleLintTimer, 1000);
     }
   }
 }

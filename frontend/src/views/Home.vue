@@ -11,9 +11,12 @@
     <div class="content-view">
       <content-view
         :project="activeProjects[activeProject]"
-        :linter="linter"
+        :uploading="false"
         @notification="passNotification"
-        @new-project="addProject"
+        @files-change="uploadFileChanges"
+        @open-files-change="storeOpenFileChanges"
+        @retry-get-lint="setGetLintTries"
+        @create-project-event="createProject($event)"
       />
     </div>
     <global-notifier :notification="notification"></global-notifier>
@@ -30,12 +33,16 @@ import GlobalNotifier from "@/components/GlobalNotifier.vue";
 
 import {
   CreateProjectEvent,
+  FileChangeEvent,
   FileHandle,
+  FileState,
   Notification,
+  OpenFileChangeEvent,
   Project,
 } from "@/components/types/interfaces";
-import { apiAddress } from "@/services/BackendAPI";
 import { getLanguage } from "@/services/LanguageDetection";
+import { SubmitProject } from "@/services/types/api_requests_interfaces";
+import { ProjectResponse } from "@/services/types/api_responses_interfaces";
 
 @Component({
   components: {
@@ -47,6 +54,7 @@ import { getLanguage } from "@/services/LanguageDetection";
 export default class Home extends Vue {
   name = "Home";
 
+  private uploading = false; //todo this should be moved inside the project structure, if two different projects issue uploading shit could get weird
   private activeProject = 0;
   private activeProjects: Project[] = [
     {
@@ -54,23 +62,16 @@ export default class Home extends Vue {
         data: {
           name: "No Project",
           projectId: "1",
-          projectUrl: new URL(apiAddress),
-          sourcesUrl: new URL(apiAddress),
-          lintUrl: new URL(apiAddress),
+          projectUrl: new URL(API.apiAddress),
+          sourcesUrl: new URL(API.apiAddress),
+          lintUrl: new URL(API.apiAddress),
         },
         language: "auto",
         linter: "auto",
       },
-      files: [
-        {
-          id: 0,
-          edited: false,
-          unsaved: false,
-          language: "auto",
-          detectedLanguage: "txt",
-          file: { name: "unnamed", path: "unnamed", content: "" },
-        },
-      ],
+      files: [],
+      openFiles: [],
+      activeFile: 0,
       lintData: {
         status: "",
         linter: "unknown",
@@ -99,6 +100,7 @@ export default class Home extends Vue {
       },
     },*/
   ];
+  private internalFileId = 0;
 
   private linter = "auto";
 
@@ -108,14 +110,16 @@ export default class Home extends Vue {
         data: {
           name: "No Project",
           projectId: "",
-          projectUrl: new URL(apiAddress),
-          sourcesUrl: new URL(apiAddress),
-          lintUrl: new URL(apiAddress),
+          projectUrl: new URL(API.apiAddress),
+          sourcesUrl: new URL(API.apiAddress),
+          lintUrl: new URL(API.apiAddress),
         },
         language: "auto",
         linter: "auto",
       },
       files: [],
+      openFiles: [],
+      activeFile: 0,
       lintData: {
         status: "",
         linter: "unknown",
@@ -126,6 +130,7 @@ export default class Home extends Vue {
     };
     //get files from user file event and show it in UI
     if (event.files.length == 0) {
+      //somehow no files were submitted? how is this even possible
       project.files = [
         {
           edited: false,
@@ -135,6 +140,12 @@ export default class Home extends Vue {
           file: { name: "unnamed", path: "unnamed", content: "" },
         },
       ];
+      project.openFiles = project.files;
+      project.openFiles[0].id = 0;
+
+      for (const state of project.openFiles) {
+        state.id = this.internalFileId++;
+      }
     } else {
       project.files = [];
       for (let file of event.files) {
@@ -146,44 +157,29 @@ export default class Home extends Vue {
           file: file,
         });
       }
+      project.openFiles = project.files.slice();
 
       //upload files to backend
-      //this.uploading = true;
+      this.uploading = true;
       //extract file handles from file states
       let fileHandles: FileHandle[] = [];
       for (const fileState of project.files) {
         fileHandles.push(fileState.file);
       }
-      let result = await API.submitProject({
+      const result = await this.uploadProject({
         name: event.projectName,
         files: fileHandles,
         language: "auto",
         linter: "auto",
       });
+
       if (result.errorMessage != undefined) {
-        console.log(result.errorMessage);
-        //this.uploading = false;
-        project.files = [
-          {
-            edited: false,
-            unsaved: false,
-            language: "auto",
-            detectedLanguage: "txt",
-            file: { name: "unnamed", path: "unnamed", content: "" },
-          },
-        ];
-        this.$emit("notification", {
-          type: "error",
-          message: result.errorMessage,
-        });
+        //I dislike having to do this again here when it's already been done in the function but can't think of anything better right now
         return;
       }
+
       project.settings.data = result;
-      //this.uploading = false;
-      /*this.$emit("new-project", {
-        settings: this.projectData,
-        files: this.fileStates,
-      });*/
+      this.uploading = false;
 
       //add current project variable to active projects which also sets the current active project to its index
       const projectIndex = this.addProject(project);
@@ -198,6 +194,21 @@ export default class Home extends Vue {
     }
   }
 
+  private async uploadProject(
+    uploadData: SubmitProject
+  ): Promise<ProjectResponse> {
+    let result = await API.submitProject(uploadData);
+    if (result.errorMessage != undefined) {
+      console.log(result.errorMessage);
+      //this.uploading = false;
+      this.$emit("notification", {
+        type: "error",
+        message: result.errorMessage,
+      });
+    }
+    return result;
+  }
+
   private addProject(newProject: Project): number {
     if (
       this.activeProjects.length == 1 &&
@@ -210,10 +221,67 @@ export default class Home extends Vue {
     return this.activeProjects.length - 1;
   }
 
+  private async uploadFileChanges(event: FileChangeEvent): Promise<void> {
+    let encounteredErrors = false;
+    for (const state of event.openFiles) {
+      let foundMatchingFile = false;
+      for (const oldState of this.activeProjects[this.activeProject]
+        .openFiles as FileState[]) {
+        if (oldState.id == state.id) {
+          foundMatchingFile = true;
+          if (
+            oldState.file.name == state.file.name &&
+            oldState.file.path == state.file.path &&
+            oldState.file.content == state.file.content
+          ) {
+            break;
+          }
+          const projectId =
+            this.activeProjects[this.activeProject].settings.data.projectId;
+          const result = await API.overwriteFile(projectId, state.file);
+          if (!result.success) {
+            this.passNotification({
+              type: "error",
+              message: result.errorMessage || "Unknown error",
+            });
+            encounteredErrors = true;
+          }
+          break;
+        }
+      }
+      if (foundMatchingFile == false) {
+        // went through all old files but didn't find an ID match, this must mean a new file; TODO add API new file endpoint
+      }
+    }
+
+    this.activeProjects[this.activeProject].openFiles = event.openFiles;
+    if (!encounteredErrors) {
+      this.activeProjects[this.activeProject].files = event.files;
+      (this.activeProjects[this.activeProject].openFiles as FileState[])[
+        event.activeFile
+      ].unsaved = false;
+    }
+  }
+
+  private storeOpenFileChanges(event: OpenFileChangeEvent): void {
+    this.activeProjects[this.activeProject].openFiles = event.openFiles;
+    this.activeProjects[this.activeProject].activeFile = event.activeFile;
+  }
+
+  private setGetLintTries(): void {
+    this.activeProjects[this.activeProject].remainingLintChecks = 3;
+    this.activeProjects[this.activeProject].lintCheckTimer = setInterval(
+      this.handleLintTimer,
+      1000,
+      this.activeProject
+    );
+  }
+
   private async handleLintTimer(projectIndex: number) {
     let remainingChecks = 5;
     if (this.activeProjects[projectIndex].remainingLintChecks != undefined) {
-      remainingChecks = this.activeProjects[projectIndex].remainingLintChecks as number;
+      remainingChecks = this.activeProjects[projectIndex]
+        .remainingLintChecks as number;
     }
     if (remainingChecks > 0) {
       remainingChecks--;
