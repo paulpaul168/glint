@@ -19,6 +19,12 @@
     <v-row class="settings-row">
       <secrets-search-settings v-on="$listeners"></secrets-search-settings>
     </v-row>
+    <v-row class="settings-row">
+      <v-btn color="error" block @click="emitDeleteProject">
+        Delete Project
+        <v-icon small right>mdi-delete</v-icon>
+      </v-btn>
+    </v-row>
   </div>
 </template>
 
@@ -42,6 +48,10 @@ export default class ProjectSettings extends Vue {
       this.linter = "auto";
     }
     this.$emit("linter-set", this.linter);
+  }
+
+  private emitDeleteProject() {
+    console.log("delete project not yet implemented");
   }
 }
 </script>

@@ -163,7 +163,7 @@ import FileTab from "@/components/FileTab.vue";
 import FileFooter from "@/components/FileFooter.vue";
 
 import {
-  FileEvent,
+  CreateProjectEvent,
   FileHandle,
   FileState,
   ProjectData,
@@ -322,7 +322,7 @@ export default class ContentView extends Vue {
     }
   }
 
-  private async loadProject(event: FileEvent): Promise<void> {
+  private async loadProject(event: CreateProjectEvent): Promise<void> {
     //get files from user file event and show it in UI
     if (event.files.length == 0) {
       this.openFileStates = [

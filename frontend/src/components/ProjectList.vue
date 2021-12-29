@@ -4,8 +4,9 @@
       v-for="(project, index) of projects"
       :key="project.settings.data.projectId"
       :active="index == activeProject"
+      :lastProject="projects.length == 1"
       :project="project"
-      @request-active="setActiveProject($event)"
+      @request-active="emitSetActiveProject($event)"
     ></project-tree-view>
     <v-spacer></v-spacer>
     <div class="active-project-label">
@@ -18,10 +19,10 @@
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue, Watch } from "vue-property-decorator";
+import { Component, Prop, Vue } from "vue-property-decorator";
 import SettingsPanel from "@/components/SettingsPanel.vue";
 import ProjectTreeView from "@/components/file_tree/ProjectTreeView.vue";
-import { Project, ProjectTreeEntry } from "./types/interfaces";
+import { Project } from "./types/interfaces";
 
 @Component({
   components: {
@@ -31,21 +32,13 @@ import { Project, ProjectTreeEntry } from "./types/interfaces";
 })
 export default class ProjectList extends Vue {
   @Prop() projects!: Project[];
-  private activeProject = 0;
-  private projectTrees: ProjectTreeEntry[] = [
-    { id: 1, name: "New Project", children: [{ id: 2, name: "unnamed" }] },
-  ];
+  @Prop({ default: 0 }) activeProject!: number;
   private internalIdentifier = 0;
 
-  @Watch("projects")
-  updateProjectsList(): void {
-    this.activeProject = this.projects.length - 1;
-  }
-
-  private setActiveProject(projectId: string): void {
+  private emitSetActiveProject(projectId: string): void {
     this.projects.forEach((project, index) => {
       if (project.settings.data.projectId == projectId) {
-        this.activeProject = index;
+        this.$emit("set-active-project", index);
         return;
       }
     });

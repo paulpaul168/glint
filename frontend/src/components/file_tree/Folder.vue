@@ -20,15 +20,29 @@
         </v-icon>
       </v-btn>
       <v-btn
-        v-if="isRoot"
-        :class="'folder-name ' + (isClickable ? '' : 'disable-button')"
+        :class="
+          'folder-name text-body-1 ' + (isClickable ? '' : 'disable-button')
+        "
         text
         :ripple="false"
         @click="clickFolder"
       >
         {{ folderName }}
       </v-btn>
-      <p v-else>{{ folderName }}</p>
+      <v-tooltip right open-delay="1000">
+        <template v-slot:activator="{ on, attrs }">
+          <v-btn
+            icon
+            :ripple="false"
+            v-bind="attrs"
+            v-on="on"
+            :disabled="!isDeletable"
+          >
+            <v-icon v-if="isDeletable" small>mdi-close</v-icon>
+          </v-btn>
+        </template>
+        <span>Close Project</span>
+      </v-tooltip>
     </div>
     <v-expand-transition>
       <div v-show="internalIsExpanded" class="folder-collapsible">
@@ -65,8 +79,8 @@ export default class Folder extends Vue {
   @Prop({ default: "<folder name>" }) folderName!: string;
   @Prop() fileStates!: FileState[];
   @Prop({ default: false }) isExpanded!: boolean;
-  @Prop({ default: false }) isRoot!: boolean;
-  @Prop({ default: true }) isClickable!: boolean;
+  @Prop({ default: false }) isDeletable!: boolean;
+  @Prop({ default: false }) isClickable!: boolean;
 
   private internalIsExpanded = false;
 

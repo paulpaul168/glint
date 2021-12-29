@@ -4,7 +4,7 @@
     :fileStates="project.files"
     :folderName="project.settings.data.name"
     :isExpanded="true"
-    :isRoot="true"
+    :isDeletable="active && !lastProject"
     :isClickable="!active"
     @click-folder="setActive"
   ></folder>
@@ -25,6 +25,7 @@ export default class ProjectTreeView extends Vue {
   name = "ProjectTreeView";
 
   @Prop({ default: false }) active!: boolean;
+  @Prop({ default: false }) lastProject!: boolean;
   @Prop({
     default: {
       settings: {

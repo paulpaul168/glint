@@ -3,12 +3,14 @@
     <div class="project-list">
       <project-list
         :projects="activeProjects"
+        @set-active-project="activeProject = $event"
         @linter-set="passLinter"
         @notification="passNotification"
       />
     </div>
     <div class="content-view">
       <content-view
+        :project="activeProjects[activeProject]"
         :linter="linter"
         @notification="passNotification"
         @new-project="addProject"
@@ -20,12 +22,20 @@
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
+
+import * as API from "@/services/BackendAPI";
 import ContentView from "@/components/ContentView.vue";
 import ProjectList from "@/components/ProjectList.vue";
 import GlobalNotifier from "@/components/GlobalNotifier.vue";
 
-import { Notification, Project } from "@/components/types/interfaces";
+import {
+  CreateProjectEvent,
+  FileHandle,
+  Notification,
+  Project,
+} from "@/components/types/interfaces";
 import { apiAddress } from "@/services/BackendAPI";
+import { getLanguage } from "@/services/LanguageDetection";
 
 @Component({
   components: {
@@ -37,6 +47,7 @@ import { apiAddress } from "@/services/BackendAPI";
 export default class Home extends Vue {
   name = "Home";
 
+  private activeProject = 0;
   private activeProjects: Project[] = [
     {
       settings: {
@@ -50,7 +61,23 @@ export default class Home extends Vue {
         language: "auto",
         linter: "auto",
       },
-      files: [],
+      files: [
+        {
+          id: 0,
+          edited: false,
+          unsaved: false,
+          language: "auto",
+          detectedLanguage: "txt",
+          file: { name: "unnamed", path: "unnamed", content: "" },
+        },
+      ],
+      lintData: {
+        status: "",
+        linter: "unknown",
+        lintFiles: [],
+      },
+      viewMode: "files",
+      remainingLintChecks: 5,
     },
     /*{
       settings: {
@@ -65,11 +92,113 @@ export default class Home extends Vue {
         linter: "auto",
       },
       files: [],
+      lintData: {
+        status: "",
+        linter: "unknown",
+        lintFiles: [],
+      },
     },*/
   ];
+
   private linter = "auto";
 
-  private addProject(newProject: Project) {
+  private async createProject(event: CreateProjectEvent): Promise<void> {
+    const project: Project = {
+      settings: {
+        data: {
+          name: "No Project",
+          projectId: "",
+          projectUrl: new URL(apiAddress),
+          sourcesUrl: new URL(apiAddress),
+          lintUrl: new URL(apiAddress),
+        },
+        language: "auto",
+        linter: "auto",
+      },
+      files: [],
+      lintData: {
+        status: "",
+        linter: "unknown",
+        lintFiles: [],
+      },
+      viewMode: "files",
+      remainingLintChecks: 5,
+    };
+    //get files from user file event and show it in UI
+    if (event.files.length == 0) {
+      project.files = [
+        {
+          edited: false,
+          unsaved: false,
+          language: "auto",
+          detectedLanguage: "txt",
+          file: { name: "unnamed", path: "unnamed", content: "" },
+        },
+      ];
+    } else {
+      project.files = [];
+      for (let file of event.files) {
+        project.files.push({
+          edited: false,
+          unsaved: false,
+          language: "auto",
+          detectedLanguage: getLanguage(file.name),
+          file: file,
+        });
+      }
+
+      //upload files to backend
+      //this.uploading = true;
+      //extract file handles from file states
+      let fileHandles: FileHandle[] = [];
+      for (const fileState of project.files) {
+        fileHandles.push(fileState.file);
+      }
+      let result = await API.submitProject({
+        name: event.projectName,
+        files: fileHandles,
+        language: "auto",
+        linter: "auto",
+      });
+      if (result.errorMessage != undefined) {
+        console.log(result.errorMessage);
+        //this.uploading = false;
+        project.files = [
+          {
+            edited: false,
+            unsaved: false,
+            language: "auto",
+            detectedLanguage: "txt",
+            file: { name: "unnamed", path: "unnamed", content: "" },
+          },
+        ];
+        this.$emit("notification", {
+          type: "error",
+          message: result.errorMessage,
+        });
+        return;
+      }
+      project.settings.data = result;
+      //this.uploading = false;
+      /*this.$emit("new-project", {
+        settings: this.projectData,
+        files: this.fileStates,
+      });*/
+
+      //add current project variable to active projects which also sets the current active project to its index
+      const projectIndex = this.addProject(project);
+
+      //set interval for asking for lint status every second. handler has to deactivate asking for lint results on receiving results (or an error)
+      this.activeProjects[projectIndex].lintData.status = "processing";
+      this.activeProjects[projectIndex].lintCheckTimer = setInterval(
+        this.handleLintTimer,
+        1000,
+        projectIndex
+      );
+    }
+  }
+
+  private addProject(newProject: Project): number {
     if (
       this.activeProjects.length == 1 &&
       this.activeProjects[0].settings.data.name == "No Project"
@@ -77,6 +206,39 @@ export default class Home extends Vue {
       this.activeProjects = [];
     }
     this.activeProjects.push(newProject);
+    this.activeProject = this.activeProjects.length - 1; //may want to reconsider and not set the new project as active by default
+    return this.activeProjects.length - 1;
+  }
+
+  private async handleLintTimer(projectIndex: number) {
+    let remainingChecks = 5;
+    if (this.activeProjects[projectIndex].remainingLintChecks != undefined) {
+      remainingChecks = this.activeProjects[projectIndex].remainingLintChecks as number;
+    }
+    if (remainingChecks > 0) {
+      remainingChecks--;
+      this.activeProjects[projectIndex].lintData = await API.getLint(
+        this.activeProjects[projectIndex].settings.data.projectId
+      );
+
+      if (this.activeProjects[projectIndex].lintData.status != "processing") {
+        clearInterval(this.activeProjects[projectIndex].lintCheckTimer);
+        if (this.activeProjects[projectIndex].lintData.status != "done") {
+          this.$emit("notification", {
+            type: "error",
+            message: this.activeProjects[projectIndex].lintData.errorMessage,
+          });
+        }
+      }
+    } else {
+      clearInterval(this.activeProjects[projectIndex].lintCheckTimer);
+      this.$emit("notification", {
+        type: "info",
+        message:
+          "Fetching lint results timed out. Server may still be processing, you can retry.",
+      });
+    }
+    this.activeProjects[projectIndex].remainingLintChecks = remainingChecks;
   }
 
   private notification: Notification = {
