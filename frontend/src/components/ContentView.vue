@@ -263,11 +263,11 @@ export default class ContentView extends Vue {
         return;
       }
     });
-    this.$emit("files-change", {
-      files: this.internalProject.files,
+    this.$emit("open-files-change", {
       openFiles: this.internalProject.openFiles,
       activeFile: this.internalProject.activeFile,
     });
+    //TODO investigate: why do I need to set files languages and not just openFiles? do I even need to? If I do need to set files, I need to emit files-change not open-files-change, but this also triggers a file upload. maybe add a flag whether to upload or not?
   }
 
   //consider moving the individual watchers into the "main" watcher (may increase code runtime but makes it a bit simpler?)

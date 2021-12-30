@@ -3,6 +3,7 @@
     <div class="project-list">
       <project-list
         :projects="activeProjects"
+        :activeProject="activeProject"
         @set-active-project="activeProject = $event"
         @linter-set="passLinter"
         @notification="passNotification"
@@ -85,19 +86,40 @@ export default class Home extends Vue {
         data: {
           name: "New Project2",
           projectId: "2",
-          projectUrl: new URL(apiAddress),
-          sourcesUrl: new URL(apiAddress),
-          lintUrl: new URL(apiAddress),
+          projectUrl: new URL(API.apiAddress),
+          sourcesUrl: new URL(API.apiAddress),
+          lintUrl: new URL(API.apiAddress),
         },
         language: "auto",
         linter: "auto",
       },
-      files: [],
+      files: [
+        {
+          edited: false,
+          unsaved: false,
+          language: "auto",
+          detectedLanguage: "txt",
+          file: { name: "oh.py", path: "oh.py", content: "halloooooo = 5" },
+        },
+      ],
+      openFiles: [
+        {
+          id: 0,
+          edited: false,
+          unsaved: false,
+          language: "auto",
+          detectedLanguage: "txt",
+          file: { name: "oh.py", path: "oh.py", content: "halloooooo = 5" },
+        },
+      ],
+      activeFile: 0,
       lintData: {
         status: "",
         linter: "unknown",
         lintFiles: [],
       },
+      viewMode: "files",
+      remainingLintChecks: 5,
     },*/
   ];
   private internalFileId = 0;
