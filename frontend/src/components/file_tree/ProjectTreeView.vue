@@ -4,7 +4,9 @@
     :fileStates="project.files"
     :folderName="project.settings.data.name"
     :isExpanded="true"
+    :isRoot="true"
     :isDeletable="active && !lastProject"
+    :isInActiveProject="active"
     :isClickable="!active"
     @click-folder="setActive"
   ></folder>

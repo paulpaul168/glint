@@ -219,26 +219,59 @@ export default class ContentView extends Vue {
   //this may need to be converted into a deep watcher, but for now I'll try not to as it makes the code a bit nicer and tidier if only a few things within a project change without the entire project being replaced
   @Watch("project")
   projectChanged(): void {
+    console.log("project changed");
     //I may need to also store openFileStates in the project data so switching back and forth is more seamless (otherwise it loses list of open vs closed files, active file etc)
     this.internalProject = this.project;
     this.lintsByFile = { none: [] };
-    this.filesChanged();
-    this.viewMode = "source";
+    //this.filesChanged();
+    this.selectViewMode();
   }
 
   @Watch("project.files")
-  filesChanged(): void {
+  private filesChanged(): void {
     console.log("files changed!");
+    /*setTimeout(() => {
+      this.selectViewMode();
+    }, 100);*/
     //TODO iterate through all files from project prop, compare with files in internalProject and update as necessary. If we just copy the entire thing over
     this.internalProject.files = this.project.files;
   }
 
   @Watch("project.openFiles")
-  openFilesChanged(): void {
-    console.log(
-      "this should never be reached I think. why would I want to edit open files from outside of content view? maybe is triggered on new project, dunno"
-    );
+  private openFilesChanged(): void {
     this.internalProject.openFiles = this.project.openFiles;
+  }
+
+  private selectViewMode(): void {
+    if (this.internalProject.settings.data.projectId == "") {
+      console.log("id:", this.internalProject.settings.data.projectId);
+      if (this.internalProject.files.length == 0) {
+        this.viewMode = "uploader";
+        this.internalProject.openFiles = [
+          {
+            id: 0,
+            edited: false,
+            unsaved: false,
+            language: "auto",
+            detectedLanguage: "txt",
+            file: { name: "unnamed", path: "unnamed", content: "" },
+          },
+        ];
+      } else {
+        console.log(
+          "files:",
+          this.internalProject.files.length,
+          this.internalProject.files[0].file.name
+        );
+        this.$emit("notification", {
+          type: "error",
+          message:
+            "Encountered Project without any ID set but that contains files. Only empty projects are allowed to have no ID!",
+        });
+      }
+    } else {
+      this.viewMode = "source";
+    }
   }
 
   private changeLanguage(newLanguage: string) {
@@ -247,7 +280,7 @@ export default class ContentView extends Vue {
       newLanguage;
     let detectedLanguage = "txt";
     detectedLanguage = getLanguage(
-      (this.internalProject.openFiles as FileState[])[activeTab].file.name
+      this.internalProject.openFiles?.[activeTab].file.name
     );
     (this.internalProject.openFiles as FileState[])[
       activeTab
@@ -255,8 +288,7 @@ export default class ContentView extends Vue {
 
     this.internalProject.files.forEach((state, index) => {
       if (
-        state.file.path ==
-        (this.internalProject.openFiles as FileState[])[activeTab].file.path
+        state.file.path == this.internalProject.openFiles?.[activeTab].file.path
       ) {
         this.internalProject.files[index].language = newLanguage;
         this.internalProject.files[index].detectedLanguage = detectedLanguage;
@@ -302,12 +334,10 @@ export default class ContentView extends Vue {
     const activeTab = this.internalProject.activeFile as number;
     this.internalProject.files.forEach((state, index) => {
       if (
-        state.file.path ==
-        (this.internalProject.openFiles as FileState[])[activeTab].file.path
+        state.file.path == this.internalProject.openFiles?.[activeTab].file.path
       ) {
-        this.internalProject.files[index] = (
-          this.internalProject.openFiles as FileState[]
-        )[activeTab];
+        this.internalProject.files[index] =
+          this.internalProject.openFiles?.[activeTab];
       }
     });
 
@@ -336,11 +366,13 @@ export default class ContentView extends Vue {
 
   private closeFile(): void {
     let activeTab = this.internalProject.activeFile as number;
+    console.log("cur active", activeTab);
     this.internalProject.openFiles?.splice(activeTab, 1);
     if (activeTab >= (this.internalProject.openFiles as FileState[]).length) {
       //if the last file in the list was active and then closed the activeTab index is out of boudns
       activeTab = (this.internalProject.openFiles as FileState[]).length - 1;
       this.internalProject.activeFile = activeTab;
+      console.log("new active", activeTab);
     }
     this.$emit("open-files-change", {
       openFiles: this.internalProject.openFiles,
@@ -352,8 +384,7 @@ export default class ContentView extends Vue {
   private renameFile(name: string): void {
     //TODO this doesn't handle path changes on the rename yet
     const activeTab = this.internalProject.activeFile as number;
-    const oldName = (this.internalProject.openFiles as FileState[])[activeTab]
-      .file.name;
+    const oldName = this.internalProject.openFiles?.[activeTab].file.name;
     (this.internalProject.openFiles as FileState[])[activeTab].file.name = name;
     this.internalProject.files.forEach((state, index) => {
       if (state.file.name == oldName) {

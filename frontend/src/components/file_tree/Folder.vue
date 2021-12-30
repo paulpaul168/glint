@@ -1,5 +1,13 @@
 <template>
-  <div>
+  <div
+    :class="
+      isRoot
+        ? internalIsExpanded
+          ? 'padding-open'
+          : 'padding-close'
+        : 'padding-close'
+    "
+  >
     <div style="margin: 0 0.4em" class="d-flex flex-row">
       <v-btn
         icon
@@ -51,12 +59,14 @@
           :key="name"
           :fileStates="state"
           :folderName="name"
+          :isInActiveProject="isInActiveProject"
         ></folder>
         <file
           v-for="(state, index) of files"
           :key="index"
           class="file"
           :state="state"
+          :isClickable="isInActiveProject"
         ></file>
       </div>
     </v-expand-transition>
@@ -78,9 +88,11 @@ export default class Folder extends Vue {
   name = "Folder";
   @Prop({ default: "<folder name>" }) folderName!: string;
   @Prop() fileStates!: FileState[];
+  @Prop({ default: false }) isRoot!: boolean;
+  @Prop({ default: false }) isInActiveProject!: boolean;
   @Prop({ default: false }) isExpanded!: boolean;
   @Prop({ default: false }) isDeletable!: boolean;
-  @Prop({ default: false }) isClickable!: boolean;
+  @Prop({ default: true }) isClickable!: boolean;
 
   private internalIsExpanded = false;
 
@@ -93,6 +105,10 @@ export default class Folder extends Vue {
   created(): void {
     this.expandedChange();
     this.extractDisplayData();
+    if (this.files.length + Object.keys(this.folders).length < 1) {
+      //needed to collapse an empty project as that shows no arrow to do so
+      this.internalIsExpanded = false;
+    }
   }
 
   @Watch("isExpanded")
@@ -128,7 +144,7 @@ export default class Folder extends Vue {
 
 <style scoped>
 .folder-collapsible {
-  margin-left: 48px;
+  margin-left: 36px;
   margin-right: 0;
 }
 
@@ -151,6 +167,16 @@ export default class Folder extends Vue {
 
 .chevron-close {
   transition: 0.1s;
+}
+
+.padding-open {
+  padding-bottom: 0.3em !important;
+  transition: 0.2s;
+}
+
+.padding-close {
+  padding-bottom: 0.5em !important;
+  transition: 0.1s; /* the transition seems to not work properly */
 }
 
 .file {

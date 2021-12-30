@@ -8,10 +8,21 @@
       :project="project"
       @request-active="emitSetActiveProject($event)"
     ></project-tree-view>
+    <v-divider class="centered-divider"></v-divider>
+    <v-btn
+      class="add-project-button"
+      text
+      color="primary"
+      elevation="0"
+      @click="$emit('create-project')"
+    >
+      <v-icon left>mdi-plus</v-icon> Create Project
+    </v-btn>
+
     <v-spacer></v-spacer>
     <div class="active-project-label">
       <span style="color: gray; font-size: smaller">Active Project</span><br />
-      {{ projects[0].settings.data.name }}
+      {{ projects[activeProject].settings.data.name }}
     </div>
     <v-divider></v-divider>
     <settings-panel v-on="$listeners"></settings-panel>
@@ -60,5 +71,14 @@ export default class ProjectList extends Vue {
   text-align: center;
   color: var(--v-primary-base);
   margin-bottom: 0.3em;
+}
+
+.centered-divider {
+  margin: 0.4em 10%;
+}
+
+.add-project-button {
+  margin: 0.2em 8px;
+  flex-grow: 0;
 }
 </style>

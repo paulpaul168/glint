@@ -9,6 +9,7 @@
       placeholder="auto"
       hide-details="auto"
       clearable
+      append-icon="mdi-chevron-down"
       :menu-props="{
         top: true,
         offsetY: true,
@@ -20,7 +21,9 @@
       @blur="languageSelectLabelClass = 'hide-label'"
       @focus="languageSelectLabelClass = ''"
     >
-      <v-icon slot="append-inner" small>mdi-window-close</v-icon>
+      <!--<template v-slot:append>
+        <v-icon small>mdi-chevron-down</v-icon>
+      </template>-->
     </v-select>
   </div>
 </template>
@@ -69,8 +72,8 @@ export default class FileFooter extends Vue {
 
 .dropdown {
   max-width: 10em;
-  margin-top: auto;
-  margin-bottom: 0.1em;
+  margin-top: 0;
+  /*margin-bottom: 0.1em;*/
   margin-right: 0.7em;
 }
 

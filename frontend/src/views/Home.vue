@@ -7,17 +7,19 @@
         @set-active-project="activeProject = $event"
         @linter-set="passLinter"
         @notification="passNotification"
+        @create-project="createEmptyProject"
       />
     </div>
     <div class="content-view">
       <content-view
         :project="activeProjects[activeProject]"
         :uploading="false"
+        ref="contentView"
         @notification="passNotification"
         @files-change="uploadFileChanges"
         @open-files-change="storeOpenFileChanges"
         @retry-get-lint="setGetLintTries"
-        @create-project-event="createProject($event)"
+        @create-project-event="fillProject($event)"
       />
     </div>
     <global-notifier :notification="notification"></global-notifier>
@@ -62,7 +64,7 @@ export default class Home extends Vue {
       settings: {
         data: {
           name: "No Project",
-          projectId: "1",
+          projectId: "",
           projectUrl: new URL(API.apiAddress),
           sourcesUrl: new URL(API.apiAddress),
           lintUrl: new URL(API.apiAddress),
@@ -123,14 +125,15 @@ export default class Home extends Vue {
     },*/
   ];
   private internalFileId = 0;
+  private internalProjectId = 0;
 
   private linter = "auto";
 
-  private async createProject(event: CreateProjectEvent): Promise<void> {
-    const project: Project = {
+  private createEmptyProject(): void {
+    const emptyProject: Project = {
       settings: {
         data: {
-          name: "No Project",
+          name: "New Project",
           projectId: "",
           projectUrl: new URL(API.apiAddress),
           sourcesUrl: new URL(API.apiAddress),
@@ -150,10 +153,38 @@ export default class Home extends Vue {
       viewMode: "files",
       remainingLintChecks: 5,
     };
+
+    let foundEmpty = false;
+    console.log("active", this.activeProject);
+    this.activeProjects.forEach((project, index) => {
+      if (project.settings.data.projectId == "") {
+        if (index != this.activeProject) {
+          this.passNotification({
+            type: "info",
+            message:
+              "Switching to existing empty project instead of creating another one.",
+            timeout: 2000,
+          });
+          this.activeProject = index;
+        }
+        foundEmpty = true;
+      }
+    });
+
+    if (!foundEmpty) {
+      this.activeProjects.push(emptyProject);
+      this.activeProject = this.activeProjects.length - 1;
+    }
+  }
+
+  private async fillProject(event: CreateProjectEvent): Promise<void> {
+    this.createEmptyProject(); //either create or switch to a suitable empty project
+    const bufferProject: Project = this.activeProjects[this.activeProject];
+
     //get files from user file event and show it in UI
     if (event.files.length == 0) {
       //somehow no files were submitted? how is this even possible
-      project.files = [
+      bufferProject.files = [
         {
           edited: false,
           unsaved: false,
@@ -162,16 +193,16 @@ export default class Home extends Vue {
           file: { name: "unnamed", path: "unnamed", content: "" },
         },
       ];
-      project.openFiles = project.files;
-      project.openFiles[0].id = 0;
+      bufferProject.openFiles = bufferProject.files;
+      (bufferProject.openFiles as FileState[])[0].id = 0;
 
-      for (const state of project.openFiles) {
+      for (const state of bufferProject.openFiles as FileState[]) {
         state.id = this.internalFileId++;
       }
     } else {
-      project.files = [];
+      bufferProject.files = [];
       for (let file of event.files) {
-        project.files.push({
+        bufferProject.files.push({
           edited: false,
           unsaved: false,
           language: "auto",
@@ -179,13 +210,13 @@ export default class Home extends Vue {
           file: file,
         });
       }
-      project.openFiles = project.files.slice();
+      bufferProject.openFiles = bufferProject.files.slice();
 
       //upload files to backend
       this.uploading = true;
       //extract file handles from file states
       let fileHandles: FileHandle[] = [];
-      for (const fileState of project.files) {
+      for (const fileState of bufferProject.files) {
         fileHandles.push(fileState.file);
       }
       const result = await this.uploadProject({
@@ -200,19 +231,22 @@ export default class Home extends Vue {
         return;
       }
 
-      project.settings.data = result;
+      bufferProject.settings.data = result;
+      //bufferProject.settings.data.projectId = String(this.internalProjectId++);
       this.uploading = false;
 
-      //add current project variable to active projects which also sets the current active project to its index
-      const projectIndex = this.addProject(project);
-
       //set interval for asking for lint status every second. handler has to deactivate asking for lint results on receiving results (or an error)
-      this.activeProjects[projectIndex].lintData.status = "processing";
-      this.activeProjects[projectIndex].lintCheckTimer = setInterval(
+      bufferProject.lintData.status = "processing";
+      bufferProject.lintCheckTimer = setInterval(
         this.handleLintTimer,
         1000,
-        projectIndex
+        this.activeProject
       );
+      this.activeProjects[this.activeProject] = bufferProject;
+      (this.$refs["contentView"] as ContentView).projectChanged();
+      /*setTimeout(() => {
+        (this.$refs["contentView"] as ContentView).projectChanged();
+      }, 1000);*/ //this is a horrible fix and I don't know why I need it, the project watcher should see this. maybe because the original bufferproject is from the same list thus not changing the reference?
     }
   }
 
@@ -229,18 +263,6 @@ export default class Home extends Vue {
       });
     }
     return result;
-  }
-
-  private addProject(newProject: Project): number {
-    if (
-      this.activeProjects.length == 1 &&
-      this.activeProjects[0].settings.data.name == "No Project"
-    ) {
-      this.activeProjects = [];
-    }
-    this.activeProjects.push(newProject);
-    this.activeProject = this.activeProjects.length - 1; //may want to reconsider and not set the new project as active by default
-    return this.activeProjects.length - 1;
   }
 
   private async uploadFileChanges(event: FileChangeEvent): Promise<void> {
