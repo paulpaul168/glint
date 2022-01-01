@@ -1,4 +1,9 @@
-import { SearchPattern } from "@/components/types/interfaces";
+import { LinterMapping, SearchPattern } from "@/components/types/interfaces";
+
+export interface ProjectListResponse {
+  projects: ProjectResponse[];
+  errorMessage?: string;
+}
 
 export interface ProjectResponse {
   name: string;
@@ -6,6 +11,14 @@ export interface ProjectResponse {
   projectUrl: URL;
   sourcesUrl: URL;
   lintUrl: URL;
+  errorMessage?: string;
+}
+
+export interface ProjectDataResponse {
+  name: string;
+  projectId: string;
+  files: FileHandle[];
+  linters: LinterMapping;
   errorMessage?: string;
 }
 

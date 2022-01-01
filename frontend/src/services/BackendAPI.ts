@@ -4,9 +4,73 @@ import {
   ProjectResponse,
   LintResponse,
   SearchPatternsResponse,
+  ProjectDataResponse,
+  ProjectListResponse,
 } from "./types/api_responses_interfaces";
 
 export const apiAddress = "http://localhost:5000/api/"; //don't like having to export that, but I think I need it to allow setting sensible default URLs. Do I even want that?
+
+export async function getProjects(): Promise<ProjectListResponse> {
+  const emptyResponse: ProjectListResponse = {
+    projects: [],
+    errorMessage: undefined,
+  };
+
+  let resp;
+  try {
+    resp = await fetch(apiAddress + "projects", {
+      method: "GET",
+    });
+  } catch (error) {
+    console.log("Fatal error while fetching projects", error);
+    emptyResponse.errorMessage =
+      "Fatal error while fetching projects: " + error;
+    return emptyResponse;
+  }
+
+  if (!resp.ok) {
+    console.log(
+      "Received non-OK response when fetching projects: ",
+      resp.status
+    );
+    emptyResponse.errorMessage =
+      "Received non-OK response when fetching projects: " + resp.status;
+    return emptyResponse;
+  }
+  const respJson = await resp.json();
+  console.log("response:", respJson);
+
+  return respJson;
+}
+
+export async function getProjectData(id: string): Promise<ProjectDataResponse> {
+  const emptyResponse: ProjectDataResponse = {
+    name: "",
+    projectId: "",
+    files: [],
+    linters: {},
+  };
+
+  let resp;
+  try {
+    resp = await fetch(apiAddress + "projects/" + id, {
+      method: "GET",
+    });
+  } catch (error) {
+    emptyResponse.errorMessage =
+      "Fatal error while fetching project data: " + error;
+    return emptyResponse;
+  }
+
+  if (!resp.ok) {
+    emptyResponse.errorMessage =
+      "Received non-OK response when fetching project data: " + resp.status;
+    return emptyResponse;
+  }
+  const respJson = await resp.json();
+
+  return respJson;
+}
 
 export async function submitProject(
   project: SubmitProject
@@ -68,7 +132,7 @@ export async function overwriteFile(
     return {
       success: false,
       errorMessage:
-        "Fatal error during saving file content (overwrite)" + error,
+        "Fatal error during saving file content (overwrite) " + error,
     };
   }
 
