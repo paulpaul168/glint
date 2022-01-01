@@ -12,20 +12,20 @@ pip install -r requirements.txt
 FLASK_APP=glint_server FLASK_ENV=development flask run
 ```
 
-Storage structure: 
+#### Storage structure: 
 ```
 LINT_DIR
-
- ___project_name
-        lint
-        metadata
-        file.xy
-        file2.xy
-     ___subfolder
-            file.xy
-            file2.yx 
+|
+|____project_name
+    |    lint.glint
+    |    metadata.glint
+    |    file.xy
+    |    file2.xy
+    |____subfolder
+         |   file.xy
+         |   file2.yx 
 ```
-lint file:
+##### lint.glint:
 ```json
 {
     "status": "done",
@@ -53,6 +53,14 @@ lint file:
     ]
 }
 ```
+
+##### metadata.glint:
+```json
+{
+    "name": "projectName",
+}
+```
+
 
 ### Frontend
 
