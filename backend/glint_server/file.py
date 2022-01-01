@@ -53,6 +53,32 @@ def load_file(file_name: str) -> json:
         return json.loads(f.read())
 
 
+def get_project_files(project_id) -> dict:
+    path = app.config["LINT_DIR"] + project_id
+    found_files = []
+    for root, _, files in os.walk(path):
+        for name in files:
+            print(name)
+            if os.path.splitext(name)[1] != "glint":
+                with open(os.path.join(root, name), "r") as f:
+                    content = f.read()
+                file = {
+                    "name": name,
+                    "path": os.path.join(root[len(path) :], name),
+                    "content": content,
+                }
+                found_files.append(file)
+    linters = load_file(project_id + "/lint.glint")["linters"]
+    project_name = load_file(project_id + "/metadata.glint")["name"]
+    output = {
+        "name": project_name,
+        "projectId": project_id,
+        "files": found_files,
+        "linters": linters,
+    }
+    return output
+
+
 def list_dirs() -> dict:
     path = app.config["LINT_DIR"]
     dirs = []

@@ -28,6 +28,12 @@ def get_project_list():
     return prepareResponse(data)
 
 
+@app.get("/api/projects/<project_id>")
+def get_project_content(project_id):
+    data = gfile.get_project_files(project_id)
+    return prepareResponse(data)
+
+
 @app.delete("/api/projects/<project_id>")
 def delete_project(project_id):
     status, error_code = gfile.delete_project_folder(project_id)
