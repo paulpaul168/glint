@@ -167,11 +167,7 @@ Response: http status
 **Not needed for Milestone 2**
 ```json
 {
-    "languages": [
-        {
-            "language": ["languageName"]
-        },
-    ]
+    "language": ["linter1", "linter2"]
 }
 ```
 
