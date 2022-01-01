@@ -1,12 +1,14 @@
 import os
-from typing import Any, Optional
+from typing import Any
 from glint_server.linter_collection.exceptions import LintError
 from glint_server.linter_collection.python import lint_python_project
+from glint_server.linter_collection.go import lint_go_project
 
 
 def get_supported_linters() -> dict[str, list[str]]:
     return {
         "python": ["pylint"],
+        "go": ["staticcheck"],
     }
 
 
@@ -15,7 +17,7 @@ def lint_project(path: str, linters: dict[str, str]) -> dict:
 
     result = {
         "status": "done",
-        "linters": [],
+        "linters": dict(),
         "files": [],
     }
 
@@ -23,9 +25,13 @@ def lint_project(path: str, linters: dict[str, str]) -> dict:
         for lang in langs:
             lint = None
             if lang == "python":
-                lint = lint_python_project(path)
+                lint = lint_python_project(path, linters)
+            elif lang == "go":
+                lint = lint_go_project(path, linters)
 
-            result["linters"] += lint["linters"]
+            if lang not in result["linters"]:
+                result["linters"].update(lint["linters"])
+
             result["files"] += lint["files"]
     except LintError as e:
         return lint_project_error(e.message)
@@ -52,6 +58,7 @@ def lint_project_error(error_msg: str) -> dict[str, Any]:
 def _detect_languages(path: str) -> set[str]:
     extensions = {
         ".py": "python",
+        ".go": "go",
     }
 
     languages = set()
