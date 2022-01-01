@@ -1,6 +1,7 @@
 import os
 from typing import Any
 from glint_server.linter_collection.exceptions import LintError
+from glint_server.linter_collection.javascript import lint_javascript_project
 from glint_server.linter_collection.python import lint_python_project
 from glint_server.linter_collection.go import lint_go_project
 
@@ -9,6 +10,7 @@ def get_supported_linters() -> dict[str, list[str]]:
     return {
         "python": ["pylint"],
         "go": ["staticcheck"],
+        "javascript": ["eslint"],
     }
 
 
@@ -28,6 +30,8 @@ def lint_project(path: str, linters: dict[str, str]) -> dict:
                 lint = lint_python_project(path, linters)
             elif lang == "go":
                 lint = lint_go_project(path, linters)
+            elif lang == "javascript":
+                lint = lint_javascript_project(path, linters)
 
             if lang not in result["linters"]:
                 result["linters"].update(lint["linters"])
@@ -59,6 +63,7 @@ def _detect_languages(path: str) -> set[str]:
     extensions = {
         ".py": "python",
         ".go": "go",
+        ".js": "javascript",
     }
 
     languages = set()
