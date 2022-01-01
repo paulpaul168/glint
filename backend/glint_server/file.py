@@ -53,8 +53,11 @@ def load_file(file_name: str) -> json:
         return json.loads(f.read())
 
 
-def get_project_files(project_id) -> dict:
+def get_project_files(project_id) -> tuple[dict, str]:
     path = app.config["LINT_DIR"] + project_id
+    status = load_file(project_id + "/lint.glint")
+    if status["status"] != "done":
+        return status, 418  # hmm not sure if we are really a teapod here...
     found_files = []
     for root, _, files in os.walk(path):
         for name in files:
@@ -76,7 +79,7 @@ def get_project_files(project_id) -> dict:
         "files": found_files,
         "linters": linters,
     }
-    return output
+    return output, 200
 
 
 def list_dirs() -> dict:
