@@ -53,7 +53,7 @@ def change_linter(project_id):
     if request_data["name"] != None:
         metadata = load_file(project_id + "/metadata.glint")
         metadata["name"] = request_data["name"]
-        save_file(project_id + "/metadata.glint", metadata)
+        save_file(project_id + "/metadata.glint", json.dumps(metadata))
     if request_data["linters"] != None:
         do_lint(project_id, request_data["linters"])
     data = {
