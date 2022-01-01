@@ -65,9 +65,10 @@ LINT_DIR
 ##### patterns.glint:
 ```json
 {
+    "unique patternID":{
     "patternName": "patternName",
-    "patternId": "unique patternID",
     "regex": "some crazy ass regex"
+    }
 }
 ```
 
