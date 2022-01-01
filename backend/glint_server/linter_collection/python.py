@@ -71,8 +71,8 @@ def normalize_pylint(results: list[dict], project_path) -> dict:
 
         if path not in files:
             files[path] = {
-                "path": result["path"],
-                "name": os.path.basename(result["path"]),
+                "path": path,
+                "name": os.path.basename(path),
                 "linter": "pylint",
                 "lints": [],
             }
