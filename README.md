@@ -334,6 +334,7 @@ http status
 
 ### DELETE /api/searchPatterns/{patternId}
 **Not needed for Milestone 2**
+  
 Response
 http status
 ```json
