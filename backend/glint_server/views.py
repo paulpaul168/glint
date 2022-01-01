@@ -7,8 +7,6 @@ import glint_server.file as gfile
 from glint_server.threading import do_lint
 import os, urllib.parse
 
-import time  # sometimes needed to test frontend behavior for slow answers
-
 
 @app.get("/")
 def home():
@@ -158,6 +156,51 @@ def get_lint(project_id):
 @app.get("/api/linters")
 def get_linters():
     return prepareResponse(get_supported_linters())
+
+
+@app.post("/api/searchPatterns")
+def save_search_pattern():
+    request_data = request.json
+    if gfile.path_exists("patterns.glint"):
+        patterns = gfile.load_file("patterns.glint")
+    else:
+        patterns = {}
+    pattern_name = request_data["patternName"]
+    name_modifier = 0
+    pattern_id = pattern_name
+    if pattern_id in patterns:
+        while (pattern_id + str(name_modifier)) in patterns:
+            name_modifier += 1
+        pattern_id = pattern_name + str(name_modifier)
+    pattern = {
+        "patternName": pattern_name,
+        "regex": request_data["regex"],
+    }
+    patterns[pattern_id] = pattern
+    gfile.save_file("patterns.glint", json.dumps(patterns))
+    return_pattern = {
+        "patternName": pattern_name,
+        "patternId": pattern_id,
+        "regex": request_data["regex"],
+    }
+    return prepareResponse(return_pattern)
+
+
+@app.put("/api/searchPatterns/<pattern_id>")
+def update_search_pattern(pattern_id):
+    if gfile.path_exists("patterns.glint"):
+        patterns = gfile.load_file("patterns.glint")
+    else:
+        patterns = {}
+
+    regex = request.json["regex"]
+    pattern_name = request.json["patternName"]
+    if regex != None:
+        patterns[pattern_id]["regex"] = regex
+    if pattern_name != None:
+        patterns[pattern_id]["patternName"] = pattern_name
+    gfile.save_file("patterns.glint", json.dumps(patterns))
+    return prepareResponse({"status": "OK"})
 
 
 def prepareResponse(jsonData: json):
