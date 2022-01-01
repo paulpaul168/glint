@@ -332,6 +332,16 @@ http status
 }
 ```
 
+### DELETE /api/searchPatterns/{patternId}
+**Not needed for Milestone 2**
+Response
+http status
+```json
+{
+    "status": "OK",
+}
+```
+
 ### GET /api/searchPatterns
 **Not needed for Milestone 2**
 ```json
@@ -344,21 +354,5 @@ http status
     "patternName": "patternName",
     "regex": "some crazy ass regex"
     }
-}
-```
-
-### DELETE /api/searchPatterns/{patternId}
-**Not needed for Milestone 2**
-```json
-{
-    "patternId": "patternID"
-}
-```
-
-Response
-http status
-```json
-{
-    "status": "OK",
 }
 ```
