@@ -10,7 +10,7 @@ def lint_python_project(path: str, linters: dict[str, str]):
         return lint_pylint_project(path)
 
     linter = linters["python"]
-    if linter == "pylint":
+    if linter == "pylint" or linter == "auto":
         return lint_pylint_project(path)
     else:
         raise LintError(f"Python linter '{linter}' is not known.")

@@ -9,7 +9,7 @@ def lint_go_project(path: str, linters: dict[str, str]):
         return lint_staticcheck_project(path)
 
     linter = linters["go"]
-    if linter == "staticcheck":
+    if linter == "staticcheck" or linter == "auto":
         return lint_staticcheck_project(path)
     else:
         raise LintError(f"Go linter '{linter}' is not known.")
