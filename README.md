@@ -336,12 +336,13 @@ http status
 **Not needed for Milestone 2**
 ```json
 {
-    "searchPatterns": [
-        {
-            "patternName": "human readable name",
-            "patternId": "identifier",
-            "regex": "some crazy ass regex"
-        }
-    ]
+    "unique patternID":{
+    "patternName": "patternName",
+    "regex": "some crazy ass regex"
+    },
+    "unique patternID1":{
+    "patternName": "patternName",
+    "regex": "some crazy ass regex"
+    }
 }
 ```
