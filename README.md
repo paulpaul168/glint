@@ -346,3 +346,19 @@ http status
     }
 }
 ```
+
+### DELETE /api/searchPatterns/{patternId}
+**Not needed for Milestone 2**
+```json
+{
+    "patternId": "patternID"
+}
+```
+
+Response
+http status
+```json
+{
+    "status": "OK",
+}
+```
