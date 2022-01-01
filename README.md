@@ -12,6 +12,48 @@ pip install -r requirements.txt
 FLASK_APP=glint_server FLASK_ENV=development flask run
 ```
 
+Storage structure: 
+```
+LINT_DIR
+
+ ___project_name
+        lint
+        metadata
+        file.xy
+        file2.xy
+     ___subfolder
+            file.xy
+            file2.yx 
+```
+lint file:
+```json
+{
+    "status": "done",
+    "linters": {
+            "language": "{usedLinter}",
+            "language2": "{usedLinter}"
+    },
+    "files": [
+        {
+            "name": "fileName.py",
+            "path": "path/to/file/fileName",
+            "linter": "{usedLinter}",
+            "lints": [
+                {
+                    "column": 15,
+                    "endColumn": 35,
+                    "endLine": 2,
+                    "header": "Consider using with",
+                    "line": 1,
+                    "message": "Using open without explicitly specifying an encoding",
+                    "url": null,
+                }
+            ]
+        },
+    ]
+}
+```
+
 ### Frontend
 
 ## Milestones
