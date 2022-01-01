@@ -17,7 +17,7 @@ def do_lint(project_id: str, linters: dict) -> None:
 
 def lint_thread(project_id: str, linters: dict) -> None:
     save_file(
-        project_id + "/lint",
+        project_id + "/lint.glint",
         json.dumps(
             lint_project(
                 app.config["LINT_DIR"] + urllib.parse.unquote(project_id), linters

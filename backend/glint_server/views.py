@@ -81,7 +81,7 @@ def create_project():
     }
 
     save_file(project_id + "/lint.glint", json.dumps(lint_project_error("processing")))
-    save_file(project_id + "/metadata.glint", {"name": project_name})
+    save_file(project_id + "/metadata.glint", json.dumps({"name": project_name}))
     do_lint(project_id, linters)
     return prepareResponse(data)
 
