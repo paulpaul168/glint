@@ -21,8 +21,18 @@ def home():
 @app.get("/api/projects")
 def get_project_list():
     projects = []
-    for dir in gfile.list_dirs():
-        project_data = {"name": dir, "projectId": dir}
+    for project_id in gfile.list_dirs():
+        project_name = gfile.load_file(project_id + "/metadata.glint")["name"]
+        project_data = {
+            "name": project_name,
+            "projectId": project_id,
+            "projectUrl": app.config["HOST"] + "/api/projects/" + project_id,
+            "sourcesUrl": app.config["HOST"]
+            + "/api/projects/"
+            + project_id
+            + "/sources",
+            "lintUrl": app.config["HOST"] + "/api/projects/" + project_id + "/lint",
+        }
         projects.append(project_data)
     data = {"projects": [projects]}
     return prepareResponse(data)
