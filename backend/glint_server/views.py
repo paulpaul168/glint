@@ -3,7 +3,7 @@ from glint_server import app
 from flask import json, request
 
 from glint_server.linter_collection import lint_project_error
-from glint_server.file import save_file, create_project_folder, load_file, list_dirs
+import glint_server.file as gfile
 from glint_server.threading import do_lint
 
 import time  # sometimes needed to test frontend behavior for slow answers
@@ -21,23 +21,32 @@ def home():
 @app.get("/api/projects")
 def get_project_list():
     projects = []
-    for dir in list_dirs():
+    for dir in gfile.list_dirs():
         project_data = {"name": dir, "projectId": dir}
         projects.append(project_data)
     data = {"projects": [projects]}
     return prepareResponse(data)
 
 
-@app.delete("/api/projects/<project_id>/sources/<file_id>")
-def delete_file(project_id, file_id):
+@app.delete("/api/projects/<project_id>")
+def delete_project(project_id):
+    status, error_code = gfile.delete_project_folder(project_id)
     data = {
-        "status": "Not implemented",
+        "status": status,
     }
-    error_code = 501
     return prepareResponse(data), error_code
 
 
-@app.put("/api/projects/<project_id>/sources/<file_id>")
+@app.delete("/api/projects/<project_id>/sources/<path:file_id>")
+def delete_file(project_id, file_id):
+    status, error_code = gfile.delete_file(project_id, file_id)
+    data = {
+        "status": status,
+    }
+    return prepareResponse(data), error_code
+
+
+@app.put("/api/projects/<project_id>/sources/<path:file_id>")
 def upload_file(project_id, file_id):
     content = request.json["content"]
     data = {
@@ -51,9 +60,9 @@ def upload_file(project_id, file_id):
 def change_linter(project_id):
     request_data = request.json
     if request_data["name"] != None:
-        metadata = load_file(project_id + "/metadata.glint")
+        metadata = gfile.load_file(project_id + "/metadata.glint")
         metadata["name"] = request_data["name"]
-        save_file(project_id + "/metadata.glint", json.dumps(metadata))
+        gfile.save_file(project_id + "/metadata.glint", json.dumps(metadata))
     if request_data["linters"] != None:
         do_lint(project_id, request_data["linters"])
     data = {
@@ -69,9 +78,9 @@ def create_project():
     project_name = post_content["name"]
     linters = post_content["linters"]
 
-    project_id = str(create_project_folder(project_name))
+    project_id = str(gfile.create_project_folder(project_name))
     for file in post_content["files"]:
-        save_file(project_id + "/" + file["path"], file["content"])
+        gfile.save_file(project_id + "/" + file["path"], file["content"])
     data = {
         "name": project_name,
         "projectId": project_id,
@@ -80,8 +89,10 @@ def create_project():
         "lintUrl": app.config["HOST"] + "/api/projects/" + project_id + "/lint",
     }
 
-    save_file(project_id + "/lint.glint", json.dumps(lint_project_error("processing")))
-    save_file(project_id + "/metadata.glint", json.dumps({"name": project_name}))
+    gfile.save_file(
+        project_id + "/lint.glint", json.dumps(lint_project_error("processing"))
+    )
+    gfile.save_file(project_id + "/metadata.glint", json.dumps({"name": project_name}))
     do_lint(project_id, linters)
     return prepareResponse(data)
 
@@ -97,7 +108,7 @@ def return_allow_cors(resp):
 
 @app.get("/api/projects/<project_id>/lint")
 def get_lint(project_id):
-    lint_result = load_file(project_id + "/lint.glint")
+    lint_result = gfile.load_file(project_id + "/lint.glint")
     return prepareResponse(lint_result)
 
 

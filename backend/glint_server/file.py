@@ -1,6 +1,6 @@
 from glint_server import app
 from glint_server.linter_collection import lint_project_error
-import os, json, urllib.parse
+import os, json, urllib.parse, shutil
 
 
 def create_project_folder(name: str) -> str:
@@ -15,6 +15,26 @@ def create_project_folder(name: str) -> str:
         os.makedirs(path)
         project_id = name
     return project_id
+
+
+def delete_project_folder(id: str) -> tuple[str, str]:
+    path = app.config["LINT_DIR"] + id
+    if os.path.exists(path):
+        shutil.rmtree(path, ignore_errors=True)
+        return "OK", 200
+    else:
+        return "Project not found", 404
+
+
+def delete_file(project_id: str, file_id: str) -> tuple[str, str]:
+    path = app.config["LINT_DIR"] + project_id + "/" + file_id
+    if os.path.exists(path):
+        if not os.path.isfile(path):
+            return "Not a file (directory?)", 501
+        os.remove(path)
+        return "OK", 200
+    else:
+        return "File not found", 404
 
 
 def save_file(file_name: str, content: str) -> None:
