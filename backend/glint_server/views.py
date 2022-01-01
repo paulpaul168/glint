@@ -5,6 +5,7 @@ from flask import json, request
 from glint_server.linter_collection import lint_project_error
 import glint_server.file as gfile
 from glint_server.threading import do_lint
+import os, urllib.parse
 
 import time  # sometimes needed to test frontend behavior for slow answers
 
@@ -40,8 +41,8 @@ def get_project_list():
 
 @app.get("/api/projects/<project_id>")
 def get_project_content(project_id):
-    data = gfile.get_project_files(project_id)
-    return prepareResponse(data)
+    data, error_code = gfile.get_project_files(project_id)
+    return prepareResponse(data), error_code
 
 
 @app.delete("/api/projects/<project_id>")
@@ -69,6 +70,24 @@ def upload_file(project_id, file_id):
         "status": "Not implemented",
     }
     error_code = 501
+    return prepareResponse(data), error_code
+
+
+@app.post("/api/projects/<project_id>/sources")
+def new_source_file(project_id):
+    request_data = request.json
+    file_url = os.path.join(project_id, request_data["path"], request_data["fileName"])
+    gfile.save_file(file_url, request_data["content"])
+    data = {
+        "fileName": request_data["fileName"],
+        "fileUrl": "/api/projects/"
+        + project_id
+        + "/sources/"
+        + urllib.parse.quote(
+            os.path.join(request_data["path"], request_data["fileName"]), safe=""
+        ),
+    }
+    error_code = 200
     return prepareResponse(data), error_code
 
 
