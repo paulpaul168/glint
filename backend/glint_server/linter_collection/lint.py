@@ -1,12 +1,18 @@
 import os
+from typing import Any, Optional
 from glint_server.linter_collection.exceptions import LintError
 from glint_server.linter_collection.python import lint_python_project
 
 
-def lint_project(path: str) -> dict:
+def get_supported_linters() -> dict[str, list[str]]:
+    return {
+        "python": ["pylint"],
+    }
+
+
+def lint_project(path: str, linters: dict[str, str]) -> dict:
     langs = _detect_languages(path)
 
-    # TODO catch errors while linting
     result = {
         "status": "done",
         "linters": [],
@@ -27,7 +33,7 @@ def lint_project(path: str) -> dict:
     return result
 
 
-def lint_project_processing(path: str) -> dict:
+def lint_project_processing(path: str) -> dict[str, Any]:
     """The temporary result while the linting process is still ongoing."""
     return {
         "status": "processing",
@@ -35,7 +41,7 @@ def lint_project_processing(path: str) -> dict:
     }
 
 
-def lint_project_error(error_msg: str) -> dict:
+def lint_project_error(error_msg: str) -> dict[str, Any]:
     """The result when an error occurred during linting."""
     return {
         "status": error_msg,
