@@ -136,11 +136,22 @@ projectName and projectId are "identical", but ID has special characters escaped
 fields that should not be updated should be set to `null` (but still specified)
 This will automatically start the linting process
 
-Response is an echo of the submitted data + http status
+Response 
+http status
+```json
+{
+    "status": "OK",
+}
+```
 
 ### DELETE /api/projects/{projectId}
-Response: http status
-
+Response 
+http status
+```json
+{
+    "status": "OK",
+}
+```
 ### GET /api/projects/{projectId}
 ```json
 {
@@ -206,11 +217,21 @@ Overwrite existing source file
 ```
 fileId is a string containing the path
 
-Response: http status
-
+Response
+http status
+```json
+{
+    "status": "OK",
+}
+```
 ### DELETE /api/projects/{projectId}/sources/{fileId}
-Response: http status
-
+Response
+http status
+```json
+{
+    "status": "OK",
+}
+```
 -----
 
 ### GET /api/linters
@@ -292,6 +313,11 @@ Response
 
 Response
 http status
+```json
+{
+    "status": "OK",
+}
+```
 
 ### GET /api/searchPatterns
 **Not needed for Milestone 2**
