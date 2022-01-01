@@ -15,8 +15,9 @@ FLASK_APP=glint_server FLASK_ENV=development flask run
 #### Storage structure: 
 ```
 LINT_DIR
-|
-|____project_name
+|   
+|____patterns.glint
+    |project_name
     |    lint.glint
     |    metadata.glint
     |    file.xy
@@ -58,6 +59,15 @@ LINT_DIR
 ```json
 {
     "name": "projectName",
+}
+```
+
+##### patterns.glint:
+```json
+{
+    "patternName": "patternName",
+    "patternId": "unique patternID",
+    "regex": "some crazy ass regex"
 }
 ```
 
