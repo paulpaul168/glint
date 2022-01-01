@@ -209,6 +209,17 @@ def get_patterns():
     return prepareResponse(patterns)
 
 
+@app.delete("/api/searchPatterns/<pattern_id>")
+def delete_pattern(pattern_id):
+    if gfile.path_exists("patterns.glint"):
+        patterns = gfile.load_file("patterns.glint")
+    else:
+        return prepareResponse({"status": "patternId not found."}), 404
+    patterns.pop(pattern_id)
+    gfile.save_file("patterns.glint", json.dumps(patterns))
+    return prepareResponse({"status": "OK"})
+
+
 def prepareResponse(jsonData: json):
     resp = app.response_class(
         response=json.dumps(jsonData), mimetype="application/json"
