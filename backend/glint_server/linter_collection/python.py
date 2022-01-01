@@ -1,13 +1,14 @@
 import os
 import subprocess
 import json
+from pathlib import PurePath
 
 from glint_server.linter_collection.exceptions import LintError
 
 
 def lint_python_project(path: str, linters: dict[str, str]):
     if "python" not in linters:
-        return lint_pylint_project(path)
+        linters["python"] = "auto"
 
     linter = linters["python"]
     if linter == "pylint" or linter == "auto":
@@ -16,9 +17,9 @@ def lint_python_project(path: str, linters: dict[str, str]):
         raise LintError(f"Python linter '{linter}' is not known.")
 
 
-def lint_pylint_project(path: str):
+def lint_pylint_project(project_path: str):
     # TODO: maybe there should be special treatment for packages 🤷‍♂️
-    files = find_python_files(path)
+    files = find_python_files(project_path)
     if files == []:
         return normalize_pylint([])
 
@@ -48,7 +49,7 @@ def lint_pylint_project(path: str):
     pylint_res = json.loads(process.stdout)
     # TODO: Maybe we should filter the pylint output so that we don't get
     # styleing stuff as this is almost never relevant during a CTF
-    return normalize_pylint(pylint_res)
+    return normalize_pylint(pylint_res, project_path)
 
 
 def find_python_files(path: str) -> list[str]:
@@ -62,13 +63,11 @@ def find_python_files(path: str) -> list[str]:
     return python_files
 
 
-def normalize_pylint(results: list[dict]) -> dict:
+def normalize_pylint(results: list[dict], project_path) -> dict:
     files = dict()
 
     for result in results:
-        path = result[
-            "path"
-        ]  # TODO: this must be the relative path not the absolut one
+        path = PurePath(result["path"]).relative_to(project_path).as_posix()
 
         if path not in files:
             files[path] = {
