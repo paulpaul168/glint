@@ -50,10 +50,16 @@ def upload_file(project_id, file_id):
 @app.patch("/api/projects/<project_id>")
 def change_linter(project_id):
     request_data = request.json
+    if request_data["name"] != None:
+        metadata = load_file(project_id + "/metadata.glint")
+        metadata["name"] = request_data["name"]
+        save_file(project_id + "/metadata.glint", metadata)
+    if request_data["linters"] != None:
+        do_lint(project_id, request_data["linters"])
     data = {
-        "status": "Not implemented",
+        "status": "OK",
     }
-    error_code = 501
+    error_code = 200
     return prepareResponse(data), error_code
 
 
@@ -61,19 +67,22 @@ def change_linter(project_id):
 def create_project():
     post_content = request.json
     project_name = post_content["name"]
-    project_path = str(create_project_folder(project_name))
+    linters = post_content["linters"]
+
+    project_id = str(create_project_folder(project_name))
     for file in post_content["files"]:
-        save_file(project_path + "/" + file["path"], file["content"])
+        save_file(project_id + "/" + file["path"], file["content"])
     data = {
         "name": project_name,
-        "projectId": project_name,
-        "projectUrl": app.config["HOST"] + "/api/projects/" + project_name,
-        "sourcesUrl": app.config["HOST"] + "/api/projects/" + project_name + "/sources",
-        "lintUrl": app.config["HOST"] + "/api/projects/" + project_name + "/lint",
+        "projectId": project_id,
+        "projectUrl": app.config["HOST"] + "/api/projects/" + project_id,
+        "sourcesUrl": app.config["HOST"] + "/api/projects/" + project_id + "/sources",
+        "lintUrl": app.config["HOST"] + "/api/projects/" + project_id + "/lint",
     }
-    # time.sleep(1)
-    save_file(project_path + "/lint", json.dumps(lint_project_error("processing")))
-    do_lint(project_name)
+
+    save_file(project_id + "/lint.glint", json.dumps(lint_project_error("processing")))
+    save_file(project_id + "/metadata.glint", {"name": project_name})
+    do_lint(project_id, linters)
     return prepareResponse(data)
 
 
@@ -88,7 +97,7 @@ def return_allow_cors(resp):
 
 @app.get("/api/projects/<project_id>/lint")
 def get_lint(project_id):
-    lint_result = load_file(project_id + "/lint")
+    lint_result = load_file(project_id + "/lint.glint")
     return prepareResponse(lint_result)
 
 

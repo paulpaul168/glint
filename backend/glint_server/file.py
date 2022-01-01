@@ -5,11 +5,16 @@ import os, json, urllib.parse
 
 def create_project_folder(name: str) -> str:
     path = app.config["LINT_DIR"] + name
-    if not os.path.exists(path):
-        os.makedirs(
-            path
-        )  # comment this out to test frontend/backend connection without writing folders everywhere
-    return name
+    path_modifier = 0
+    if os.path.exists(path):
+        while os.path.exists(path + str(path_modifier)):
+            path_modifier += 1
+        os.makedirs(path + str(path_modifier))
+        project_id = name + str(path_modifier)
+    else:
+        os.makedirs(path)
+        project_id = name
+    return project_id
 
 
 def save_file(file_name: str, content: str) -> None:
