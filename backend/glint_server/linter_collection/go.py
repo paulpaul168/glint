@@ -4,7 +4,7 @@ import subprocess
 from glint_server.linter_collection.exceptions import LintError
 
 
-def lint_go_project(path: str, linters: dict[str, str]):
+def lint_go_project(path: str, linters: dict[str, str]) -> dict:
     if "go" not in linters:
         return lint_staticcheck_project(path)
 
@@ -15,7 +15,7 @@ def lint_go_project(path: str, linters: dict[str, str]):
         raise LintError(f"Go linter '{linter}' is not known.")
 
 
-def lint_staticcheck_project(path: str):
+def lint_staticcheck_project(path: str) -> dict:
     process = subprocess.run(
         ["staticcheck", "-f", "json"],
         cwd=path,
