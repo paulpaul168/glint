@@ -5,10 +5,20 @@ import json
 from glint_server.linter_collection.exceptions import LintError
 
 
-def lint_python_project(path: str):
+def lint_python_project(path: str, linters: dict[str, str]):
+    if "python" not in linters:
+        return lint_pylint_project(path)
+
+    linter = linters["python"]
+    if linter == "pylint":
+        return lint_pylint_project(path)
+    else:
+        raise LintError(f"Python linter '{linter}' is not known.")
+
+
+def lint_pylint_project(path: str):
     # TODO: maybe there should be special treatment for packages 🤷‍♂️
     files = find_python_files(path)
-    print("Hello")
     if files == []:
         return normalize_pylint([])
 
@@ -56,12 +66,15 @@ def normalize_pylint(results: list[dict]) -> dict:
     files = dict()
 
     for result in results:
-        path = result["path"]
+        path = result[
+            "path"
+        ]  # TODO: this must be the relative path not the absolut one
 
         if path not in files:
             files[path] = {
                 "path": result["path"],
                 "name": os.path.basename(result["path"]),
+                "linter": "pylint",
                 "lints": [],
             }
 
@@ -79,6 +92,6 @@ def normalize_pylint(results: list[dict]) -> dict:
 
     return {
         "status": "done",
-        "linters": ["pylint"],
+        "linters": {"python": "pylint"},
         "files": list(files.values()),
     }
