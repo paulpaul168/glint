@@ -203,6 +203,12 @@ def update_search_pattern(pattern_id):
     return prepareResponse({"status": "OK"})
 
 
+@app.get("/api/searchPatterns")
+def get_patterns():
+    patterns = gfile.load_file("patterns.glint")
+    return prepareResponse(patterns)
+
+
 def prepareResponse(jsonData: json):
     resp = app.response_class(
         response=json.dumps(jsonData), mimetype="application/json"
