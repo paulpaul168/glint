@@ -314,13 +314,15 @@ Response
 }
 ```
 
-### PUT /api/searchPatterns/{secretId}
+### PUT /api/searchPatterns/{patternId}
 **Not needed for Milestone 2**
 ```json
 {
+    "patternName": "human readable name",
     "regex": "some crazy ass regex"
 }
 ```
+fields that should not be updated should be set to `null` (but still specified)
 
 Response
 http status
