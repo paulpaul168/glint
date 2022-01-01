@@ -3,6 +3,10 @@ from glint_server.linter_collection import lint_project_error
 import os, json, urllib.parse, shutil
 
 
+def path_exists(path: str) -> bool:
+    return os.path.exists(app.config["LINT_DIR"] + path)
+
+
 def create_project_folder(name: str) -> str:
     path = app.config["LINT_DIR"] + name
     path_modifier = 0

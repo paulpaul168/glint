@@ -2,7 +2,7 @@ from werkzeug.wrappers import response
 from glint_server import app
 from flask import json, request
 
-from glint_server.linter_collection import lint_project_error
+from glint_server.linter_collection import lint_project_error, get_supported_linters
 import glint_server.file as gfile
 from glint_server.threading import do_lint
 import os, urllib.parse
@@ -65,11 +65,19 @@ def delete_file(project_id, file_id):
 
 @app.put("/api/projects/<project_id>/sources/<path:file_id>")
 def upload_file(project_id, file_id):
-    content = request.json["content"]
     data = {
-        "status": "Not implemented",
+        "status": "OK",
     }
-    error_code = 501
+    error_code = 200
+    request_data = request.json
+    file_url = os.path.join(project_id, file_id)
+    if not gfile.path_exists(file_url):
+        error_code = 404
+        data = {
+            "status": "File does not exists",
+        }
+    gfile.save_file(file_url, request_data["content"])
+
     return prepareResponse(data), error_code
 
 
@@ -145,6 +153,11 @@ def return_allow_cors(resp):
 def get_lint(project_id):
     lint_result = gfile.load_file(project_id + "/lint.glint")
     return prepareResponse(lint_result)
+
+
+@app.get("/api/linters")
+def get_linters():
+    return prepareResponse(get_supported_linters())
 
 
 def prepareResponse(jsonData: json):
