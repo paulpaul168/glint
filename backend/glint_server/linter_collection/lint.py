@@ -43,7 +43,7 @@ def lint_project(path: str, linters: dict[str, str]) -> dict:
     return result
 
 
-def lint_project_processing(path: str) -> dict[str, Any]:
+def lint_project_processing() -> dict[str, Any]:
     """The temporary result while the linting process is still ongoing."""
     return {
         "status": "processing",
