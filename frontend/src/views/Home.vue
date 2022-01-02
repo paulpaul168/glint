@@ -9,6 +9,7 @@
         @notification="passNotification"
         @create-project="createEmptyProject"
         @open-file="openFile($event)"
+        @delete-project="deleteProject"
       />
     </div>
     <div class="content-view">
@@ -47,6 +48,7 @@ import {
 import { getLanguage } from "@/services/LanguageDetection";
 import { SubmitProject } from "@/services/types/api_requests_interfaces";
 import {
+  LintResponse,
   ProjectDataResponse,
   ProjectListResponse,
   ProjectResponse,
@@ -173,6 +175,12 @@ export default class Home extends Vue {
             timeout: 2000,
           });
           this.activeProject = index;
+        } else if (index == this.activeProject) {
+          this.passNotification({
+            type: "info",
+            message: "You are already in an empty project.",
+            timeout: 2000,
+          });
         }
         foundEmpty = true;
       }
@@ -196,11 +204,6 @@ export default class Home extends Vue {
     }
 
     let newProjectList: Project[] = [];
-    console.log(
-      "projects:",
-      respProjects.projects[0].name,
-      respProjects.projects[0].projectId
-    );
     for (const project of respProjects.projects) {
       if (project.projectId == "" || project.projectId == undefined) {
         console.log(
@@ -223,9 +226,15 @@ export default class Home extends Vue {
           message: respData.errorMessage,
         });
       }
-      newProjectList.push(this.createProjectFromResponse(project, respData));
+
+      const lintData: LintResponse = await API.getLint(project.projectId);
+      newProjectList.push(
+        this.createProjectFromResponse(project, respData, lintData)
+      );
     }
-    this.activeProjects = newProjectList;
+    if (newProjectList.length > 0) {
+      this.activeProjects = newProjectList;
+    }
   }
 
   private openFile(path: string): void {
@@ -275,7 +284,8 @@ export default class Home extends Vue {
 
   private createProjectFromResponse(
     project: ProjectResponse,
-    projectData: ProjectDataResponse
+    projectData: ProjectDataResponse,
+    lintData: LintResponse
   ): Project {
     const returnProject: Project = {
       settings: {
@@ -291,11 +301,7 @@ export default class Home extends Vue {
       files: [],
       openFiles: [],
       activeFile: 0,
-      lintData: {
-        status: "",
-        linters: {},
-        lintFiles: [],
-      },
+      lintData: lintData, //TODO if this can't be fetched here there is no way (short of editing and saving a file) to get to lint results later on.
       viewMode: "files",
       remainingLintChecks: 5,
     };
@@ -380,6 +386,35 @@ export default class Home extends Vue {
       );
       this.activeProjects[this.activeProject] = bufferProject;
       (this.$refs["contentView"] as ContentView).projectChanged(); //this is a horrible fix and I don't know why I need it, the project watcher should see this. maybe because the original bufferproject is from the same list thus not changing the reference?
+    }
+  }
+
+  private async deleteProject(): Promise<void> {
+    console.log("deleting project");
+    const projectToDelete = this.activeProject; //buffer this in case deletion takes some time and user switches active project in that time
+    //delete from backend
+    let result = await API.deleteProject(
+      this.activeProjects[projectToDelete].settings.data.projectId
+    );
+
+    //if deletion failed, don't remove it from the UI and return with error
+    if (result.errorMessage != undefined) {
+      console.log(result.errorMessage);
+      this.passNotification({
+        type: "error",
+        message: result.errorMessage,
+      });
+      return;
+    }
+
+    //remove from UI if deletion succeeded
+    if (this.activeProject > 0) {
+      this.activeProject--;
+    }
+    this.activeProjects.splice(projectToDelete, 1);
+    //set up a new empty project if it's the last project that was deleted
+    if (this.activeProjects.length == 0) {
+      this.createEmptyProject();
     }
   }
 

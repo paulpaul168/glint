@@ -107,7 +107,10 @@ export default class LintCard extends Vue {
   }
 
   private goToFile(): void {
-    this.$emit("show-source", this.snippetStartLine);
+    this.$emit("go-to-source", {
+      filePath: this.internalFileState.file.path,
+      line: this.snippetStartLine,
+    });
   }
 }
 </script>

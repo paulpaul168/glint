@@ -127,6 +127,7 @@
             v-if="viewMode == 'lint'"
             :fileState="state"
             :lints="lintsByFile[state.file.name]"
+            @go-to-source="openFileAt($event)"
           ></lint-view>
           <code-view
             v-if="viewMode == 'source'"
@@ -172,7 +173,7 @@ import LintView from "@/components/LintView.vue";
 import FileTab from "@/components/FileTab.vue";
 import FileFooter from "@/components/FileFooter.vue";
 
-import { FileState, Lint, Project } from "./types/interfaces";
+import { FileState, GoToFileEvent, Lint, Project } from "./types/interfaces";
 import { getLanguage } from "@/services/LanguageDetection";
 import { Dictionary } from "vue-router/types/router";
 
@@ -322,6 +323,17 @@ export default class ContentView extends Vue {
     for (const lintFile of this.project.lintData.lintFiles) {
       this.lintsByFile[lintFile.name] = lintFile.lints;
     }
+  }
+
+  private openFileAt(event: GoToFileEvent): void {
+    //find the file that should be opened
+    this.internalProject.openFiles?.forEach((state, index) => {
+      //this assumes the file is present in the open files list, I don't see a way how this is not the case as only open files show lint view, but dunno, maybe this will create bugs
+      if (state.file.path == event.filePath) {
+        this.internalProject.activeFile = index;
+        //TODO: jumping to (and highlighting?) line
+      }
+    });
   }
 
   private codeEdited(): void {

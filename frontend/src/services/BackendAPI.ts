@@ -6,6 +6,7 @@ import {
   SearchPatternsResponse,
   ProjectDataResponse,
   ProjectListResponse,
+  GenericStatusResponse,
 } from "./types/api_responses_interfaces";
 
 export const apiAddress = "http://localhost:5000/api/"; //don't like having to export that, but I think I need it to allow setting sensible default URLs. Do I even want that?
@@ -22,23 +23,17 @@ export async function getProjects(): Promise<ProjectListResponse> {
       method: "GET",
     });
   } catch (error) {
-    console.log("Fatal error while fetching projects", error);
     emptyResponse.errorMessage =
       "Fatal error while fetching projects: " + error;
     return emptyResponse;
   }
 
   if (!resp.ok) {
-    console.log(
-      "Received non-OK response when fetching projects: ",
-      resp.status
-    );
     emptyResponse.errorMessage =
       "Received non-OK response when fetching projects: " + resp.status;
     return emptyResponse;
   }
   const respJson = await resp.json();
-  console.log("response:", respJson);
 
   return respJson;
 }
@@ -93,7 +88,6 @@ export async function submitProject(
       body: JSON.stringify(project),
     });
   } catch (error) {
-    console.log("Fatal error during fetch when submitting project:", error);
     emptyProjectResp.errorMessage =
       "Fatal error during fetch when submitting project: " + error;
     return emptyProjectResp;
@@ -107,10 +101,39 @@ export async function submitProject(
   return await resp.json();
 }
 
+export async function deleteProject(
+  id: string
+): Promise<GenericStatusResponse> {
+  const returnResponse: GenericStatusResponse = {
+    success: false,
+  };
+
+  let resp;
+  try {
+    resp = await fetch(apiAddress + "projects/" + id, {
+      method: "DELETE",
+    });
+  } catch (error) {
+    returnResponse.success = false;
+    returnResponse.errorMessage =
+      "Fatal error during when deleting project: " + error;
+    return returnResponse;
+  }
+
+  if (!resp.ok) {
+    returnResponse.success = false;
+    returnResponse.errorMessage =
+      "Received non-OK response when fetching lint: " + resp.status;
+    return returnResponse;
+  }
+  returnResponse.success = true;
+  return returnResponse;
+}
+
 export async function overwriteFile(
   projectId: string,
   file: FileHandle
-): Promise<{ success: boolean; errorMessage?: string }> {
+): Promise<GenericStatusResponse> {
   let resp;
   try {
     resp = await fetch(
@@ -128,7 +151,6 @@ export async function overwriteFile(
       }
     );
   } catch (error) {
-    console.log("Fatal error during saving file content (overwrite):", error);
     return {
       success: false,
       errorMessage:
@@ -160,7 +182,6 @@ export async function getLint(projectId: string): Promise<LintResponse> {
       method: "GET",
     });
   } catch (error) {
-    console.log("Fatal error during fetch when asking for lint", error);
     returnLint.status = "error";
     returnLint.errorMessage =
       "Fatal error while requesting Lint result: " + error;
@@ -168,7 +189,6 @@ export async function getLint(projectId: string): Promise<LintResponse> {
   }
 
   if (!resp.ok) {
-    console.log("Received non-OK response when fetching lint: ", resp.status);
     returnLint.status = "error";
     returnLint.errorMessage =
       "Received non-OK response when fetching lint: " + resp.status;
@@ -227,17 +247,12 @@ export async function getSearchPatterns(): Promise<SearchPatternsResponse> {
       method: "GET",
     });
   } catch (error) {
-    console.log("Fatal error during fetch when asking for patterns", error);
     returnPatterns.errorMessage =
       "Fatal error while requesting secrets search patterns: " + error;
     return returnPatterns;
   }
 
   if (!resp.ok) {
-    console.log(
-      "Received non-OK response when fetching search patterns: ",
-      resp.status
-    );
     returnPatterns.errorMessage =
       "Received non-OK response when fetching search patterns: " + resp.status;
     return returnPatterns;

@@ -4,6 +4,7 @@ export interface Events {
   notifs: Notification;
   fileChange: FileChangeEvent;
   openFileChange: OpenFileChangeEvent;
+  goToFile: GoToFileEvent;
 }
 
 export interface Notification {
@@ -27,6 +28,11 @@ export interface CreateProjectEvent {
   projectName: string;
   files: FileHandle[];
   error?: unknown;
+}
+
+export interface GoToFileEvent {
+  filePath: string;
+  line: number;
 }
 
 export interface FileHandle {

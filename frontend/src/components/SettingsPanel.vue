@@ -51,7 +51,7 @@ export default class ProjectSettings extends Vue {
   }
 
   private emitDeleteProject() {
-    console.log("delete project not yet implemented");
+    this.$emit("delete-project");
   }
 }
 </script>

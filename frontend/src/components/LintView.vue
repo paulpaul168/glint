@@ -7,7 +7,11 @@
       v-for="lint in lints"
       :key="lint.line + '_' + lint.column + '_' + lint.header"
     >
-      <lint-card :lint="lint" :fileState="fileState"></lint-card>
+      <lint-card
+        :lint="lint"
+        :fileState="fileState"
+        v-on="$listeners"
+      ></lint-card>
     </ul>
   </v-container>
 </template>

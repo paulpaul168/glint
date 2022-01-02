@@ -38,3 +38,8 @@ export interface SearchPatternsResponse {
   patterns: SearchPattern[];
   errorMessage?: string;
 }
+
+export interface GenericStatusResponse {
+  success: boolean; //do I really need a success field? I can just check for the existence of the errorMessage field
+  errorMessage?: string;
+}
