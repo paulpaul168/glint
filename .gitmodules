@@ -1,0 +1,3 @@
+[submodule "backend/linter/PHP_CodeSniffer"]
+	path = backend/linter/PHP_CodeSniffer
+	url = https://github.com/squizlabs/PHP_CodeSniffer.git
