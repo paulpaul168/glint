@@ -20,8 +20,13 @@ def home():
 @app.get("/api/projects")
 def get_project_list():
     projects = []
+    error_code = 200
     for project_id in gfile.list_dirs():
-        project_name = gfile.load_file(project_id + "/metadata.glint")["name"]
+        project_name, error_code = gfile.load_file(project_id + "/metadata.glint")[
+            "name"
+        ]
+        if error_code != 200:
+            return prepareResponse(project_name), error_code
         project_data = {
             "name": project_name,
             "projectId": project_id,
@@ -34,7 +39,7 @@ def get_project_list():
         }
         projects.append(project_data)
     data = {"projects": [projects]}
-    return prepareResponse(data)
+    return prepareResponse(data), error_code
 
 
 @app.get("/api/projects/<project_id>")
@@ -99,9 +104,12 @@ def new_source_file(project_id):
 
 @app.patch("/api/projects/<project_id>")
 def change_linter(project_id):
+    error_code = 200
     request_data = request.json
     if request_data["name"] != None:
-        metadata = gfile.load_file(project_id + "/metadata.glint")
+        metadata, error_code = gfile.load_file(project_id + "/metadata.glint")
+        if error_code != 200:
+            return prepareResponse(metadata), error_code
         metadata["name"] = request_data["name"]
         gfile.save_file(project_id + "/metadata.glint", json.dumps(metadata))
     if request_data["linters"] != None:
@@ -109,7 +117,6 @@ def change_linter(project_id):
     data = {
         "status": "OK",
     }
-    error_code = 200
     return prepareResponse(data), error_code
 
 
@@ -149,8 +156,8 @@ def return_allow_cors(resp):
 
 @app.get("/api/projects/<project_id>/lint")
 def get_lint(project_id):
-    lint_result = gfile.load_file(project_id + "/lint.glint")
-    return prepareResponse(lint_result)
+    lint_result, error_code = gfile.load_file(project_id + "/lint.glint")
+    return prepareResponse(lint_result), error_code
 
 
 @app.get("/api/linters")
@@ -160,9 +167,11 @@ def get_linters():
 
 @app.post("/api/searchPatterns")
 def save_search_pattern():
+    error_code = 200
     request_data = request.json
     if gfile.path_exists("patterns.glint"):
-        patterns = gfile.load_file("patterns.glint")
+        patterns, error_code = gfile.load_file("patterns.glint")
+        return prepareResponse(patterns), error_code
     else:
         patterns = {}
     pattern_name = request_data["patternName"]
@@ -183,13 +192,15 @@ def save_search_pattern():
         "patternId": pattern_id,
         "regex": request_data["regex"],
     }
-    return prepareResponse(return_pattern)
+    return prepareResponse(return_pattern), error_code
 
 
 @app.put("/api/searchPatterns/<pattern_id>")
 def update_search_pattern(pattern_id):
     if gfile.path_exists("patterns.glint"):
-        patterns = gfile.load_file("patterns.glint")
+        patterns, error_code = gfile.load_file("patterns.glint")
+        if error_code != 200:
+            return prepareResponse(patterns), error_code
     else:
         patterns = {}
 
@@ -200,19 +211,21 @@ def update_search_pattern(pattern_id):
     if pattern_name != None:
         patterns[pattern_id]["patternName"] = pattern_name
     gfile.save_file("patterns.glint", json.dumps(patterns))
-    return prepareResponse({"status": "OK"})
+    return prepareResponse({"status": "OK"}), error_code
 
 
 @app.get("/api/searchPatterns")
 def get_patterns():
-    patterns = gfile.load_file("patterns.glint")
-    return prepareResponse(patterns)
+    patterns, error_code = gfile.load_file("patterns.glint")
+    return prepareResponse(patterns), error_code
 
 
 @app.delete("/api/searchPatterns/<pattern_id>")
 def delete_pattern(pattern_id):
     if gfile.path_exists("patterns.glint"):
-        patterns = gfile.load_file("patterns.glint")
+        patterns, error_code = gfile.load_file("patterns.glint")
+        if error_code != 200:
+            return prepareResponse(patterns), error_code
     else:
         return prepareResponse({"status": "patternId not found."}), 404
     patterns.pop(pattern_id)

@@ -49,12 +49,12 @@ def save_file(file_name: str, content: str) -> None:
         f.write(content)
 
 
-def load_file(file_name: str) -> json:
+def load_file(file_name: str) -> tuple(json, str):
     file_name = app.config["LINT_DIR"] + file_name
     if not os.path.exists(file_name):
-        return lint_project_error("Project ID unkown")
+        return lint_project_error(file_name + " not found"), 404
     with open(urllib.parse.unquote(file_name), "r") as f:
-        return json.loads(f.read())
+        return json.loads(f.read()), 200
 
 
 def get_project_files(project_id) -> tuple[dict, str]:
