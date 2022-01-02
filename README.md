@@ -5,6 +5,8 @@
 ### Backend
 
 ```bash
+sudo apt/dnf install php-cli
+
 cd backend
 python3.9 -m venv venv
 source venv/bin/activate
@@ -246,7 +248,6 @@ http status
 -----
 
 ### GET /api/linters
-**Not needed for Milestone 2**
 ```json
 {
     "language": ["linter1", "linter2"]
@@ -295,10 +296,8 @@ If lint is unfinished/errored, response contains:
 ```
 
 if error the http status can be set (500 Internal Server Error || 422 Unprocessable Entity)
-**Not needed for Milestone 1**
 
 ### POST /api/searchPatterns
-**Not needed for Milestone 2**
 ```json
 {
     "patternName": "human readable name",
@@ -316,7 +315,6 @@ Response
 ```
 
 ### PUT /api/searchPatterns/{patternId}
-**Not needed for Milestone 2**
 ```json
 {
     "patternName": "human readable name",
@@ -334,7 +332,6 @@ http status
 ```
 
 ### DELETE /api/searchPatterns/{patternId}
-**Not needed for Milestone 2**
   
 Response
 http status
@@ -345,7 +342,6 @@ http status
 ```
 
 ### GET /api/searchPatterns
-**Not needed for Milestone 2**
 ```json
 {
     "unique patternID":{
