@@ -1,5 +1,3 @@
-import { LintResponse, ProjectResponse } from "@/services/types/api_responses_interfaces";
-
 export interface Events {
   files: CreateProjectEvent;
   lints: LintEvent;
@@ -44,6 +42,10 @@ export interface FileState {
   file: FileHandle;
   unsaved: boolean;
   edited: boolean;
+}
+
+export interface LinterMapping {
+  [details: string]: string;
 }
 
 export interface Lint {

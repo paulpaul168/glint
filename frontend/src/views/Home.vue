@@ -45,7 +45,11 @@ import {
 } from "@/components/types/interfaces";
 import { getLanguage } from "@/services/LanguageDetection";
 import { SubmitProject } from "@/services/types/api_requests_interfaces";
-import { ProjectResponse } from "@/services/types/api_responses_interfaces";
+import {
+  ProjectDataResponse,
+  ProjectListResponse,
+  ProjectResponse,
+} from "@/services/types/api_responses_interfaces";
 
 @Component({
   components: {
@@ -129,6 +133,10 @@ export default class Home extends Vue {
 
   private linter = "auto";
 
+  created(): void {
+    this.loadProjects();
+  }
+
   private createEmptyProject(): void {
     const emptyProject: Project = {
       settings: {
@@ -177,6 +185,92 @@ export default class Home extends Vue {
     }
   }
 
+  private async loadProjects(): Promise<void> {
+    const respProjects: ProjectListResponse = await API.getProjects();
+    if (respProjects.errorMessage != undefined) {
+      console.log(respProjects.errorMessage);
+      this.passNotification({
+        type: "error",
+        message: respProjects.errorMessage,
+      });
+      return;
+    }
+
+    let newProjectList: Project[] = [];
+    console.log(
+      "projects:",
+      respProjects.projects[0].name,
+      respProjects.projects[0].projectId
+    );
+    for (const project of respProjects.projects) {
+      if (project.projectId == "" || project.projectId == undefined) {
+        console.log(
+          "Encountered empty or undefined project ID after fetching project data"
+        );
+        this.passNotification({
+          type: "error",
+          message:
+            "Encountered empty or undefined project ID after fetching project data",
+        });
+        return;
+      }
+      const respData: ProjectDataResponse = await API.getProjectData(
+        project.projectId
+      );
+      if (respData.errorMessage != undefined) {
+        console.log(respData.errorMessage);
+        this.passNotification({
+          type: "error",
+          message: respData.errorMessage,
+        });
+      }
+      newProjectList.push(this.createProjectFromResponse(project, respData));
+    }
+    this.activeProjects = newProjectList;
+  }
+
+  private createProjectFromResponse(
+    project: ProjectResponse,
+    projectData: ProjectDataResponse
+  ): Project {
+    const returnProject: Project = {
+      settings: {
+        data: {
+          name: project.name,
+          projectId: project.projectId,
+          projectUrl: new URL(project.projectUrl),
+          sourcesUrl: new URL(project.sourcesUrl),
+          lintUrl: new URL(project.lintUrl),
+        },
+        language: "auto",
+        linter: "auto",
+      },
+      files: [],
+      openFiles: [],
+      activeFile: 0,
+      lintData: {
+        status: "",
+        linter: "unknown",
+        lintFiles: [],
+      },
+      viewMode: "files",
+      remainingLintChecks: 5,
+    };
+
+    for (const file of projectData.files as FileHandle[]) {
+      //why is is seen as "any" without me casting to filehandle[]? it's defined as filehandle[] in the interface
+      returnProject.files.push({
+        file: file,
+        language: "auto",
+        detectedLanguage: getLanguage(file.name),
+        unsaved: false,
+        edited: false,
+      });
+    }
+
+    return returnProject;
+  }
+
   private async fillProject(event: CreateProjectEvent): Promise<void> {
     this.createEmptyProject(); //either create or switch to a suitable empty project
     const bufferProject: Project = this.activeProjects[this.activeProject];
@@ -222,8 +316,7 @@ export default class Home extends Vue {
       const result = await this.uploadProject({
         name: event.projectName,
         files: fileHandles,
-        language: "auto",
-        linter: "auto",
+        linters: {},
       });
 
       if (result.errorMessage != undefined) {

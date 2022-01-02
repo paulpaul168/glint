@@ -1,5 +1,6 @@
 import json
 import os
+from pathlib import PurePath
 import subprocess
 import tempfile
 from typing import Any, TextIO
@@ -7,18 +8,20 @@ from typing import Any, TextIO
 from glint_server.linter_collection.exceptions import LintError
 
 
-def lint_javascript_project(path: str, linters: dict[str, str]) -> dict:
+def lint_javascript_project(
+    project_path: str, linters: dict[str, str]
+) -> dict:
     if "javascript" not in linters:
-        return lint_eslint_project(path)
+        return lint_eslint_project(project_path)
 
     linter = linters["javascript"]
     if linter == "staticcheck" or linter == "auto":
-        return lint_eslint_project(path)
+        return lint_eslint_project(project_path)
     else:
         raise LintError(f"Javascript linter '{linter}' is not known.")
 
 
-def lint_eslint_project(path: str) -> dict:
+def lint_eslint_project(project_path: str) -> dict:
     config_file = create_eslint_config()
     process = subprocess.run(
         [
@@ -31,7 +34,7 @@ def lint_eslint_project(path: str) -> dict:
             "--ext",
             ".js",
         ],
-        cwd=path,
+        cwd=project_path,
         text=True,
         capture_output=True,
     )
@@ -50,7 +53,7 @@ def lint_eslint_project(path: str) -> dict:
 
     # TODO: Maybe we should filter the eslint output so that we don't get
     # styleing stuff as this is almost never relevant during a CTF
-    return normalize_eslint(eslint_res)
+    return normalize_eslint(eslint_res, project_path)
 
 
 def create_eslint_config() -> TextIO:
@@ -75,11 +78,13 @@ def create_eslint_config() -> TextIO:
     return file
 
 
-def normalize_eslint(results: list[dict]) -> dict:
+def normalize_eslint(results: list[dict], project_path: str) -> dict:
     files = dict()
 
     for result in results:
-        path = result["filePath"]  # TODO: Make relative path
+        path = (
+            PurePath(result["filePath"]).relative_to(project_path).as_posix()
+        )
 
         if path not in files:
             files[path] = {

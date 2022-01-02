@@ -1,5 +1,6 @@
 import json
 import os
+from pathlib import PurePath
 import subprocess
 from glint_server.linter_collection.exceptions import LintError
 
@@ -15,10 +16,10 @@ def lint_go_project(path: str, linters: dict[str, str]) -> dict:
         raise LintError(f"Go linter '{linter}' is not known.")
 
 
-def lint_staticcheck_project(path: str) -> dict:
+def lint_staticcheck_project(project_path: str) -> dict:
     process = subprocess.run(
         ["staticcheck", "-f", "json"],
-        cwd=path,
+        cwd=project_path,
         text=True,
         capture_output=True,
     )
@@ -38,14 +39,18 @@ def lint_staticcheck_project(path: str) -> dict:
 
     # TODO: Maybe we should filter the staticcheck output so that we don't get
     # styleing stuff as this is almost never relevant during a CTF
-    return normalize_staticcheck(staticcheck_res)
+    return normalize_staticcheck(staticcheck_res, project_path)
 
 
-def normalize_staticcheck(results: list[dict]) -> dict:
+def normalize_staticcheck(results: list[dict], project_path: str) -> dict:
     files = dict()
 
     for result in results:
-        path = result["location"]["file"]  # TODO: Make relative path
+        path = (
+            PurePath(result["location"]["file"])
+            .relative_to(project_path)
+            .as_posix()
+        )
 
         if path not in files:
             files[path] = {
