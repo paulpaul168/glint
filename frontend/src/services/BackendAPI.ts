@@ -240,7 +240,7 @@ export async function getLint(projectId: string): Promise<LintResponse> {
 export async function getSearchPatterns(): Promise<SearchPatternsResponse> {
   let resp;
   let returnPatterns: SearchPatternsResponse = {
-    patterns: [],
+    patterns: {},
   };
   try {
     resp = await fetch(apiAddress + "searchPatterns", {
@@ -253,6 +253,9 @@ export async function getSearchPatterns(): Promise<SearchPatternsResponse> {
   }
 
   if (!resp.ok) {
+    if (resp.status == 404) {
+      return returnPatterns;
+    }
     returnPatterns.errorMessage =
       "Received non-OK response when fetching search patterns: " + resp.status;
     return returnPatterns;

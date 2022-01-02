@@ -1,4 +1,5 @@
 venv
+venv_3_10
 __pycache__
 *.pyc
 hmm*

@@ -10,6 +10,7 @@
         @create-project="createEmptyProject"
         @open-file="openFile($event)"
         @delete-project="deleteProject"
+        @set-patterns="searchPatterns = $event"
       />
     </div>
     <div class="content-view">
@@ -29,7 +30,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+import { Component, Vue, Watch } from "vue-property-decorator";
 
 import * as API from "@/services/BackendAPI";
 import ContentView from "@/components/ContentView.vue";
@@ -44,6 +45,8 @@ import {
   Notification,
   OpenFileChangeEvent,
   Project,
+  SearchPatterns,
+  SearchResult,
 } from "@/components/types/interfaces";
 import { getLanguage } from "@/services/LanguageDetection";
 import { SubmitProject } from "@/services/types/api_requests_interfaces";
@@ -53,6 +56,7 @@ import {
   ProjectListResponse,
   ProjectResponse,
 } from "@/services/types/api_responses_interfaces";
+import { Dictionary } from "vue-router/types/router";
 
 @Component({
   components: {
@@ -133,10 +137,75 @@ export default class Home extends Vue {
   private internalFileId = 0;
   private internalProjectId = 0;
 
+  private searchPatterns: SearchPatterns = {};
+  private searchResults: Dictionary<SearchResult[]> = {};
+
   private linter = "auto";
 
   created(): void {
     this.loadProjects();
+  }
+
+  @Watch("activeProject")
+  @Watch("searchPatterns")
+  searchFiles(): void {
+    //TODO add some sort of buffering or project specific storage to not have to re-find all the matches
+    this.searchResults = {};
+    for (const project of this.activeProjects) {
+      for (const state of project.files) {
+        this.searchResults[state.file.path] = [];
+        for (const [, pattern] of Object.entries(this.searchPatterns)) {
+          const regex = new RegExp(
+            pattern.regex
+              .replaceAll("\\", "\\\\")
+              .substring(1, pattern.regex.lastIndexOf("/")),
+            "g" +
+              pattern.regex
+                .substring(pattern.regex.lastIndexOf("/") + 1)
+                .replace("g", "")
+          );
+          const matches = [...state.file.content.matchAll(regex)];
+          for (const match of matches) {
+            if (match.index != undefined) {
+              const lineStartPos =
+                this.getLineStartPos(state.file.content, match.index) + 1;
+              let lineEnd = state.file.content.indexOf("\n", lineStartPos);
+              lineEnd = lineEnd == -1 ? state.file.content.length : lineEnd;
+              console.log("line pos:", lineStartPos, lineEnd);
+              const result: SearchResult = {
+                query: pattern.regex,
+                snippet: state.file.content.substring(lineStartPos, lineEnd),
+                source: state.file,
+                line: this.getLineNumberFromPos(
+                  state.file.content,
+                  match.index
+                ),
+              };
+              this.searchResults[state.file.path].push(result);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  private getLineNumberFromPos(fileContent: string, pos: number): number {
+    let line = 0;
+    const regex = /(^)[\S\s]/gm;
+    let match = regex.exec(fileContent);
+    while (match != null) {
+      if (match.index > pos) {
+        break;
+      }
+      line++;
+      match = regex.exec(fileContent);
+    }
+    return line;
+  }
+
+  private getLineStartPos(fileContent: string, pos: number): number {
+    const index = fileContent.substring(0, pos).lastIndexOf("\n");
+    return index == -1 ? 0 : index;
   }
 
   private createEmptyProject(): void {

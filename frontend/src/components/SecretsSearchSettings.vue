@@ -26,11 +26,11 @@
               v-model="pattern.name"
               class="pattern-name"
               :background-color="index == editPattern ? 'bg_tertiary' : ''"
+              :rules="[(v) => v.length > 0 || 'Required']"
               solo
               flat
               dense
               label="Pattern name"
-              hide-details="auto"
               :disabled="index != editPattern"
             >
             </v-text-field>
@@ -45,12 +45,14 @@
             <v-text-field
               v-model="pattern.regex"
               class="pattern-regex"
+              :rules="[
+                (v) => /^\/.*\/g?i?m?s?u?y?$/.test(v) || 'Enter a valid regex!',
+              ]"
               :background-color="index == editPattern ? 'bg_tertiary' : ''"
               solo
               flat
               dense
               label="Regex"
-              hide-details="auto"
               :disabled="index != editPattern"
             >
             </v-text-field>
@@ -111,15 +113,15 @@
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
-import { SearchPattern } from "./types/interfaces";
+import { SearchPatterns } from "./types/interfaces";
 
 import * as API from "@/services/BackendAPI";
-
+import { SearchPatternsResponse } from "@/services/types/api_responses_interfaces";
 @Component
 export default class SecretsSearchSettings extends Vue {
   name = "SecretsSearchSettings";
   private dialog = false;
-  private patterns: SearchPattern[] = [];
+  private patterns: SearchPatterns = {};
   private editPattern = -1;
 
   private discardSettings(): void {
@@ -137,23 +139,28 @@ export default class SecretsSearchSettings extends Vue {
   }
 
   private async fetchPatterns(): Promise<void> {
-    const resp = await API.getSearchPatterns();
-    if (resp.errorMessage != undefined) {
+    const resp: SearchPatternsResponse = await API.getSearchPatterns();
+    if (resp.errorMessage == undefined) {
       this.$emit("notification", { type: "error", message: resp.errorMessage });
       //the following pattern assignment is just for debugging purposes while the backend doesn't support this yet
-      this.patterns = [
-        {
+      this.patterns = {
+        "1": {
           name: "flag",
-          id: "1",
-          regex: "/flag{.*}/",
+          regex: "/urllib.parse/",
         },
-        {
+        "2": {
           name: "flag2",
-          id: "2",
           regex: "/flag2{.*}/",
         },
-      ];
+      };
+      this.$emit("set-patterns", this.patterns);
+      return;
     }
+    this.$emit("set-patterns", resp.patterns);
+  }
+
+  private setPatterns(): void {
+    console.log("set patterns not implemented yet");
   }
 
   private deletePattern(): void {

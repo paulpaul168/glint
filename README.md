@@ -346,12 +346,12 @@ http status
 ```json
 {
     "unique patternID":{
-    "patternName": "patternName",
-    "regex": "some crazy ass regex"
+        "patternName": "patternName",
+        "regex": "some crazy ass regex"
     },
     "unique patternID1":{
-    "patternName": "patternName",
-    "regex": "some crazy ass regex"
+        "patternName": "patternName",
+        "regex": "some crazy ass regex"
     }
 }
 ```

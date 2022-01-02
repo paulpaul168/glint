@@ -51,7 +51,7 @@ export interface FileState {
 }
 
 export interface LinterMapping {
-  [details: string]: string;
+  [language: string]: string;
 }
 
 export interface Lint {
@@ -83,8 +83,16 @@ export interface ProjectData {
   linters: LinterMapping;
 }
 
-export interface SearchPattern {
-  name: string;
-  id: string;
-  regex: string;
+export interface SearchPatterns {
+  [id: string]: {
+    name: string;
+    regex: string;
+  };
+}
+
+export interface SearchResult {
+  query: string;
+  snippet: string;
+  source: FileHandle;
+  line: number;
 }
