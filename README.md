@@ -285,6 +285,7 @@ Response
     ]
 }
 ```
+url, endColumn, endLine and column may be `null`  
 Maybe add `"type": "[security|syntax|pretty|...]"` to lints array
 
 If lint is unfinished/errored, response contains:
