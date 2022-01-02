@@ -2,7 +2,7 @@ from werkzeug.wrappers import response
 from glint_server import app
 from flask import json, request
 
-from glint_server.linter_collection import lint_project_error, get_supported_linters
+from glint_server.linter_collection import get_supported_linters
 import glint_server.file as gfile
 from glint_server.threading import do_lint
 import os, urllib.parse
@@ -101,15 +101,16 @@ def new_source_file(project_id):
 
 @app.patch("/api/projects/<project_id>")
 def change_linter(project_id):
-    request_data = request.json
-    if request_data["name"] != None:
+    if request.json["name"] != None:
         metadata, error_code = gfile.load_file(project_id + "/metadata.glint")
         if error_code != 200:
             return metadata, error_code
-        metadata["name"] = request_data["name"]
+        metadata["name"] = request.json["name"]
         gfile.save_file(project_id + "/metadata.glint", json.dumps(metadata))
-    if request_data["linters"] != None:
-        do_lint(project_id, request_data["linters"])
+
+    if request.json["linters"] != None:
+        do_lint(project_id, request.json["linters"])
+
     return {"status": "OK"}
 
 
@@ -117,11 +118,14 @@ def change_linter(project_id):
 def create_project():
     post_content = request.json
     project_name = post_content["name"]
-    linters = post_content["linters"]
 
-    project_id = str(gfile.create_project_folder(project_name))
+    project_id = gfile.create_project_folder(project_name)
     for file in post_content["files"]:
         gfile.save_file(project_id + "/" + file["path"], file["content"])
+
+    gfile.save_file(project_id + "/metadata.glint", json.dumps({"name": project_name}))
+    do_lint(project_id, post_content["linters"])
+
     data = {
         "name": project_name,
         "projectId": project_id,
@@ -129,19 +133,12 @@ def create_project():
         "sourcesUrl": app.config["HOST"] + "/api/projects/" + project_id + "/sources",
         "lintUrl": app.config["HOST"] + "/api/projects/" + project_id + "/lint",
     }
-
-    gfile.save_file(
-        project_id + "/lint.glint", json.dumps(lint_project_error("processing"))
-    )
-    gfile.save_file(project_id + "/metadata.glint", json.dumps({"name": project_name}))
-    do_lint(project_id, linters)
     return data
 
 
 @app.get("/api/projects/<project_id>/lint")
 def get_lint(project_id):
-    lint_result, error_code = gfile.load_file(project_id + "/lint.glint")
-    return lint_result, error_code
+    return gfile.load_file(project_id + "/lint.glint")
 
 
 @app.get("/api/linters")
@@ -151,59 +148,58 @@ def get_linters():
 
 @app.post("/api/searchPatterns")
 def save_search_pattern():
-    error_code = 200
-    request_data = request.json
-    if gfile.path_exists("patterns.glint"):
-        patterns, error_code = gfile.load_file("patterns.glint")
-        return patterns, error_code
-    else:
-        patterns = {}
-    pattern_name = request_data["patternName"]
-    name_modifier = 0
-    pattern_id = pattern_name
-    if pattern_id in patterns:
-        while (pattern_id + str(name_modifier)) in patterns:
-            name_modifier += 1
-        pattern_id = pattern_name + str(name_modifier)
-    pattern = {
-        "patternName": pattern_name,
-        "regex": request_data["regex"],
-    }
-    patterns[pattern_id] = pattern
-    gfile.save_file("patterns.glint", json.dumps(patterns))
-    return_pattern = {
-        "patternName": pattern_name,
-        "patternId": pattern_id,
-        "regex": request_data["regex"],
-    }
-    return return_pattern, error_code
-
-
-@app.put("/api/searchPatterns/<pattern_id>")
-def update_search_pattern(pattern_id):
     if gfile.path_exists("patterns.glint"):
         patterns, error_code = gfile.load_file("patterns.glint")
         if error_code != 200:
             return patterns, error_code
     else:
         patterns = {}
+
+    pattern_name = request.json["patternName"]
+    name_modifier = 0
+    pattern_id = pattern_name
+    if pattern_id in patterns:
+        while (pattern_id + str(name_modifier)) in patterns:
+            name_modifier += 1
+        pattern_id = pattern_name + str(name_modifier)
+
+    pattern = {
+        "patternName": pattern_name,
+        "regex": request.json["regex"],
+    }
+    patterns[pattern_id] = pattern
+    gfile.save_file("patterns.glint", json.dumps(patterns))
+    return_pattern = {
+        "patternId": pattern_id,
+        "patternName": pattern_name,
+        "regex": request.json["regex"],
+    }
+    return return_pattern
+
+
+@app.put("/api/searchPatterns/<pattern_id>")
+def update_search_pattern(pattern_id):
+    patterns, error_code = gfile.load_file("patterns.glint")
+    if error_code != 200:
+        return patterns, error_code
+
     if not pattern_id in patterns:
         return {"status": "Pattern not found"}, 404
+
     regex = request.json["regex"]
     pattern_name = request.json["patternName"]
     if regex != None:
         patterns[pattern_id]["regex"] = regex
     if pattern_name != None:
         patterns[pattern_id]["patternName"] = pattern_name
-    gfile.save_file("patterns.glint", json.dumps(patterns))
 
-    return {"status": "OK"}, error_code
+    gfile.save_file("patterns.glint", json.dumps(patterns))
+    return {"status": "OK"}
 
 
 @app.get("/api/searchPatterns")
 def get_patterns():
-    patterns, error_code = gfile.load_file("patterns.glint")
-    return patterns, error_code
+    return gfile.load_file("patterns.glint")
 
 
 @app.delete("/api/searchPatterns/<pattern_id>")
@@ -213,15 +209,19 @@ def delete_pattern(pattern_id):
         if error_code != 200:
             return patterns, error_code
     else:
-        return {"status": "patternId not found."}, 404
+        return {"status": "No Pattern found."}, 404
+
     if not pattern_id in patterns:
-        return {"status": "Pattern not found"}, 404
+        return {"status": "Pattern not found."}, 404
+
     patterns.pop(pattern_id)
     gfile.save_file("patterns.glint", json.dumps(patterns))
     return {"status": "OK"}
 
 
-# needed because browser sends "options" request to same link before sending POST to check if CORS is allowed and I don't see another way to respond to the OPTIONS http request (@app.options doesn't exist)
+# Needed because browser sends "options" request to same link before sending
+# POST to check if CORS is allowed and I don't see another way to respond to
+# the OPTIONS http request (@app.options doesn't exist)
 @app.after_request
 def return_allow_cors(resp):
     resp.headers["Access-Control-Allow-Origin"] = "*"
