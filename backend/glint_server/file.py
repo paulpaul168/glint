@@ -1,23 +1,25 @@
 from glint_server import app
 from glint_server.linter_collection import lint_project_error
 import os, json, urllib.parse, shutil
+from pathlib import PurePath
 
 
 def path_exists(path: str) -> bool:
-    return os.path.exists(app.config["LINT_DIR"] + path)
+    return os.path.exists(os.path.join(app.config["LINT_DIR"], path))
 
 
 def create_project_folder(name: str) -> str:
-    path = app.config["LINT_DIR"] + name
+    path = os.path.join(app.config["LINT_DIR"], name)
     path_modifier = 0
+    project_id = name
     if os.path.exists(path):
         while os.path.exists(path + str(path_modifier)):
             path_modifier += 1
-        os.makedirs(path + str(path_modifier))
+        path = path + str(path_modifier)
         project_id = name + str(path_modifier)
-    else:
-        os.makedirs(path)
-        project_id = name
+
+    os.makedirs(path)
+
     return project_id
 
 
@@ -31,10 +33,10 @@ def delete_project_folder(id: str) -> tuple[str, str]:
 
 
 def delete_file(project_id: str, file_id: str) -> tuple[str, str]:
-    path = app.config["LINT_DIR"] + project_id + "/" + file_id
+    path = os.path.join(app.config["LINT_DIR"], project_id, file_id)
     if os.path.exists(path):
         if not os.path.isfile(path):
-            return "Not a file (directory?)", 501
+            return "Not a file (directory?)", 400
         os.remove(path)
         return "OK", 200
     else:
@@ -42,57 +44,58 @@ def delete_file(project_id: str, file_id: str) -> tuple[str, str]:
 
 
 def save_file(file_name: str, content: str) -> None:
-    # return # I have this in here to test frontend/backend connection without writing files everywhere
-    file_name = app.config["LINT_DIR"] + file_name
+    file_name = os.path.join(app.config["LINT_DIR"], file_name)
     os.makedirs(os.path.dirname(file_name), exist_ok=True)
     with open(urllib.parse.unquote(file_name), "w+") as f:
         f.write(content)
 
 
-def load_file(file_name: str) -> tuple[dict, str]:
-    file_name = app.config["LINT_DIR"] + file_name
+def load_json_file(file_name: str) -> tuple[dict, str]:
+    file_name = os.path.join(app.config["LINT_DIR"], file_name)
     if not os.path.exists(file_name):
-        return lint_project_error(file_name + " not found"), 404
+        return lint_project_error(file_name + " not found."), 404
     with open(urllib.parse.unquote(file_name), "r") as f:
         return json.loads(f.read()), 200
 
 
 def get_project_files(project_id) -> tuple[dict, str]:
-    error_code = 200
-    path = app.config["LINT_DIR"] + project_id
-    status, error_code = load_file(project_id + "/lint.glint")
+    path = os.path.join(app.config["LINT_DIR"], project_id)
+    lint, error_code = load_json_file(project_id + "/lint.glint")
     if error_code != 200:
-        return status, error_code
-    if status["status"] != "done":
-        return status, 418  # hmm not sure if we are really a teapod here...
+        return lint, error_code
+    if lint["status"] != "done":
+        return lint, 418  # TODO: hmm not sure if we are really a teapod here...
+
     found_files = []
     for root, _, files in os.walk(path):
         for name in files:
-            print(name)
-            if not "glint" in os.path.splitext(name)[1]:
-                with open(os.path.join(root, name), "r") as f:
-                    content = f.read()
-                file = {
-                    "name": name,
-                    "path": os.path.join(root[len(path) :], name),
-                    "content": content,
-                }
-                found_files.append(file)
-    linters, error_code = load_file(project_id + "/lint.glint")
+            if "glint" in os.path.splitext(name)[1]:
+                break
+
+            with open(os.path.join(root, name)) as f:
+                content = f.read()
+
+            file_path = PurePath(os.path.join(path, name)).relative_to(path).as_posix()
+            file = {
+                "name": name,
+                "path": file_path,
+                "content": content,
+            }
+            found_files.append(file)
+
+    linters = lint["linters"]
+    metadata, error_code = load_json_file(project_id + "/metadata.glint")
     if error_code != 200:
-        return linters, error_code
-    linters = linters["linters"]
-    project_name, error_code = load_file(project_id + "/metadata.glint")
-    if error_code != 200:
-        return project_name, error_code
-    project_name = project_name["name"]
+        return metadata, error_code
+
+    project_name = metadata["name"]
     output = {
         "name": project_name,
         "projectId": project_id,
         "files": found_files,
         "linters": linters,
     }
-    return output, error_code
+    return output
 
 
 def list_dirs() -> dict:

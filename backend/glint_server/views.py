@@ -20,7 +20,7 @@ def home():
 def get_project_list():
     projects = []
     for project_id in gfile.list_dirs():
-        metadata, error_code = gfile.load_file(project_id + "/metadata.glint")
+        metadata, error_code = gfile.load_json_file(project_id + "/metadata.glint")
         if error_code != 200:
             return metadata, error_code
         project_data = {
@@ -102,7 +102,7 @@ def new_source_file(project_id):
 @app.patch("/api/projects/<project_id>")
 def change_linter(project_id):
     if request.json["name"] != None:
-        metadata, error_code = gfile.load_file(project_id + "/metadata.glint")
+        metadata, error_code = gfile.load_json_file(project_id + "/metadata.glint")
         if error_code != 200:
             return metadata, error_code
         metadata["name"] = request.json["name"]
@@ -138,7 +138,7 @@ def create_project():
 
 @app.get("/api/projects/<project_id>/lint")
 def get_lint(project_id):
-    return gfile.load_file(project_id + "/lint.glint")
+    return gfile.load_json_file(project_id + "/lint.glint")
 
 
 @app.get("/api/linters")
@@ -149,7 +149,7 @@ def get_linters():
 @app.post("/api/searchPatterns")
 def save_search_pattern():
     if gfile.path_exists("patterns.glint"):
-        patterns, error_code = gfile.load_file("patterns.glint")
+        patterns, error_code = gfile.load_json_file("patterns.glint")
         if error_code != 200:
             return patterns, error_code
     else:
@@ -179,7 +179,7 @@ def save_search_pattern():
 
 @app.put("/api/searchPatterns/<pattern_id>")
 def update_search_pattern(pattern_id):
-    patterns, error_code = gfile.load_file("patterns.glint")
+    patterns, error_code = gfile.load_json_file("patterns.glint")
     if error_code != 200:
         return patterns, error_code
 
@@ -199,13 +199,13 @@ def update_search_pattern(pattern_id):
 
 @app.get("/api/searchPatterns")
 def get_patterns():
-    return gfile.load_file("patterns.glint")
+    return gfile.load_json_file("patterns.glint")
 
 
 @app.delete("/api/searchPatterns/<pattern_id>")
 def delete_pattern(pattern_id):
     if gfile.path_exists("patterns.glint"):
-        patterns, error_code = gfile.load_file("patterns.glint")
+        patterns, error_code = gfile.load_json_file("patterns.glint")
         if error_code != 200:
             return patterns, error_code
     else:
