@@ -225,6 +225,8 @@ def delete_pattern(pattern_id):
 @app.after_request
 def return_allow_cors(resp):
     resp.headers["Access-Control-Allow-Origin"] = "*"
-    resp.headers["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+    resp.headers[
+        "Access-Control-Allow-Methods"
+    ] = "POST, GET, OPTIONS, DELETE, PUT, PATCH"
     resp.headers["Access-Control-Allow-Headers"] = "Content-Type"
     return resp
