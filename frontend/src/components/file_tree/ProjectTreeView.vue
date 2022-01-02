@@ -9,6 +9,7 @@
     :isInActiveProject="active"
     :isClickable="!active"
     @click-folder="setActive"
+    v-on="$listeners"
   ></folder>
 </template>
 

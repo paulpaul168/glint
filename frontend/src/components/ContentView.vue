@@ -148,6 +148,15 @@
             @language-set="changeLanguage($event)"
           ></file-footer>
         </v-tab-item>
+        <div
+          v-if="
+            internalProject.openFiles == 0 &&
+            internalProject.viewMode == 'files'
+          "
+          style="height: 100%"
+        >
+          <h2 style="position: relative; top: 45%">No Files are open</h2>
+        </div>
       </v-tabs-items>
     </v-row>
   </div>
@@ -189,8 +198,7 @@ export default class ContentView extends Vue {
         sourcesUrl: new URL(API.apiAddress),
         lintUrl: new URL(API.apiAddress),
       },
-      language: "auto",
-      linter: "auto",
+      linters: {},
     },
     files: [],
     openFiles: [
@@ -205,7 +213,7 @@ export default class ContentView extends Vue {
     ],
     lintData: {
       status: "",
-      linter: "unknown",
+      linters: {},
       lintFiles: [],
     },
     viewMode: "files",
@@ -240,6 +248,11 @@ export default class ContentView extends Vue {
   @Watch("project.openFiles")
   private openFilesChanged(): void {
     this.internalProject.openFiles = this.project.openFiles;
+  }
+
+  @Watch("project.activeFile")
+  private activeFileChanged(): void {
+    this.internalProject.activeFile = this.project.activeFile;
   }
 
   private selectViewMode(): void {
@@ -371,6 +384,9 @@ export default class ContentView extends Vue {
     if (activeTab >= (this.internalProject.openFiles as FileState[]).length) {
       //if the last file in the list was active and then closed the activeTab index is out of boudns
       activeTab = (this.internalProject.openFiles as FileState[]).length - 1;
+      if (activeTab < 0) {
+        activeTab = 0;
+      }
       this.internalProject.activeFile = activeTab;
       console.log("new active", activeTab);
     }

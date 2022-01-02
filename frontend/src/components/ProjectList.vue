@@ -7,6 +7,7 @@
       :lastProject="projects.length == 1"
       :project="project"
       @request-active="emitSetActiveProject($event)"
+      v-on="$listeners"
     ></project-tree-view>
     <v-divider class="centered-divider"></v-divider>
     <v-btn

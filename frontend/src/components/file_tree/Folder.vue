@@ -67,6 +67,7 @@
           class="file"
           :state="state"
           :isClickable="isInActiveProject"
+          v-on="$listeners"
         ></file>
       </div>
     </v-expand-transition>
