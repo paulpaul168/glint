@@ -268,6 +268,7 @@ Response
         {
             "name": "fileName",
             "path": "path/to/file/fileName",
+            "linter": "{usedLinter}",
             "lints": [
                 {
                     "column": 15,
