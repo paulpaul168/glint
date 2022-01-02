@@ -69,7 +69,7 @@ def get_project_files(project_id) -> tuple[dict, str]:
     for root, _, files in os.walk(path):
         for name in files:
             print(name)
-            if os.path.splitext(name)[1] != "glint":
+            if not "glint" in os.path.splitext(name)[1]:
                 with open(os.path.join(root, name), "r") as f:
                     content = f.read()
                 file = {
