@@ -49,7 +49,7 @@ def save_file(file_name: str, content: str) -> None:
         f.write(content)
 
 
-def load_file(file_name: str) -> tuple(json, str):
+def load_file(file_name: str) -> tuple[json, str]:
     file_name = app.config["LINT_DIR"] + file_name
     if not os.path.exists(file_name):
         return lint_project_error(file_name + " not found"), 404
@@ -90,5 +90,6 @@ def list_dirs() -> dict:
     path = app.config["LINT_DIR"]
     dirs = []
     for dir in os.listdir(path):
-        dirs.append(dir)
+        if os.path.isdir(os.path.join(path, dir)):
+            dirs.append(dir)
     return dirs
