@@ -10,24 +10,21 @@ import os, urllib.parse
 
 @app.get("/")
 def home():
-    data = {
+    return {
         "status": "OK",
         "version": "0.0.1",
     }
-    return data
 
 
 @app.get("/api/projects")
 def get_project_list():
     projects = []
-    error_code = 200
     for project_id in gfile.list_dirs():
-        project_name, error_code = gfile.load_file(project_id + "/metadata.glint")
+        metadata, error_code = gfile.load_file(project_id + "/metadata.glint")
         if error_code != 200:
-            return project_name, error_code
-        project_name = project_name["name"]
+            return metadata, error_code
         project_data = {
-            "name": project_name,
+            "name": metadata["name"],
             "projectId": project_id,
             "projectUrl": app.config["HOST"] + "/api/projects/" + project_id,
             "sourcesUrl": app.config["HOST"]
@@ -37,58 +34,58 @@ def get_project_list():
             "lintUrl": app.config["HOST"] + "/api/projects/" + project_id + "/lint",
         }
         projects.append(project_data)
-    data = {"projects": [projects]}
-    return data, error_code
+    return {"projects": projects}
 
 
 @app.get("/api/projects/<project_id>")
 def get_project_content(project_id):
-    data, error_code = gfile.get_project_files(project_id)
-    return data, error_code
+    return gfile.get_project_files(project_id)
 
 
 @app.delete("/api/projects/<project_id>")
 def delete_project(project_id):
     status, error_code = gfile.delete_project_folder(project_id)
-    data = {
+    if error_code != 200:
+        return status, error_code
+    return {
         "status": status,
     }
-    return data, error_code
 
 
 @app.delete("/api/projects/<project_id>/sources/<path:file_id>")
 def delete_file(project_id, file_id):
     status, error_code = gfile.delete_file(project_id, file_id)
-    data = {
+    if error_code != 200:
+        return status, error_code
+    return {
         "status": status,
     }
-    return data, error_code
 
 
 @app.put("/api/projects/<project_id>/sources/<path:file_id>")
 def upload_file(project_id, file_id):
-    data = {
-        "status": "OK",
-    }
-    error_code = 200
     request_data = request.json
     file_url = os.path.join(project_id, file_id)
     if not gfile.path_exists(file_url):
-        error_code = 404
         data = {
             "status": "File does not exists",
         }
-    gfile.save_file(file_url, request_data["content"])
+        return data, 404
 
-    return data, error_code
+    gfile.save_file(file_url, request_data["content"])
+    return {
+        "status": "OK",
+    }
 
 
 @app.post("/api/projects/<project_id>/sources")
 def new_source_file(project_id):
     request_data = request.json
     file_url = os.path.join(project_id, request_data["path"], request_data["fileName"])
+
     if not gfile.path_exists(project_id):
         return {"status": "Error Project not found"}, 404
+
     gfile.save_file(file_url, request_data["content"])
     data = {
         "fileName": request_data["fileName"],
@@ -104,7 +101,6 @@ def new_source_file(project_id):
 
 @app.patch("/api/projects/<project_id>")
 def change_linter(project_id):
-    error_code = 200
     request_data = request.json
     if request_data["name"] != None:
         metadata, error_code = gfile.load_file(project_id + "/metadata.glint")
@@ -114,10 +110,7 @@ def change_linter(project_id):
         gfile.save_file(project_id + "/metadata.glint", json.dumps(metadata))
     if request_data["linters"] != None:
         do_lint(project_id, request_data["linters"])
-    data = {
-        "status": "OK",
-    }
-    return data, error_code
+    return {"status": "OK"}
 
 
 @app.post("/api/projects")
