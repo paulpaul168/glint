@@ -151,7 +151,7 @@ export async function getLint(projectId: string): Promise<LintResponse> {
   let resp;
   const returnLint: LintResponse = {
     status: "",
-    linter: "unknown",
+    linters: {},
     lintFiles: [],
   };
 
@@ -176,13 +176,19 @@ export async function getLint(projectId: string): Promise<LintResponse> {
   }
   const respJson = await resp.json();
 
-  const lintFilesBuffer: { name: string; path: string; lints: Lint[] }[] = [];
+  const lintFilesBuffer: {
+    name: string;
+    path: string;
+    linter: string;
+    lints: Lint[];
+  }[] = [];
   if (respJson["status"] == "done") {
     respJson["files"].forEach(
       (
         file: {
           name: string;
           path: string;
+          linter: string;
           lints: Lint[];
         },
         index: number
@@ -190,6 +196,7 @@ export async function getLint(projectId: string): Promise<LintResponse> {
         lintFilesBuffer.push({
           name: file.name,
           path: file.path,
+          linter: file.linter,
           lints: [],
         });
 
@@ -205,7 +212,7 @@ export async function getLint(projectId: string): Promise<LintResponse> {
   }
 
   returnLint.status = respJson["status"];
-  returnLint.linter = respJson["linter"];
+  returnLint.linters = respJson["linters"];
   returnLint.lintFiles = lintFilesBuffer;
   return returnLint;
 }

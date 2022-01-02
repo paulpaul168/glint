@@ -74,8 +74,7 @@ export interface Project {
 
 export interface ProjectData {
   data: ProjectResponse;
-  language: string;
-  linter: string;
+  linters: LinterMapping;
 }
 
 export interface SearchPattern {

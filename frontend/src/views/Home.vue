@@ -8,6 +8,7 @@
         @linter-set="passLinter"
         @notification="passNotification"
         @create-project="createEmptyProject"
+        @open-file="openFile($event)"
       />
     </div>
     <div class="content-view">
@@ -73,15 +74,14 @@ export default class Home extends Vue {
           sourcesUrl: new URL(API.apiAddress),
           lintUrl: new URL(API.apiAddress),
         },
-        language: "auto",
-        linter: "auto",
+        linters: {},
       },
       files: [],
       openFiles: [],
       activeFile: 0,
       lintData: {
         status: "",
-        linter: "unknown",
+        linters: {},
         lintFiles: [],
       },
       viewMode: "files",
@@ -147,15 +147,14 @@ export default class Home extends Vue {
           sourcesUrl: new URL(API.apiAddress),
           lintUrl: new URL(API.apiAddress),
         },
-        language: "auto",
-        linter: "auto",
+        linters: {},
       },
       files: [],
       openFiles: [],
       activeFile: 0,
       lintData: {
         status: "",
-        linter: "unknown",
+        linters: {},
         lintFiles: [],
       },
       viewMode: "files",
@@ -229,6 +228,51 @@ export default class Home extends Vue {
     this.activeProjects = newProjectList;
   }
 
+  private openFile(path: string): void {
+    let isAlreadyOpen = false;
+    this.activeProjects[this.activeProject].openFiles?.forEach(
+      (state, index) => {
+        if (state.file.path == path) {
+          this.activeProjects[this.activeProject].activeFile = index;
+          isAlreadyOpen = true;
+          return;
+        }
+      }
+    );
+    if (!isAlreadyOpen) {
+      let fileToOpen: FileState = {
+        file: {
+          name: "",
+          path: "",
+          content: "",
+        },
+        language: "auto",
+        detectedLanguage: "",
+        unsaved: false,
+        edited: false,
+      };
+      let fileFound = false;
+      for (const state of this.activeProjects[this.activeProject].files) {
+        if (state.file.path == path) {
+          fileToOpen = state;
+          fileFound = true;
+          break;
+        }
+      }
+      if (fileFound) {
+        this.activeProjects[this.activeProject].openFiles?.push(fileToOpen);
+        this.activeProjects[this.activeProject].activeFile =
+          (this.activeProjects[this.activeProject].openFiles
+            ?.length as number) - 1;
+      } else {
+        this.passNotification({
+          type: "error",
+          message: "Tried opening file, but couldn't find file with right path",
+        });
+      }
+    }
+  }
+
   private createProjectFromResponse(
     project: ProjectResponse,
     projectData: ProjectDataResponse
@@ -242,15 +286,14 @@ export default class Home extends Vue {
           sourcesUrl: new URL(project.sourcesUrl),
           lintUrl: new URL(project.lintUrl),
         },
-        language: "auto",
-        linter: "auto",
+        linters: {},
       },
       files: [],
       openFiles: [],
       activeFile: 0,
       lintData: {
         status: "",
-        linter: "unknown",
+        linters: {},
         lintFiles: [],
       },
       viewMode: "files",
@@ -336,10 +379,7 @@ export default class Home extends Vue {
         this.activeProject
       );
       this.activeProjects[this.activeProject] = bufferProject;
-      (this.$refs["contentView"] as ContentView).projectChanged();
-      /*setTimeout(() => {
-        (this.$refs["contentView"] as ContentView).projectChanged();
-      }, 1000);*/ //this is a horrible fix and I don't know why I need it, the project watcher should see this. maybe because the original bufferproject is from the same list thus not changing the reference?
+      (this.$refs["contentView"] as ContentView).projectChanged(); //this is a horrible fix and I don't know why I need it, the project watcher should see this. maybe because the original bufferproject is from the same list thus not changing the reference?
     }
   }
 

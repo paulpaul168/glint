@@ -24,10 +24,11 @@ export interface ProjectDataResponse {
 
 export interface LintResponse {
   status: string;
-  linter: string;
+  linters: LinterMapping;
   lintFiles: {
     name: string;
     path: string;
+    linter: string;
     lints: Lint[];
   }[];
   errorMessage?: string;
