@@ -8,7 +8,7 @@ from glint_server.linter_collection.go import lint_go_project
 
 def get_supported_linters() -> dict[str, list[str]]:
     return {
-        "python": ["pylint"],
+        "python": ["bandit", "pylint"],
         "go": ["staticcheck"],
         "javascript": ["eslint"],
     }
