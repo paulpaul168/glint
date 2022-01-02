@@ -3,18 +3,12 @@ import os
 from pathlib import PurePath
 import subprocess
 import tempfile
-from typing import Any, TextIO
+from typing import TextIO
 
 from glint_server.linter_collection.exceptions import LintError
 
 
-def lint_javascript_project(
-    project_path: str, linters: dict[str, str]
-) -> dict:
-    if "javascript" not in linters:
-        return lint_eslint_project(project_path)
-
-    linter = linters["javascript"]
+def lint_javascript_project(project_path: str, linter: str) -> dict:
     if linter == "staticcheck" or linter == "auto":
         return lint_eslint_project(project_path)
     else:
@@ -82,9 +76,7 @@ def normalize_eslint(results: list[dict], project_path: str) -> dict:
     files = dict()
 
     for result in results:
-        path = (
-            PurePath(result["filePath"]).relative_to(project_path).as_posix()
-        )
+        path = PurePath(result["filePath"]).relative_to(project_path).as_posix()
 
         if path not in files:
             files[path] = {

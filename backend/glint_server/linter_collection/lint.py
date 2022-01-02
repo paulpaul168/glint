@@ -15,7 +15,7 @@ def get_supported_linters() -> dict[str, list[str]]:
 
 
 def lint_project(path: str, linters: dict[str, str]) -> dict:
-    langs = _detect_languages(path)
+    langs = detect_languages(path)
 
     result = {
         "status": "done",
@@ -25,13 +25,17 @@ def lint_project(path: str, linters: dict[str, str]) -> dict:
 
     try:
         for lang in langs:
+            if lang not in linters:
+                linters[lang] = "auto"
+            linter = linters[lang]
+
             lint = None
             if lang == "python":
-                lint = lint_python_project(path, linters)
+                lint = lint_python_project(path, linter)
             elif lang == "go":
-                lint = lint_go_project(path, linters)
+                lint = lint_go_project(path, linter)
             elif lang == "javascript":
-                lint = lint_javascript_project(path, linters)
+                lint = lint_javascript_project(path, linter)
 
             if lang not in result["linters"]:
                 result["linters"].update(lint["linters"])
@@ -59,7 +63,7 @@ def lint_project_error(error_msg: str) -> dict[str, Any]:
     }
 
 
-def _detect_languages(path: str) -> set[str]:
+def detect_languages(path: str) -> set[str]:
     extensions = {
         ".py": "python",
         ".go": "go",

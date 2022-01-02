@@ -5,11 +5,7 @@ import subprocess
 from glint_server.linter_collection.exceptions import LintError
 
 
-def lint_go_project(path: str, linters: dict[str, str]) -> dict:
-    if "go" not in linters:
-        return lint_staticcheck_project(path)
-
-    linter = linters["go"]
+def lint_go_project(path: str, linter: str) -> dict:
     if linter == "staticcheck" or linter == "auto":
         return lint_staticcheck_project(path)
     else:
@@ -46,11 +42,7 @@ def normalize_staticcheck(results: list[dict], project_path: str) -> dict:
     files = dict()
 
     for result in results:
-        path = (
-            PurePath(result["location"]["file"])
-            .relative_to(project_path)
-            .as_posix()
-        )
+        path = PurePath(result["location"]["file"]).relative_to(project_path).as_posix()
 
         if path not in files:
             files[path] = {
