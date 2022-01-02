@@ -49,7 +49,7 @@ def save_file(file_name: str, content: str) -> None:
         f.write(content)
 
 
-def load_file(file_name: str) -> tuple[json, str]:
+def load_file(file_name: str) -> tuple[dict, str]:
     file_name = app.config["LINT_DIR"] + file_name
     if not os.path.exists(file_name):
         return lint_project_error(file_name + " not found"), 404
@@ -58,8 +58,11 @@ def load_file(file_name: str) -> tuple[json, str]:
 
 
 def get_project_files(project_id) -> tuple[dict, str]:
+    error_code = 200
     path = app.config["LINT_DIR"] + project_id
-    status = load_file(project_id + "/lint.glint")
+    status, error_code = load_file(project_id + "/lint.glint")
+    if error_code != 200:
+        return status, error_code
     if status["status"] != "done":
         return status, 418  # hmm not sure if we are really a teapod here...
     found_files = []
@@ -75,15 +78,21 @@ def get_project_files(project_id) -> tuple[dict, str]:
                     "content": content,
                 }
                 found_files.append(file)
-    linters = load_file(project_id + "/lint.glint")["linters"]
-    project_name = load_file(project_id + "/metadata.glint")["name"]
+    linters, error_code = load_file(project_id + "/lint.glint")
+    if error_code != 200:
+        return linters, error_code
+    linters = linters["linters"]
+    project_name, error_code = load_file(project_id + "/metadata.glint")
+    if error_code != 200:
+        return project_name, error_code
+    project_name = project_name["name"]
     output = {
         "name": project_name,
         "projectId": project_id,
         "files": found_files,
         "linters": linters,
     }
-    return output, 200
+    return output, error_code
 
 
 def list_dirs() -> dict:
