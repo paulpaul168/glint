@@ -10,7 +10,7 @@ from glint_server.linter_collection.php import lint_php_project
 def get_supported_linters() -> dict[str, list[str]]:
     return {
         "python": ["bandit", "pylint"],
-        "go": ["staticcheck"],
+        "go": ["gosec", "staticcheck"],
         "javascript": ["eslint"],
         "php": ["phpcs"],
     }

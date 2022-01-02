@@ -6,7 +6,9 @@ from glint_server.linter_collection.exceptions import LintError
 
 
 def lint_go_project(path: str, linter: str) -> dict:
-    if linter == "staticcheck" or linter == "auto":
+    if linter == "gosec" or linter == "auto":
+        return lint_gosec_project(path)
+    elif linter == "staticcheck":
         return lint_staticcheck_project(path)
     else:
         raise LintError(f"Go linter '{linter}' is not known.")
@@ -42,7 +44,11 @@ def normalize_staticcheck(results: list[dict], project_path: str) -> dict:
     files = dict()
 
     for result in results:
-        path = PurePath(result["location"]["file"]).relative_to(project_path).as_posix()
+        path = (
+            PurePath(result["location"]["file"])
+            .relative_to(project_path)
+            .as_posix()
+        )
 
         if path not in files:
             files[path] = {
@@ -69,5 +75,52 @@ def normalize_staticcheck(results: list[dict], project_path: str) -> dict:
     return {
         "status": "done",
         "linters": {"go": "staticcheck"},
+        "files": list(files.values()),
+    }
+
+
+def lint_gosec_project(project_path: str) -> dict:
+    process = subprocess.run(
+        ["gosec", "-fmt", "json", "."],
+        cwd=project_path,
+        text=True,
+        capture_output=True,
+    )
+
+    # TODO: there doesn't seam to be a way to see if gosec failed
+    report = json.loads(process.stdout)
+
+    return normalize_gosec(report["Issues"], project_path)
+
+
+def normalize_gosec(results: list[dict], project_path: str) -> dict:
+    files = dict()
+
+    for result in results:
+        path = PurePath(result["file"]).relative_to(project_path).as_posix()
+
+        if path not in files:
+            files[path] = {
+                "path": path,
+                "name": os.path.basename(path),
+                "linter": "gosec",
+                "lints": [],
+            }
+
+        lint = {
+            "line": result["line"],
+            "endLine": result["line"],
+            "column": result["column"],
+            "endColumn": None,
+            "header": result["details"],
+            "message": result["details"],
+            "url": result["cwe"]["url"],
+        }
+
+        files[path]["lints"].append(lint)
+
+    return {
+        "status": "done",
+        "linters": {"go": "gosec"},
         "files": list(files.values()),
     }
