@@ -53,7 +53,7 @@ export default class File extends Vue {
   text-transform: none;
   justify-content: left;
   padding-left: 4px !important;
-  padding-right: auto !important;
+  padding-right: 4px !important; /*TODO: I'd like to have this auto expand to use the remaining space */
   flex-grow: 1;
 }
 

@@ -164,11 +164,11 @@ export default class Folder extends Vue {
 
 .chevron-open {
   transform: rotate(90deg);
-  transition: 0.2s;
+  transition: 0.3s;
 }
 
 .chevron-close {
-  transition: 0.1s;
+  transition: 0.2s;
 }
 
 .padding-open {

@@ -27,6 +27,7 @@
       <span style="color: gray; font-size: smaller">Active Project</span><br />
       {{ projects[activeProject].settings.data.name }}
     </div>
+    <project-settings v-on="$listeners"></project-settings>
     <v-divider></v-divider>
     <settings-panel v-on="$listeners"></settings-panel>
   </div>
@@ -35,12 +36,14 @@
 <script lang="ts">
 import { Component, Prop, Vue } from "vue-property-decorator";
 import SettingsPanel from "@/components/SettingsPanel.vue";
+import ProjectSettings from "@/components/ProjectSettings.vue";
 import ProjectTreeView from "@/components/file_tree/ProjectTreeView.vue";
 import { Project } from "./types/interfaces";
 
 @Component({
   components: {
     SettingsPanel,
+    ProjectSettings,
     ProjectTreeView,
   },
 })
@@ -85,7 +88,6 @@ export default class ProjectList extends Vue {
 .active-project-label {
   text-align: center;
   color: var(--v-primary-base);
-  margin-bottom: 0.3em;
 }
 
 .centered-divider {
