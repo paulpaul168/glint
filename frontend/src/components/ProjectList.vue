@@ -118,7 +118,7 @@ export default class ProjectList extends Vue {
   border: var(--v-bg_tertiary-base) solid 0 !important;
   border-bottom-left-radius: 5px !important;
   border-top-left-radius: 5px !important;
-  padding-top: 0.3em;
+  padding-top: 9.8px;
 }
 
 .projects-container {
