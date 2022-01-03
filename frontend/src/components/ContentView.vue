@@ -1,165 +1,175 @@
 <template>
   <div class="main-content-pane" style="margin-right: 15px">
-    <v-row style="margin-top: 0">
-      <v-tabs
-        v-model="project.activeFile"
-        show-arrows
-        class="file-tabs"
-        background-color="bg_tertiary"
-      >
-        <v-tab
-          class="file-tab"
-          v-for="(state, index) in internalProject.openFiles"
-          :key="state.id"
+    <div style="height: 100%" v-if="project.viewMode == 'files'">
+      <v-row style="margin-top: 0">
+        <v-tabs
+          v-model="project.activeFile"
+          show-arrows
+          class="file-tabs"
+          background-color="bg_tertiary"
         >
-          <file-tab
-            :title="state.file.name"
-            :unsaved="state.unsaved"
-            :active="project.activeFile == index"
-            @file-close="closeFile"
-            @file-rename="renameFile"
-          ></file-tab>
-        </v-tab>
-      </v-tabs>
-    </v-row>
-    <v-row style="height: calc(100% - 48px)">
-      <v-tabs-items
-        v-model="project.activeFile"
-        class="main-file-view"
-        justify="center"
-        align="center"
-      >
-        <v-tab-item
-          style="height: 100%"
-          v-for="state in internalProject.openFiles"
-          :key="state.id"
-        >
-          <v-toolbar
-            v-if="viewMode == 'source' || viewMode == 'lint'"
-            class="toolbar"
-            dense
-            elevation="0"
-            color="transparent"
+          <v-tab
+            class="file-tab"
+            v-for="(state, index) in internalProject.openFiles"
+            :key="state.id"
           >
-            <v-tooltip v-if="state.unsaved" bottom open-delay="1000">
-              <template v-slot:activator="{ on, attrs }">
-                <v-btn
-                  class="toolbar-element"
-                  small
-                  elevation="0"
-                  color="transparent"
-                  v-bind="attrs"
-                  v-on="on"
-                  :loading="uploading"
-                  @click="saveFile"
-                >
-                  <v-icon small>mdi-content-save</v-icon>
-                </v-btn>
-              </template>
-              <span>Send File to Server</span>
-            </v-tooltip>
-            <v-tooltip v-if="project.lintData.status" bottom open-delay="1000">
-              <template v-slot:activator="{ on, attrs }">
-                <v-btn
-                  class="toolbar-element"
-                  small
-                  elevation="0"
-                  color="transparent"
-                  v-bind="attrs"
-                  v-on="on"
-                  :loading="
-                    project.lintData.status == 'processing' &&
-                    project.remainingLintChecks > 0
-                  "
-                  :disabled="
-                    !(
-                      project.lintData.status == 'done' ||
-                      (project.lintData.status == 'processing' &&
-                        project.remainingLintChecks == 0)
-                    )
-                  "
-                  @click="handleLintSwitcher"
-                >
-                  <v-icon v-if="viewMode == 'lint'" small>mdi-pencil</v-icon>
-                  <v-icon
-                    v-else-if="
-                      viewMode == 'source' && project.lintData.status == 'done'
-                    "
-                    small
-                  >
-                    mdi-format-list-bulleted
-                  </v-icon>
-                  <v-icon
-                    v-else-if="
-                      viewMode == 'source' &&
-                      project.lintData.status == 'processing' &&
-                      project.remainingLintChecks <= 0
-                    "
-                    small
-                  >
-                    mdi-reload
-                  </v-icon>
-                  <v-icon
-                    v-else-if="
-                      project.lintData.status != 'done' &&
-                      project.lintData.status != 'processing'
-                    "
-                    small
-                  >
-                    mdi-alert-circle
-                  </v-icon>
-                </v-btn>
-              </template>
-              <span v-if="viewMode == 'lint'">Show Source</span>
-              <span
-                v-else-if="
-                  viewMode == 'source' &&
-                  project.lintData.status == 'processing' &&
-                  project.remainingLintChecks <= 0
-                "
-              >
-                Retry fetching Lint result
-              </span>
-              <span v-if="viewMode == 'source'">Show Lint</span>
-            </v-tooltip>
-          </v-toolbar>
-          <lint-view
-            v-if="viewMode == 'lint'"
-            :fileState="state"
-            :lints="lintsByFile[state.file.name]"
-            @go-to-source="openFileAt($event)"
-          ></lint-view>
-          <code-view
-            v-if="viewMode == 'source'"
-            :fileState="state"
-            :language="
-              state.language == 'auto' ? state.detectedLanguage : state.language
-            "
-            @input="codeEdited"
-          ></code-view>
-          <upload-dialog
-            v-if="viewMode == 'uploader'"
-            :uploading="uploading"
-            v-on="$listeners"
-          ></upload-dialog>
-          <file-footer
-            v-if="viewMode == 'source'"
-            :language="state.language"
-            :languageLabel="state.detectedLanguage"
-            @language-set="changeLanguage($event)"
-          ></file-footer>
-        </v-tab-item>
-        <div
-          v-if="
-            internalProject.openFiles == 0 &&
-            internalProject.viewMode == 'files'
-          "
-          style="height: 100%"
+            <file-tab
+              :title="state.file.name"
+              :unsaved="state.unsaved"
+              :active="project.activeFile == index"
+              @file-close="closeFile"
+              @file-rename="renameFile"
+            ></file-tab>
+          </v-tab>
+        </v-tabs>
+      </v-row>
+      <v-row style="height: calc(100% - 48px)">
+        <v-tabs-items
+          v-model="project.activeFile"
+          class="main-file-view"
+          justify="center"
+          align="center"
         >
-          <h2 style="position: relative; top: 45%">No Files are open</h2>
-        </div>
-      </v-tabs-items>
-    </v-row>
+          <v-tab-item
+            style="height: 100%"
+            v-for="state in internalProject.openFiles"
+            :key="state.id"
+          >
+            <v-toolbar
+              v-if="viewMode == 'source' || viewMode == 'lint'"
+              class="toolbar"
+              dense
+              elevation="0"
+              color="transparent"
+            >
+              <v-tooltip v-if="state.unsaved" bottom open-delay="1000">
+                <template v-slot:activator="{ on, attrs }">
+                  <v-btn
+                    class="toolbar-element"
+                    small
+                    elevation="0"
+                    color="transparent"
+                    v-bind="attrs"
+                    v-on="on"
+                    :loading="uploading"
+                    @click="saveFile"
+                  >
+                    <v-icon small>mdi-content-save</v-icon>
+                  </v-btn>
+                </template>
+                <span>Send File to Server</span>
+              </v-tooltip>
+              <v-tooltip
+                v-if="project.lintData.status"
+                bottom
+                open-delay="1000"
+              >
+                <template v-slot:activator="{ on, attrs }">
+                  <v-btn
+                    class="toolbar-element"
+                    small
+                    elevation="0"
+                    color="transparent"
+                    v-bind="attrs"
+                    v-on="on"
+                    :loading="
+                      project.lintData.status == 'processing' &&
+                      project.remainingLintChecks > 0
+                    "
+                    :disabled="
+                      !(
+                        project.lintData.status == 'done' ||
+                        (project.lintData.status == 'processing' &&
+                          project.remainingLintChecks == 0)
+                      )
+                    "
+                    @click="handleLintSwitcher"
+                  >
+                    <v-icon v-if="viewMode == 'lint'" small>mdi-pencil</v-icon>
+                    <v-icon
+                      v-else-if="
+                        viewMode == 'source' &&
+                        project.lintData.status == 'done'
+                      "
+                      small
+                    >
+                      mdi-format-list-bulleted
+                    </v-icon>
+                    <v-icon
+                      v-else-if="
+                        viewMode == 'source' &&
+                        project.lintData.status == 'processing' &&
+                        project.remainingLintChecks <= 0
+                      "
+                      small
+                    >
+                      mdi-reload
+                    </v-icon>
+                    <v-icon
+                      v-else-if="
+                        project.lintData.status != 'done' &&
+                        project.lintData.status != 'processing'
+                      "
+                      small
+                    >
+                      mdi-alert-circle
+                    </v-icon>
+                  </v-btn>
+                </template>
+                <span v-if="viewMode == 'lint'">Show Source</span>
+                <span
+                  v-else-if="
+                    viewMode == 'source' &&
+                    project.lintData.status == 'processing' &&
+                    project.remainingLintChecks <= 0
+                  "
+                >
+                  Retry fetching Lint result
+                </span>
+                <span v-if="viewMode == 'source'">Show Lint</span>
+              </v-tooltip>
+            </v-toolbar>
+            <lint-view
+              v-if="viewMode == 'lint'"
+              :fileState="state"
+              :lints="lintsByFile[state.file.name]"
+              @go-to-source="openFileAt($event)"
+            ></lint-view>
+            <code-view
+              v-if="viewMode == 'source'"
+              :fileState="state"
+              :language="
+                state.language == 'auto'
+                  ? state.detectedLanguage
+                  : state.language
+              "
+              @input="codeEdited"
+            ></code-view>
+            <upload-dialog
+              v-if="viewMode == 'uploader'"
+              :uploading="uploading"
+              v-on="$listeners"
+            ></upload-dialog>
+            <file-footer
+              v-if="viewMode == 'source'"
+              :language="state.language"
+              :languageLabel="state.detectedLanguage"
+              @language-set="changeLanguage($event)"
+            ></file-footer>
+          </v-tab-item>
+          <div
+            v-if="
+              internalProject.openFiles == 0 &&
+              internalProject.viewMode == 'files'
+            "
+            style="height: 100%"
+          >
+            <h2 style="position: relative; top: 45%">No Files are open</h2>
+          </div>
+        </v-tabs-items>
+      </v-row>
+    </div>
+    <project-overview v-if="project.viewMode == 'overview'"></project-overview>
   </div>
 </template>
 
@@ -172,6 +182,7 @@ import CodeView from "@/components/CodeView.vue";
 import LintView from "@/components/LintView.vue";
 import FileTab from "@/components/FileTab.vue";
 import FileFooter from "@/components/FileFooter.vue";
+import ProjectOverview from "@/components/ProjectOverview.vue";
 
 import { FileState, GoToFileEvent, Lint, Project } from "./types/interfaces";
 import { getLanguage } from "@/services/LanguageDetection";
@@ -184,6 +195,7 @@ import { Dictionary } from "vue-router/types/router";
     LintView,
     FileTab,
     FileFooter,
+    ProjectOverview,
   },
 })
 export default class ContentView extends Vue {
