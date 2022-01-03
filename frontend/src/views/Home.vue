@@ -4,6 +4,7 @@
       <project-list
         :projects="activeProjects"
         :activeProject="activeProject"
+        :fetchingProjects="downloading"
         @set-active-project="activeProject = $event"
         @linter-set="passLinter"
         @notification="passNotification"
@@ -70,6 +71,7 @@ import { Dictionary } from "vue-router/types/router";
 export default class Home extends Vue {
   name = "Home";
 
+  private downloading = false;
   private uploading = false; //todo this should be moved inside the project structure, if two different projects issue uploading shit could get weird
   private activeProject = 0;
   private activeProjects: Project[] = [
@@ -207,7 +209,6 @@ export default class Home extends Vue {
     };
 
     let foundEmpty = false;
-    console.log("active", this.activeProject);
     this.activeProjects.forEach((project, index) => {
       if (project.settings.data.projectId == "") {
         if (index != this.activeProject) {
@@ -236,6 +237,7 @@ export default class Home extends Vue {
   }
 
   private async loadProjects(): Promise<void> {
+    this.downloading = true;
     const respProjects: ProjectListResponse = await API.getProjects();
     if (respProjects.errorMessage != undefined) {
       console.log(respProjects.errorMessage);
@@ -257,6 +259,7 @@ export default class Home extends Vue {
           message:
             "Encountered empty or undefined project ID after fetching project data",
         });
+        this.downloading = false;
         return;
       }
       const respData: ProjectDataResponse = await API.getProjectData(
@@ -278,6 +281,7 @@ export default class Home extends Vue {
     if (newProjectList.length > 0) {
       this.activeProjects = newProjectList;
     }
+    this.downloading = false;
   }
 
   private openFile(path: string): void {

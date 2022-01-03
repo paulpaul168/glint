@@ -38,9 +38,15 @@
             elevation="0"
             v-bind="attrs"
             v-on="on"
+            :loading="fetchingProjects"
             @click="$emit('refresh-projects')"
           >
-            <v-icon>mdi-reload</v-icon>
+            <template v-slot:loader>
+              <span class="custom-loader">
+                <v-icon color="primary">mdi-cached</v-icon>
+              </span>
+            </template>
+            <v-icon>mdi-cached</v-icon>
           </v-btn>
         </template>
         <span>Reload Project List</span>
@@ -64,10 +70,6 @@
     </div>
 
     <v-spacer></v-spacer>
-    <!--<div class="active-project-label">
-      <span style="color: gray; font-size: smaller">Active Project</span><br />
-      {{ projects[activeProject].settings.data.name }}
-    </div>-->
     <project-settings
       :activeProjectName="projects[activeProject].settings.data.name"
       v-on="$listeners"
@@ -92,6 +94,7 @@ import { Project } from "./types/interfaces";
   },
 })
 export default class ProjectList extends Vue {
+  @Prop({ default: false }) fetchingProjects!: boolean;
   @Prop() projects!: Project[];
   @Prop({ default: 0 }) activeProject!: number;
   private internalIdentifier = 0;
@@ -147,5 +150,41 @@ export default class ProjectList extends Vue {
 
 .project-button {
   margin: 0 0.2em;
+}
+
+.custom-loader {
+  animation: loader 1s infinite;
+}
+@-moz-keyframes loader {
+  from {
+    transform: rotate(0);
+  }
+  to {
+    transform: rotate(-360deg);
+  }
+}
+@-webkit-keyframes loader {
+  from {
+    transform: rotate(0);
+  }
+  to {
+    transform: rotate(-360deg);
+  }
+}
+@-o-keyframes loader {
+  from {
+    transform: rotate(0);
+  }
+  to {
+    transform: rotate(-360deg);
+  }
+}
+@keyframes loader {
+  from {
+    transform: rotate(0);
+  }
+  to {
+    transform: rotate(-360deg);
+  }
 }
 </style>
