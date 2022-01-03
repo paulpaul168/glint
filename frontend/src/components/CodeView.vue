@@ -99,7 +99,7 @@ export default class CodeView extends Vue {
 
   overflow-y: auto !important;
 
-  scrollbar-color: var(--v-bg_tertiary-base) var(--v-bg_secondary-base);
+  scrollbar-color: var(--v-bg_tertiary-lighten1) var(--v-bg_secondary-base);
   border-bottom-right-radius: 50px;
 }
 </style>

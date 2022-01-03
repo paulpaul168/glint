@@ -55,7 +55,8 @@ export default class ProjectTreeView extends Vue {
 
 <style scoped>
 .project-tree {
-  margin: 0.2em 0.5em;
+  /*margin: 0.2em 0.5em;*/
+  margin: 0.2em 0;
   background-color: transparent;
   border-radius: 5px;
   padding: 0.5em 0;

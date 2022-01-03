@@ -1,5 +1,5 @@
 <template>
-  <div style="margin: 0 0.4em" class="d-flex flex-row">
+  <div class="d-flex flex-row file">
     <v-btn
       :class="'file-name text-body-1 ' + (isClickable ? '' : 'disable-button')"
       text
@@ -44,6 +44,11 @@ export default class File extends Vue {
 </script>
 
 <style scoped>
+.file {
+  margin: 0 0.4em;
+  width: fit-content;
+}
+
 .file-name {
   text-transform: none;
   justify-content: left;

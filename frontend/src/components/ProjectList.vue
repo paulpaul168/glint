@@ -1,14 +1,16 @@
 <template>
   <div class="d-flex flex-column main-content-pane projects-panel">
-    <project-tree-view
-      v-for="(project, index) of projects"
-      :key="project.settings.data.projectId"
-      :active="index == activeProject"
-      :lastProject="projects.length == 1"
-      :project="project"
-      @request-active="emitSetActiveProject($event)"
-      v-on="$listeners"
-    ></project-tree-view>
+    <div class="projects-container">
+      <project-tree-view
+        v-for="(project, index) of projects"
+        :key="project.settings.data.projectId"
+        :active="index == activeProject"
+        :lastProject="projects.length == 1"
+        :project="project"
+        @request-active="emitSetActiveProject($event)"
+        v-on="$listeners"
+      ></project-tree-view>
+    </div>
     <v-divider class="centered-divider"></v-divider>
     <v-btn
       class="add-project-button"
@@ -60,12 +62,24 @@ export default class ProjectList extends Vue {
 
 <style scoped>
 .projects-panel {
+  min-width: 250px;
+  width: fit-content;
   background-color: var(--v-bg_tertiary-base);
   border: var(--v-bg_tertiary-base) solid 0 !important;
   border-bottom-left-radius: 5px !important;
   border-top-left-radius: 5px !important;
-  padding-right: 12px;
   padding-top: 0.3em;
+}
+
+.projects-container {
+  min-width: 238px;
+  width: fit-content;
+  margin-left: 12px;
+  padding: 0;
+  border-radius: 0;
+  overflow-y: scroll;
+  scrollbar-color: var(--v-bg_tertiary-lighten1) var(--v-bg_tertiary-base);
+  border-bottom-right-radius: 50px;
 }
 
 .active-project-label {
@@ -79,7 +93,8 @@ export default class ProjectList extends Vue {
 }
 
 .add-project-button {
-  margin: 0.2em 8px;
+  margin: 0.2em 12px;
+  margin-bottom: 3em;
   flex-grow: 0;
 }
 </style>

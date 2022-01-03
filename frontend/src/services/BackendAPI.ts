@@ -1,5 +1,9 @@
 import { FileHandle, Lint } from "@/components/types/interfaces";
-import { SubmitProject } from "./types/api_requests_interfaces";
+import {
+  EditProject,
+  SearchPatternRequest,
+  SubmitProject,
+} from "./types/api_requests_interfaces";
 import {
   ProjectResponse,
   LintResponse,
@@ -7,6 +11,9 @@ import {
   ProjectDataResponse,
   ProjectListResponse,
   GenericStatusResponse,
+  AddFileResponse,
+  LinterListResponse,
+  AddSearchPatternResponse,
 } from "./types/api_responses_interfaces";
 
 export const apiAddress = "http://localhost:5000/api/"; //don't like having to export that, but I think I need it to allow setting sensible default URLs. Do I even want that?
@@ -101,6 +108,39 @@ export async function submitProject(
   return await resp.json();
 }
 
+export async function editProject(
+  id: string,
+  data: EditProject
+): Promise<GenericStatusResponse> {
+  const returnResponse: GenericStatusResponse = {
+    success: false,
+  };
+
+  let resp;
+  try {
+    resp = await fetch(apiAddress + "projects/" + id, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+  } catch (error) {
+    returnResponse.success = false;
+    returnResponse.errorMessage = "Fatal error while editing project: " + error;
+    return returnResponse;
+  }
+
+  if (!resp.ok) {
+    returnResponse.success = false;
+    returnResponse.errorMessage =
+      "Received non-OK response while editing project: " + resp.status;
+    return returnResponse;
+  }
+  returnResponse.success = true;
+  return returnResponse;
+}
+
 export async function deleteProject(
   id: string
 ): Promise<GenericStatusResponse> {
@@ -115,15 +155,14 @@ export async function deleteProject(
     });
   } catch (error) {
     returnResponse.success = false;
-    returnResponse.errorMessage =
-      "Fatal error during when deleting project: " + error;
+    returnResponse.errorMessage = "Fatal error when deleting project: " + error;
     return returnResponse;
   }
 
   if (!resp.ok) {
     returnResponse.success = false;
     returnResponse.errorMessage =
-      "Received non-OK response when fetching lint: " + resp.status;
+      "Received non-OK response when deleting project: " + resp.status;
     return returnResponse;
   }
   returnResponse.success = true;
@@ -162,11 +201,75 @@ export async function overwriteFile(
     return {
       success: false,
       errorMessage:
-        "non-OK status received while overwriting file: " + resp.status,
+        "Received non-OK response while overwriting file: " + resp.status,
     };
   }
 
   return { success: true };
+}
+
+export async function addFile(
+  projectId: string,
+  file: FileHandle
+): Promise<AddFileResponse> {
+  let resp;
+  try {
+    resp = await fetch(`${apiAddress}projects/${projectId}/sources`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        fileName: file.name,
+        path: file.path,
+        content: file.content,
+      }),
+    });
+  } catch (error) {
+    return {
+      fileName: "",
+      fileUrl: new URL(apiAddress),
+      errorMessage: "Fatal error when adding file to project: " + error,
+    };
+  }
+
+  if (!resp.ok) {
+    return {
+      fileName: "",
+      fileUrl: new URL(apiAddress),
+      errorMessage:
+        "Received non-OK response while saving file: " + resp.status,
+    };
+  }
+
+  const respJson = await resp.json();
+  const returnDict: AddFileResponse = {
+    fileName: respJson["fileName"],
+    fileUrl: new URL(respJson["fileUrl"]), //do I need to do this? if so, don't I need to do this everywhere with URLs?
+  };
+  return returnDict;
+}
+
+export async function getLinters(): Promise<LinterListResponse> {
+  const emptyResponse: LinterListResponse = {};
+
+  let resp;
+  try {
+    resp = await fetch(apiAddress + "projects", {
+      method: "GET",
+    });
+  } catch (error) {
+    emptyResponse.errorMessage = "Fatal error while fetching linters: " + error;
+    return emptyResponse;
+  }
+
+  if (!resp.ok) {
+    emptyResponse.errorMessage =
+      "Received non-OK response when fetching linters: " + resp.status;
+    return emptyResponse;
+  }
+
+  return await resp.json();
 }
 
 export async function getLint(projectId: string): Promise<LintResponse> {
@@ -269,4 +372,41 @@ export async function getSearchPatterns(): Promise<SearchPatternsResponse> {
   }
 
   return returnPatterns;
+}
+
+export async function setSearchPattern(
+  pattern: SearchPatternRequest,
+  patternId?: string
+): Promise<AddSearchPatternResponse> {
+  let resp;
+  const method = patternId == undefined ? "POST" : "PUT";
+  const addressEnd = patternId == undefined ? "" : `/${patternId}`;
+  try {
+    resp = await fetch(`${apiAddress}searchPatterns${addressEnd}`, {
+      method: method,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(pattern),
+    });
+  } catch (error) {
+    return {
+      patternName: "",
+      patternId: "",
+      regex: "",
+      errorMessage: "Fatal error while setting search pattern: " + error,
+    };
+  }
+
+  if (!resp.ok) {
+    return {
+      patternName: "",
+      patternId: "",
+      regex: "",
+      errorMessage:
+        "Received non-OK response while setting search pattern: " + resp.status,
+    };
+  }
+
+  return await resp.json();
 }

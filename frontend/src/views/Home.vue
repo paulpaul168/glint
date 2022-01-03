@@ -93,46 +93,6 @@ export default class Home extends Vue {
       viewMode: "files",
       remainingLintChecks: 5,
     },
-    /*{
-      settings: {
-        data: {
-          name: "New Project2",
-          projectId: "2",
-          projectUrl: new URL(API.apiAddress),
-          sourcesUrl: new URL(API.apiAddress),
-          lintUrl: new URL(API.apiAddress),
-        },
-        language: "auto",
-        linter: "auto",
-      },
-      files: [
-        {
-          edited: false,
-          unsaved: false,
-          language: "auto",
-          detectedLanguage: "txt",
-          file: { name: "oh.py", path: "oh.py", content: "halloooooo = 5" },
-        },
-      ],
-      openFiles: [
-        {
-          id: 0,
-          edited: false,
-          unsaved: false,
-          language: "auto",
-          detectedLanguage: "txt",
-          file: { name: "oh.py", path: "oh.py", content: "halloooooo = 5" },
-        },
-      ],
-      activeFile: 0,
-      lintData: {
-        status: "",
-        linter: "unknown",
-        lintFiles: [],
-      },
-      viewMode: "files",
-      remainingLintChecks: 5,
-    },*/
   ];
   private internalFileId = 0;
   private internalProjectId = 0;
@@ -610,7 +570,6 @@ export default class Home extends Vue {
   width: 100%;
   margin: auto;
   height: 100%;
-  /*height: calc(97vh - 56px);*/
 }
 
 .main-content-pane {
@@ -618,13 +577,15 @@ export default class Home extends Vue {
 }
 
 .project-list {
-  max-width: 250px;
+  max-width: 400px;
   min-width: 250px;
+  width: fit-content;
   /*min-width: 200px; the automatic content based resizing doesn't quite work, fixed size is better for now*/
-  flex: 1 1 content;
+  flex: 0 0 content;
 }
 
 .content-view {
-  flex-grow: 20;
+  flex-grow: 100;
+  padding-left: 12px;
 }
 </style>

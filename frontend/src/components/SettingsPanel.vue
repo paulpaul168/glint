@@ -2,6 +2,7 @@
   <div class="settings-panel">
     <v-row class="settings-row">
       <v-select
+        style="width: 226px"
         v-model="linter"
         class="dropdown"
         dense
@@ -59,11 +60,13 @@ export default class ProjectSettings extends Vue {
 <style scoped>
 .settings-panel {
   align-self: flex-start;
+  width: 100%;
 }
 
 .settings-row {
   margin: 0.6em;
   justify-content: flex-start;
+  width: auto; /* just for testing purposes */
 }
 
 .dropdown {

@@ -147,6 +147,7 @@ export default class Folder extends Vue {
 .folder-collapsible {
   margin-left: 36px;
   margin-right: 0;
+  width: fit-content;
 }
 
 .folder-name {

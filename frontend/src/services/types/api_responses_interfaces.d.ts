@@ -22,6 +22,17 @@ export interface ProjectDataResponse {
   errorMessage?: string;
 }
 
+export interface AddFileResponse {
+  fileName: string;
+  fileUrl: URL;
+  errorMessage?: string;
+}
+
+export interface LinterListResponse {
+  [language: string]: string[];
+  errorMessage?: string;
+}
+
 export interface LintResponse {
   status: string;
   linters: LinterMapping;
@@ -31,6 +42,13 @@ export interface LintResponse {
     linter: string;
     lints: Lint[];
   }[];
+  errorMessage?: string;
+}
+
+export interface AddSearchPatternResponse {
+  patternName: string;
+  patternId: string;
+  regex: string;
   errorMessage?: string;
 }
 
