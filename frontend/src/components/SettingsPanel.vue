@@ -66,7 +66,7 @@ export default class ProjectSettings extends Vue {
 .settings-row {
   margin: 0.6em;
   justify-content: flex-start;
-  width: auto; /* just for testing purposes */
+  width: auto;
 }
 
 .dropdown {
