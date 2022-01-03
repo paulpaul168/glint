@@ -119,6 +119,8 @@ export default class Folder extends Vue {
 
   @Watch("fileStates")
   private extractDisplayData(): void {
+    this.folders = {};
+    this.files = [];
     for (const state of this.fileStates) {
       const pathParts = state.file.path.split("/");
       if (pathParts == undefined || pathParts.length <= 1) {

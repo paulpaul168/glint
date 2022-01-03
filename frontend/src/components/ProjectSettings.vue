@@ -1,6 +1,6 @@
 <template>
   <div class="d-flex flex-column">
-    <v-tooltip open-delay="1000">
+    <v-tooltip top open-delay="1000">
       <template v-slot:activator="{ on, attrs }">
         <v-btn
           class="toggle-button"
@@ -18,6 +18,12 @@
       <span v-else>Show Project Settings</span>
     </v-tooltip>
     <v-divider v-if="isExpanded"></v-divider>
+    <div v-if="isExpanded" class="project-label">
+      <span style="color: gray; font-size: smaller">Project Settings: </span>
+      <span style="color: var(--v-primary-base); font-size: smaller">
+        {{ activeProjectName }}
+      </span>
+    </div>
     <v-expand-transition>
       <div v-show="isExpanded" class="settings-panel">
         <v-row class="settings-row">
@@ -49,13 +55,14 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+import { Component, Prop, Vue } from "vue-property-decorator";
 
 @Component({
   components: {},
 })
 export default class ProjectSettings extends Vue {
   name = "ProjectSettings";
+  @Prop({ default: "No Project" }) activeProjectName!: string;
   private isExpanded = false;
   private linter = "auto";
   private linterList = ["linterA", "linterB", "linterC"];
@@ -83,6 +90,11 @@ export default class ProjectSettings extends Vue {
   margin: 0.6em;
   justify-content: flex-start;
   width: auto;
+}
+
+.project-label {
+  margin: 0 0.6em;
+  margin-bottom: -0.4em;
 }
 
 .toggle-button {

@@ -8,6 +8,8 @@
         @linter-set="passLinter"
         @notification="passNotification"
         @create-project="createEmptyProject"
+        @refresh-projects="loadProjects"
+        @toggle-project-info="toggleProjectView"
         @open-file="openFile($event)"
         @delete-project="deleteProject"
         @set-patterns="searchPatterns = $event"
@@ -146,6 +148,18 @@ export default class Home extends Vue {
           }
         }
       }
+    }
+  }
+
+  private toggleProjectView(): void {
+    const viewMode = this.activeProjects[this.activeProject].viewMode;
+    if (viewMode == "files") {
+      this.activeProjects[this.activeProject].viewMode = "overview";
+    } else if (viewMode == "overview") {
+      this.activeProjects[this.activeProject].viewMode = "files";
+    } else {
+      //should never be needed, but if there's an error we return to a known state
+      this.activeProjects[this.activeProject].viewMode = "files";
     }
   }
 

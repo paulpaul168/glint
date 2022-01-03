@@ -12,22 +12,66 @@
       ></project-tree-view>
     </div>
     <v-divider class="centered-divider"></v-divider>
-    <v-btn
-      class="add-project-button"
-      text
-      color="primary"
-      elevation="0"
-      @click="$emit('create-project')"
-    >
-      <v-icon left>mdi-plus</v-icon> Create Project
-    </v-btn>
+    <div class="d-flex flex-row project-list-buttons">
+      <v-tooltip bottom open-delay="1000">
+        <template v-slot:activator="{ on, attrs }">
+          <v-btn
+            class="project-button"
+            icon
+            color="primary"
+            elevation="0"
+            v-bind="attrs"
+            v-on="on"
+            @click="$emit('create-project')"
+          >
+            <v-icon>mdi-plus</v-icon>
+          </v-btn>
+        </template>
+        <span>Create Project</span>
+      </v-tooltip>
+      <v-tooltip bottom open-delay="1000">
+        <template v-slot:activator="{ on, attrs }">
+          <v-btn
+            class="project-button"
+            icon
+            color="primary"
+            elevation="0"
+            v-bind="attrs"
+            v-on="on"
+            @click="$emit('refresh-projects')"
+          >
+            <v-icon>mdi-reload</v-icon>
+          </v-btn>
+        </template>
+        <span>Reload Project List</span>
+      </v-tooltip>
+      <v-tooltip bottom open-delay="1000">
+        <template v-slot:activator="{ on, attrs }">
+          <v-btn
+            class="project-button"
+            icon
+            color="primary"
+            elevation="0"
+            v-bind="attrs"
+            v-on="on"
+            @click="$emit('toggle-project-info')"
+          >
+            <v-icon>mdi-information-outline</v-icon>
+          </v-btn>
+        </template>
+        <span>Toggle Project Info</span>
+      </v-tooltip>
+    </div>
 
     <v-spacer></v-spacer>
-    <div class="active-project-label">
+    <!--<div class="active-project-label">
       <span style="color: gray; font-size: smaller">Active Project</span><br />
       {{ projects[activeProject].settings.data.name }}
-    </div>
-    <project-settings v-on="$listeners"></project-settings>
+    </div>-->
+    <project-settings
+      :activeProjectName="projects[activeProject].settings.data.name"
+      v-on="$listeners"
+    ></project-settings>
     <v-divider></v-divider>
     <settings-panel v-on="$listeners"></settings-panel>
   </div>
@@ -94,9 +138,14 @@ export default class ProjectList extends Vue {
   margin: 0.4em 10%;
 }
 
-.add-project-button {
+.project-list-buttons {
   margin: 0.2em 12px;
-  margin-bottom: 3em;
+  margin-bottom: 2em;
   flex-grow: 0;
+  justify-content: center;
+}
+
+.project-button {
+  margin: 0 0.2em;
 }
 </style>
