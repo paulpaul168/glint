@@ -245,6 +245,7 @@ export default class Home extends Vue {
         type: "error",
         message: respProjects.errorMessage,
       });
+      this.downloading = false;
       return;
     }
 

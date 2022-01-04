@@ -18,12 +18,12 @@
       <v-card-text class="d-flex flex-row">
         <div class="d-flex flex-column name-col">
           <v-row
-            v-for="(pattern, index) in patterns"
-            :key="pattern.id"
+            v-for="(key, index) in Object.keys(patterns)"
+            :key="key"
             class="pattern-row"
           >
             <v-text-field
-              v-model="pattern.name"
+              v-model="patterns[key].name"
               class="pattern-name"
               :background-color="index == editPattern ? 'bg_tertiary' : ''"
               :rules="[(v) => v.length > 0 || 'Required']"
@@ -38,15 +38,23 @@
         </div>
         <div class="d-flex flex-column regex-col">
           <v-row
-            v-for="(pattern, index) in patterns"
-            :key="pattern.id"
+            v-for="(key, index) in Object.keys(patterns)"
+            :key="key"
             class="pattern-row"
           >
             <v-text-field
-              v-model="pattern.regex"
+              v-model="patterns[key].regex"
               class="pattern-regex"
               :rules="[
-                (v) => /^\/.*\/g?i?m?s?u?y?$/.test(v) || 'Enter a valid regex!',
+                (v) => {
+                  const valid = /^\/.*\/g?i?m?s?u?y?$/.test(v);
+                  if (!valid) {
+                    patternsValidity[key].patternValid = false;
+                    return 'Enter a valid regex!';
+                  }
+                  patternsValidity[key].patternValid = true;
+                  return true;
+                },
               ]"
               :background-color="index == editPattern ? 'bg_tertiary' : ''"
               solo
@@ -60,8 +68,8 @@
         </div>
         <div class="d-flex flex-column button-col">
           <v-row
-            v-for="(pattern, index) in patterns"
-            :key="pattern.id"
+            v-for="(key, index) in Object.keys(patterns)"
+            :key="key"
             class="pattern-row"
           >
             <v-spacer></v-spacer>
@@ -72,6 +80,13 @@
                   icon
                   v-bind="attrs"
                   v-on="on"
+                  :disabled="
+                    index == editPattern &&
+                    !(
+                      patternsValidity[key].nameValid == false ||
+                      patternsValidity[key].patternValid == false
+                    )
+                  "
                   @click="
                     editPattern != index
                       ? (editPattern = index)
@@ -104,24 +119,45 @@
       </v-card-text>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn color="secondary" @click="discardSettings">Close</v-btn>
-        <v-btn color="primary" @click="storeSettings">Done</v-btn>
+        <v-btn color="secondary" @click="discardSettings">
+          Discard Changes
+        </v-btn>
+        <v-tooltip>
+          <template v-slot:activator="{ on, attrs }">
+            <v-btn
+              color="primary"
+              :disabled="editPattern != -1"
+              v-bind="attrs"
+              v-on="on"
+              @click="storeSettings"
+            >
+              Save
+            </v-btn>
+          </template>
+          <span v-if="editPattern != -1">Finish all Pattern edits!</span>
+        </v-tooltip>
       </v-card-actions>
     </v-card>
   </v-dialog>
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+import { Component, Vue, Watch } from "vue-property-decorator";
 import { SearchPatterns } from "./types/interfaces";
 
 import * as API from "@/services/BackendAPI";
 import { SearchPatternsResponse } from "@/services/types/api_responses_interfaces";
+import { Dictionary } from "vue-router/types/router";
 @Component
 export default class SecretsSearchSettings extends Vue {
   name = "SecretsSearchSettings";
   private dialog = false;
   private patterns: SearchPatterns = {};
+  private patternsValidity: Dictionary<{
+    nameValid: boolean;
+    patternValid: boolean;
+  }> = {};
+  private allPatternsValid = true;
   private editPattern = -1;
 
   private discardSettings(): void {
@@ -138,9 +174,17 @@ export default class SecretsSearchSettings extends Vue {
     this.fetchPatterns();
   }
 
+  @Watch("patterns")
+  private createValidityEntries(): void {
+    this.patternsValidity = {};
+    for (const key of Object.keys(this.patterns)) {
+      this.patternsValidity[key] = { nameValid: true, patternValid: true };
+    }
+  }
+
   private async fetchPatterns(): Promise<void> {
     const resp: SearchPatternsResponse = await API.getSearchPatterns();
-    if (resp.errorMessage == undefined) {
+    if (resp.errorMessage != undefined) {
       this.$emit("notification", { type: "error", message: resp.errorMessage });
       //the following pattern assignment is just for debugging purposes while the backend doesn't support this yet
       this.patterns = {
@@ -156,6 +200,16 @@ export default class SecretsSearchSettings extends Vue {
       this.$emit("set-patterns", this.patterns);
       return;
     }
+    this.patterns = {
+      "1": {
+        name: "flag",
+        regex: "/urllib.parse/",
+      },
+      "2": {
+        name: "flag2",
+        regex: "/flag2{.*}/",
+      },
+    };
     this.$emit("set-patterns", resp.patterns);
   }
 
