@@ -38,7 +38,7 @@ install_fedora(){
                 cargo rust
 
     sudo chmod +x run.sh
-    cd glint/backend
+    cd backend
     python3.9 -m venv venv
     source venv/bin/activate
     pip install -r requirements.txt
@@ -64,7 +64,7 @@ install_ubuntu(){
 
 
     sudo chmod +x run.sh
-    cd glint/backend
+    cd backend
     python3.9 -m venv venv
     source venv/bin/activate
     pip install -r requirements.txt
