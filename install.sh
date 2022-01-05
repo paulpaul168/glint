@@ -31,10 +31,13 @@ fi
 
 install_fedora(){
     echo "Welcome to the dark side. Starting Installation...";
-    sudo dnf -y install python3-pip golang-go php-cli git
+    sudo dnf -y install python3.9 python3-pip \
+                golang-go golang-honnef-tools \
+                php-cli \
+                nodejs \
+                cargo rust
 
-    git clone https://github.com/paulpaul168/glint.git
-
+    sudo chmod +x run.sh
     cd glint/backend
     python3.9 -m venv venv
     source venv/bin/activate
@@ -43,14 +46,24 @@ install_fedora(){
     go install github.com/securego/gosec/v2/cmd/gosec@latest
     npm install eslint --save-dev
     rustup component add clippy
+
+    cd ../frontend
+    npm install
+    export NODE_OPTIONS=--openssl-legacy-provider
+    npm install -g serve
+
 }
 
 install_ubuntu(){
     echo "Why would you use Ubuntu? Whatever! Starting Installation...";
-    sudo apt -y install python3-pip python3-venv golang-go golang-honnef-go-tools-dev php-cli git
+    sudo apt -y install python3.9 python3-pip python3-venv \
+                        golang-go golang-golang-x-tools-dev \
+                        php-cli \
+                        nodejs \
+                        cargo
 
-    git clone https://github.com/paulpaul168/glint.git
 
+    sudo chmod +x run.sh
     cd glint/backend
     python3.9 -m venv venv
     source venv/bin/activate
@@ -60,6 +73,10 @@ install_ubuntu(){
     npm install eslint --save-dev
     rustup component add clippy
 
+    cd ../frontend
+    npm install
+    export NODE_OPTIONS=--openssl-legacy-provider
+    npm install -g serve
 }
 
 SUPPORTED_OS="Fedora Linux"
