@@ -225,10 +225,13 @@ fileId is a string containing the path
 Overwrite existing source file
 ```json
 {
+    "path": "{newFilePath}",
     "content": "{fileContent}"
 }
 ```
 fileId is a string containing the path
+setting a new path also renames the file
+fields that should not be updated should be set to `null` (but still specified)
 
 Response
 http status

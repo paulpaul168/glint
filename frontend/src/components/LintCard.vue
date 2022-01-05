@@ -84,9 +84,9 @@ export default class LintCard extends Vue {
   @Watch("lint")
   private lintChanged(): void {
     let codeSnippet = "";
-    this.snippetStartLine = this.lint.line;
+    this.snippetStartLine = this.lint.line - 1;
     if (this.lint.endLine == null || this.lint.endLine <= this.lint.line) {
-      this.snippetEndLine = this.lint.line + 1;
+      this.snippetEndLine = this.lint.line;
     } else {
       this.snippetEndLine = this.lint.endLine;
     }

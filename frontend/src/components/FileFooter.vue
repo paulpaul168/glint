@@ -102,6 +102,10 @@ export default class FileFooter extends Vue {
 </style>
 
 <style>
+div.v-menu__content {
+  scrollbar-color: var(--v-bg_tertiary-lighten1) var(--v-bg_tertiary-base);
+}
+
 .v-select-list {
   background-color: var(--v-bg_tertiary-base) !important;
   /*TODO is there a better way to do this than a global important style?*/

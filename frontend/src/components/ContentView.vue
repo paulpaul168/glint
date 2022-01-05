@@ -60,6 +60,30 @@
                 <span>Send File to Server</span>
               </v-tooltip>
               <v-tooltip
+                v-if="lintOutdated && project.lintData.status != 'processing'"
+                bottom
+                open-delay="1000"
+              >
+                <template v-slot:activator="{ on, attrs }">
+                  <v-btn
+                    class="toolbar-element"
+                    small
+                    elevation="0"
+                    color="transparent"
+                    v-bind="attrs"
+                    v-on="on"
+                    :loading="
+                      project.lintData.status == 'processing' &&
+                      project.remainingLintChecks > 0
+                    "
+                    @click="$emit('request-new-lint')"
+                  >
+                    <v-icon small>mdi-cached</v-icon>
+                  </v-btn>
+                </template>
+                <span>Request new Lint</span>
+              </v-tooltip>
+              <v-tooltip
                 v-if="project.lintData.status"
                 bottom
                 open-delay="1000"
@@ -79,8 +103,7 @@
                     :disabled="
                       !(
                         project.lintData.status == 'done' ||
-                        (project.lintData.status == 'processing' &&
-                          project.remainingLintChecks == 0)
+                        project.lintData.status == 'processing'
                       )
                     "
                     @click="handleLintSwitcher"
@@ -132,11 +155,19 @@
             <lint-view
               v-if="viewMode == 'lint'"
               :fileState="state"
+              :outdated="lintOutdated"
+              :linter="
+                internalProject.lintData.linters[
+                  state.language == 'auto'
+                    ? state.detectedLanguage
+                    : state.language
+                ]
+              "
               :lints="lintsByFile[state.file.name]"
               @go-to-source="openFileAt($event)"
             ></lint-view>
             <code-view
-              v-if="viewMode == 'source'"
+              v-if="viewMode == 'source' || viewMode == 'uploader'"
               :fileState="state"
               :language="
                 state.language == 'auto'
@@ -232,35 +263,83 @@ export default class ContentView extends Vue {
     viewMode: "files",
     remainingLintChecks: 5,
   };
-  private viewMode = "uploader"; //which state the UI is in, can be "uploader" = empty with upload "+" button, "source" = show project source, "lint" = show lint results, "project" = show project spanning data like stats and found secrets
+  private viewMode = "uploader"; //which state the UI is in, "uploader" = empty with upload "+" button, "source" = show project source, "lint" = show lint results
 
   private lintsByFile: Dictionary<Lint[]> = { none: [] };
-  private fileIdCounter = 0;
+  private lintOutdated = false;
 
   //this may need to be converted into a deep watcher, but for now I'll try not to as it makes the code a bit nicer and tidier if only a few things within a project change without the entire project being replaced
   @Watch("project")
   projectChanged(): void {
     console.log("project changed");
-    //I may need to also store openFileStates in the project data so switching back and forth is more seamless (otherwise it loses list of open vs closed files, active file etc)
-    this.internalProject = this.project;
-    this.lintsByFile = { none: [] };
+    this.internalProject = { ...this.project };
+    //this.convertLintsToDict();
     //this.filesChanged();
     this.selectViewMode();
   }
 
   @Watch("project.files")
   private filesChanged(): void {
-    console.log("files changed!");
-    /*setTimeout(() => {
-      this.selectViewMode();
-    }, 100);*/
-    //TODO iterate through all files from project prop, compare with files in internalProject and update as necessary. If we just copy the entire thing over
-    this.internalProject.files = this.project.files;
+    this.internalProject.files = [];
+    for (const state of this.project.files) {
+      console.log("file");
+      const newState: FileState = {
+        file: {
+          name: "",
+          path: "",
+          content: "",
+        },
+        language: "auto",
+        detectedLanguage: "",
+        unsaved: false,
+        edited: false,
+      };
+      newState.file.name = (" " + state.file.name).slice(1);
+      newState.file.path = (" " + state.file.path).slice(1);
+      newState.file.content = (" " + state.file.content).slice(1);
+      newState.language = (" " + state.language).slice(1);
+      newState.detectedLanguage = (" " + state.detectedLanguage).slice(1);
+      this.internalProject.files.push(newState);
+    }
   }
 
   @Watch("project.openFiles")
   private openFilesChanged(): void {
-    this.internalProject.openFiles = this.project.openFiles;
+    console.log("open file change");
+    this.internalProject.openFiles = [];
+    this.project.openFiles?.forEach((state) => {
+      const newState: FileState = {
+        file: {
+          name: "",
+          path: "",
+          content: "",
+        },
+        language: "auto",
+        detectedLanguage: "",
+        unsaved: false,
+        edited: false,
+      };
+      newState.file.name = (" " + state.file.name).slice(1);
+      newState.file.path = (" " + state.file.path).slice(1);
+      newState.file.content = (" " + state.file.content).slice(1);
+      newState.language = (" " + state.language).slice(1);
+      newState.detectedLanguage = (" " + state.detectedLanguage).slice(1);
+      this.internalProject.openFiles?.push(newState);
+    });
+    this.selectViewMode();
+    //I don't like having selectViewMode here - a while ago the watch project.files triggered before
+    //watch project, if this happens again but with project.openFiles this will break
+  }
+
+  //consider moving the individual watchers into the "main" watcher (may increase code runtime but makes it a bit simpler?)
+  @Watch("project.lintData")
+  convertLintsToDict(): void {
+    console.log("lint changed");
+    //convert the array of lints of various files into a dict with one entry of many lints per file
+    for (const lintFile of this.project.lintData.lintFiles) {
+      this.lintsByFile[lintFile.name] = lintFile.lints;
+    }
+    this.lintOutdated = false;
   }
 
   @Watch("project.activeFile")
@@ -268,11 +347,17 @@ export default class ContentView extends Vue {
     this.internalProject.activeFile = this.project.activeFile;
   }
 
+  private setLintOutdated(): void {
+    if (this.lintsByFile != { none: [] }) {
+      this.lintOutdated = true;
+    }
+  }
+
   private selectViewMode(): void {
     if (this.internalProject.settings.data.projectId == "") {
-      console.log("id:", this.internalProject.settings.data.projectId);
       if (this.internalProject.files.length == 0) {
         this.viewMode = "uploader";
+        console.log("showing uploader and adding empty file");
         this.internalProject.openFiles = [
           {
             id: 0,
@@ -328,15 +413,6 @@ export default class ContentView extends Vue {
     //TODO investigate: why do I need to set files languages and not just openFiles? do I even need to? If I do need to set files, I need to emit files-change not open-files-change, but this also triggers a file upload. maybe add a flag whether to upload or not?
   }
 
-  //consider moving the individual watchers into the "main" watcher (may increase code runtime but makes it a bit simpler?)
-  @Watch("project.lintData")
-  convertLintsToDict(): void {
-    //convert the array of lints of various files into a dict with one entry of many lints per file
-    for (const lintFile of this.project.lintData.lintFiles) {
-      this.lintsByFile[lintFile.name] = lintFile.lints;
-    }
-  }
-
   private openFileAt(event: GoToFileEvent): void {
     //find the file that should be opened
     this.internalProject.openFiles?.forEach((state, index) => {
@@ -344,6 +420,7 @@ export default class ContentView extends Vue {
       if (state.file.path == event.filePath) {
         this.internalProject.activeFile = index;
         //TODO: jumping to (and highlighting?) line
+        //TODO: switching to source view
       }
     });
   }
@@ -367,14 +444,39 @@ export default class ContentView extends Vue {
   }
 
   private async saveFile(): Promise<void> {
-    //this.uploading = true;
+    this.setLintOutdated();
     const activeTab = this.internalProject.activeFile as number;
     this.internalProject.files.forEach((state, index) => {
       if (
         state.file.path == this.internalProject.openFiles?.[activeTab].file.path
       ) {
-        this.internalProject.files[index] =
-          this.internalProject.openFiles?.[activeTab];
+        const fileToSave: FileState = {
+          file: {
+            name: "",
+            path: "",
+            content: "",
+          },
+          language: "auto",
+          detectedLanguage: "",
+          unsaved: false,
+          edited: false,
+        };
+        fileToSave.file.name = (
+          " " + this.internalProject.openFiles?.[activeTab].file.name
+        ).slice(1);
+        fileToSave.file.path = (
+          " " + this.internalProject.openFiles?.[activeTab].file.path
+        ).slice(1);
+        fileToSave.file.content = (
+          " " + this.internalProject.openFiles?.[activeTab].file.content
+        ).slice(1);
+        fileToSave.language = (
+          " " + this.internalProject.openFiles?.[activeTab].language
+        ).slice(1);
+        fileToSave.detectedLanguage = (
+          " " + this.internalProject.openFiles?.[activeTab].detectedLanguage
+        ).slice(1);
+        this.internalProject.files[index] = fileToSave;
       }
     });
 
@@ -383,22 +485,6 @@ export default class ContentView extends Vue {
       openFiles: this.internalProject.openFiles,
       activeFile: this.internalProject.activeFile,
     });
-    /*let result = await API.overwriteFile(
-      this.project.settings.data.projectId,
-      this.openFileStates[this.activeTab].file
-    );
-    if (result.success == false) {
-      this.$emit("notification", {
-        type: "error",
-        message: result.errorMessage,
-      });
-      this.uploading = false;
-      return;
-    }
-    this.uploading = false;
-    this.openFileStates[this.activeTab].unsaved = false;
-    this.$emit("file-edit", this.openFileStates[this.activeTab]);*/
-    return;
   }
 
   private closeFile(): void {
@@ -424,15 +510,23 @@ export default class ContentView extends Vue {
   private renameFile(name: string): void {
     //TODO this doesn't handle path changes on the rename yet
     const activeTab = this.internalProject.activeFile as number;
-    const oldName = this.internalProject.openFiles?.[activeTab].file.name;
+    const oldPath = this.internalProject.openFiles?.[activeTab].file.path;
+
     (this.internalProject.openFiles as FileState[])[activeTab].file.name = name;
-    this.internalProject.files.forEach((state, index) => {
+    (this.internalProject.openFiles as FileState[])[activeTab].file.path =
+      oldPath?.substring(0, oldPath.lastIndexOf("/")) + name;
+    (this.internalProject.openFiles as FileState[])[activeTab].unsaved = true;
+    this.$emit("rename-file", {
+      openFiles: this.internalProject.openFiles,
+      activeFile: activeTab,
+    });
+
+    /*this.internalProject.files.forEach((state, index) => {
       if (state.file.name == oldName) {
         this.internalProject.files[index].file.name = name;
         return;
       }
-    });
-    (this.internalProject.openFiles as FileState[])[activeTab].unsaved = true;
+    });*/
   }
 
   private handleLintSwitcher(): void {

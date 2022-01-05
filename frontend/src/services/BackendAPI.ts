@@ -171,29 +171,29 @@ export async function deleteProject(
 
 export async function overwriteFile(
   projectId: string,
-  file: FileHandle
+  file: FileHandle,
+  oldPath?: string
 ): Promise<GenericStatusResponse> {
   let resp;
+  const path = oldPath == undefined ? file.path : oldPath;
   try {
-    resp = await fetch(
-      `${apiAddress}projects/${projectId}/sources/${file.name}`,
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: FileList.name,
-          path: file.path,
-          content: file.content,
-        }),
-      }
-    );
+    resp = await fetch(`${apiAddress}projects/${projectId}/sources/${path}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        path: file.path,
+        content: file.content,
+      }),
+    });
   } catch (error) {
     return {
       success: false,
       errorMessage:
-        "Fatal error during saving file content (overwrite) " + error,
+        oldPath == undefined
+          ? "Fatal error during saving file content (overwrite) "
+          : "Fatal error during file rename " + error,
     };
   }
 
@@ -201,7 +201,9 @@ export async function overwriteFile(
     return {
       success: false,
       errorMessage:
-        "Received non-OK response while overwriting file: " + resp.status,
+        oldPath == undefined
+          ? "Received non-OK response while overwriting file: "
+          : "Received non-OK response while renaming file: " + resp.status,
     };
   }
 

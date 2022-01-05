@@ -45,6 +45,7 @@
             v-bind="attrs"
             v-on="on"
             :disabled="!isDeletable"
+            @click="$emit('close-project')"
           >
             <v-icon v-if="isDeletable" small>mdi-close</v-icon>
           </v-btn>

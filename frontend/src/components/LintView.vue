@@ -1,8 +1,16 @@
 <template>
   <v-container class="lint-view">
     <div style="height: 100%" v-if="lints.length == 0">
-      <h2 style="position: relative; top: 45%">No Lint results found</h2>
+      <h2 style="position: relative; top: 45%">
+        <span>{{ linter }}</span>
+        <span style="color: grey">
+          found no relevant problems in this file.
+        </span>
+      </h2>
     </div>
+    <v-alert :value="outdated" class="outdated-notif" dense type="warning">
+      Lint is outdated. Request new lint to get result fitting to new code.
+    </v-alert>
     <ul
       v-for="lint in lints"
       :key="lint.line + '_' + lint.column + '_' + lint.header"
@@ -29,6 +37,8 @@ import LintCard from "@/components/LintCard.vue";
 })
 export default class LintView extends Vue {
   name = "LintView";
+  @Prop({ default: false }) outdated!: boolean;
+  @Prop({ default: "Linter" }) linter!: string;
   @Prop({
     default: () => [],
   })
@@ -54,11 +64,22 @@ export default class LintView extends Vue {
   height: 100%;
   overflow-y: auto !important;
 
-  scrollbar-color: var(--v-bg_tertiary-base) var(--v-bg_secondary-base);
-  border-bottom-right-radius: 50px;
+  scrollbar-color: var(--v-bg_tertiary-lighten1) var(--v-bg_secondary-base);
+  border-bottom-right-radius: 5px;
 }
 
 .code-editor {
   height: auto !important;
+}
+
+.outdated-notif {
+  position: absolute;
+  top: 1em;
+  left: 50%;
+  transform: translateX(-50%);
+  font-weight: bold;
+  /*padding: 0.1em 0.3em;
+  background-color: var(--v-warning-darken2);
+  border-radius: 3px;*/
 }
 </style>

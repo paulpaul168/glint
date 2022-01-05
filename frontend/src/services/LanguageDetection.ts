@@ -1,6 +1,10 @@
 export const supportedLanguages = [
   "python",
   "javascript",
+  "typescript",
+  "php",
+  "go",
+  "rust",
   "html",
   "markdown",
   "plain",

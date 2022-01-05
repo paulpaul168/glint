@@ -23,6 +23,10 @@ import "prismjs/components/prism-clike";
 import "prismjs/components/prism-typescript";
 import "prismjs/components/prism-javascript";
 import "prismjs/components/prism-python";
+import "prismjs/components/prism-markup-templating";
+import "prismjs/components/prism-php";
+import "prismjs/components/prism-go";
+import "prismjs/components/prism-rust";
 import "prismjs/components/prism-markdown";
 import "prismjs/themes/prism-tomorrow.css";
 
@@ -100,6 +104,6 @@ export default class CodeView extends Vue {
   overflow-y: auto !important;
 
   scrollbar-color: var(--v-bg_tertiary-lighten1) var(--v-bg_secondary-base);
-  border-bottom-right-radius: 50px;
+  border-bottom-right-radius: 5px;
 }
 </style>

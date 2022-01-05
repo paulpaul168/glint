@@ -12,7 +12,8 @@
         @refresh-projects="loadProjects"
         @toggle-project-info="toggleProjectView"
         @open-file="openFile($event)"
-        @delete-project="deleteProject"
+        @delete-project="deleteActiveProject"
+        @close-project="closeActiveProject"
         @set-patterns="searchPatterns = $event"
       />
     </div>
@@ -24,7 +25,9 @@
         @notification="passNotification"
         @files-change="uploadFileChanges"
         @open-files-change="storeOpenFileChanges"
+        @rename-file="handleFileRename($event)"
         @retry-get-lint="setGetLintTries"
+        @request-new-lint="requestNewLint"
         @create-project-event="fillProject($event)"
       />
     </div>
@@ -280,6 +283,9 @@ export default class Home extends Vue {
       );
     }
     if (newProjectList.length > 0) {
+      if (this.activeProject >= newProjectList.length) {
+        this.activeProject = 0;
+      }
       this.activeProjects = newProjectList;
     }
     this.downloading = false;
@@ -297,7 +303,7 @@ export default class Home extends Vue {
       }
     );
     if (!isAlreadyOpen) {
-      let fileToOpen: FileState = {
+      const fileToOpen: FileState = {
         file: {
           name: "",
           path: "",
@@ -311,7 +317,14 @@ export default class Home extends Vue {
       let fileFound = false;
       for (const state of this.activeProjects[this.activeProject].files) {
         if (state.file.path == path) {
-          fileToOpen = state;
+          //have to individually copy because otherwise I get a reference which breaks stuff
+          //the stupid thing with the slice is needed so it actually strcpy and not just references the strings
+          //I need files and openFiles to be separate copies that can be separately edited
+          fileToOpen.file.name = (" " + state.file.name).slice(1);
+          fileToOpen.file.path = (" " + state.file.path).slice(1);
+          fileToOpen.file.content = (" " + state.file.content).slice(1);
+          fileToOpen.language = (" " + state.language).slice(1);
+          fileToOpen.detectedLanguage = (" " + state.detectedLanguage).slice(1);
           fileFound = true;
           break;
         }
@@ -340,9 +353,9 @@ export default class Home extends Vue {
         data: {
           name: project.name,
           projectId: project.projectId,
-          projectUrl: new URL(project.projectUrl),
-          sourcesUrl: new URL(project.sourcesUrl),
-          lintUrl: new URL(project.lintUrl),
+          projectUrl: project.projectUrl,
+          sourcesUrl: project.sourcesUrl,
+          lintUrl: project.lintUrl,
         },
         linters: {},
       },
@@ -384,7 +397,7 @@ export default class Home extends Vue {
           file: { name: "unnamed", path: "unnamed", content: "" },
         },
       ];
-      bufferProject.openFiles = bufferProject.files;
+      bufferProject.openFiles = bufferProject.files.slice();
       (bufferProject.openFiles as FileState[])[0].id = 0;
 
       for (const state of bufferProject.openFiles as FileState[]) {
@@ -401,7 +414,7 @@ export default class Home extends Vue {
           file: file,
         });
       }
-      bufferProject.openFiles = bufferProject.files.slice();
+      //bufferProject.openFiles = bufferProject.files.slice();
 
       //upload files to backend
       this.uploading = true;
@@ -437,8 +450,19 @@ export default class Home extends Vue {
     }
   }
 
-  private async deleteProject(): Promise<void> {
-    console.log("deleting project");
+  private closeActiveProject(): void {
+    const projectToClose = this.activeProject;
+    if (this.activeProject > 0) {
+      this.activeProject--;
+    }
+    this.activeProjects.splice(projectToClose, 1);
+    //set up a new empty project if it's the last project that was closed
+    if (this.activeProjects.length == 0) {
+      this.createEmptyProject();
+    }
+  }
+
+  private async deleteActiveProject(): Promise<void> {
     const projectToDelete = this.activeProject; //buffer this in case deletion takes some time and user switches active project in that time
     //delete from backend
     let result = await API.deleteProject(
@@ -456,14 +480,7 @@ export default class Home extends Vue {
     }
 
     //remove from UI if deletion succeeded
-    if (this.activeProject > 0) {
-      this.activeProject--;
-    }
-    this.activeProjects.splice(projectToDelete, 1);
-    //set up a new empty project if it's the last project that was deleted
-    if (this.activeProjects.length == 0) {
-      this.createEmptyProject();
-    }
+    this.closeActiveProject();
   }
 
   private async uploadProject(
@@ -484,21 +501,35 @@ export default class Home extends Vue {
   private async uploadFileChanges(event: FileChangeEvent): Promise<void> {
     let encounteredErrors = false;
     for (const state of event.openFiles) {
+      console.log("compare state", state.file.name);
       let foundMatchingFile = false;
-      for (const oldState of this.activeProjects[this.activeProject]
-        .openFiles as FileState[]) {
+      for (const oldState of this.activeProjects[this.activeProject].files) {
+        console.log("old state", oldState.file.name);
         if (oldState.id == state.id) {
           foundMatchingFile = true;
+          console.log("ids match!");
           if (
             oldState.file.name == state.file.name &&
             oldState.file.path == state.file.path &&
             oldState.file.content == state.file.content
           ) {
+            console.log("content is identical");
+            //console.log(oldState.file.content, "---", state.file.content);
             break;
           }
+          console.log("writing file");
           const projectId =
             this.activeProjects[this.activeProject].settings.data.projectId;
-          const result = await API.overwriteFile(projectId, state.file);
+          let oldFilePath: string | undefined = undefined;
+          if (oldState.file.name != state.file.name) {
+            //file got renamed
+            oldFilePath = oldState.file.path;
+          }
+          const result = await API.overwriteFile(
+            projectId,
+            state.file,
+            oldFilePath
+          );
           if (!result.success) {
             this.passNotification({
               type: "error",
@@ -510,6 +541,7 @@ export default class Home extends Vue {
         }
       }
       if (foundMatchingFile == false) {
+        console.log("found no matching file");
         // went through all old files but didn't find an ID match, this must mean a new file; TODO add API new file endpoint
       }
     }
@@ -528,13 +560,49 @@ export default class Home extends Vue {
     this.activeProjects[this.activeProject].activeFile = event.activeFile;
   }
 
+  private async handleFileRename(event: OpenFileChangeEvent): Promise<void> {
+    this.activeProjects[this.activeProject].files.forEach((state, index) => {
+      //go through all files to update the renamed one in the list
+      if (
+        state.file.path ==
+        this.activeProjects[this.activeProject].openFiles?.[event.activeFile]
+          .file.path
+      ) {
+        //if the file paths match, update name and path
+        this.activeProjects[this.activeProject].files[index].file.name =
+          event.openFiles[event.activeFile].file.name;
+        this.activeProjects[this.activeProject].files[index].file.path =
+          event.openFiles[event.activeFile].file.path;
+      }
+    });
+
+    (this.activeProjects[this.activeProject].openFiles as FileState[])[
+      event.activeFile
+    ].file.name = (" " + event.openFiles[event.activeFile].file.name).slice(1);
+    (this.activeProjects[this.activeProject].openFiles as FileState[])[
+      event.activeFile
+    ].file.path = (" " + event.openFiles[event.activeFile].file.path).slice(1);
+  }
+
   private setGetLintTries(): void {
     this.activeProjects[this.activeProject].remainingLintChecks = 3;
+    this.activeProjects[this.activeProject].lintData.status = "processing";
     this.activeProjects[this.activeProject].lintCheckTimer = setInterval(
       this.handleLintTimer,
       1000,
       this.activeProject
     );
+  }
+
+  private requestNewLint(): void {
+    API.editProject(
+      this.activeProjects[this.activeProject].settings.data.projectId,
+      {
+        name: null,
+        linters: null,
+      }
+    );
+    this.setGetLintTries();
   }
 
   private async handleLintTimer(projectIndex: number) {
