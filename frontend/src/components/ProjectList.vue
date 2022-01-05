@@ -74,7 +74,6 @@
       :activeProjectName="projects[activeProject].settings.data.name"
       v-on="$listeners"
     ></project-settings>
-    <v-divider></v-divider>
     <settings-panel v-on="$listeners"></settings-panel>
   </div>
 </template>

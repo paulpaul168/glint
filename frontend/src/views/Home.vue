@@ -12,6 +12,7 @@
         @refresh-projects="loadProjects"
         @toggle-project-info="toggleProjectView"
         @open-file="openFile($event)"
+        @rename-project="renameActiveProject($event)"
         @delete-project="deleteActiveProject"
         @close-project="closeActiveProject"
         @set-patterns="searchPatterns = $event"
@@ -450,6 +451,29 @@ export default class Home extends Vue {
     }
   }
 
+  private async renameActiveProject(newName: string): Promise<void> {
+    const result = await API.editProject(
+      this.activeProjects[this.activeProject].settings.data.projectId,
+      {
+        name: newName,
+        linters: null,
+      }
+    );
+
+    //if rename failed, don't rename it in UI and return with error
+    if (result.errorMessage != undefined) {
+      console.log(result.errorMessage);
+      this.passNotification({
+        type: "error",
+        message: result.errorMessage,
+      });
+      return;
+    }
+
+    //if rename succeeded, actually rename the UI element and internal data
+    this.activeProjects[this.activeProject].settings.data.name = newName;
+  }
+
   private closeActiveProject(): void {
     const projectToClose = this.activeProject;
     if (this.activeProject > 0) {
@@ -465,7 +489,7 @@ export default class Home extends Vue {
   private async deleteActiveProject(): Promise<void> {
     const projectToDelete = this.activeProject; //buffer this in case deletion takes some time and user switches active project in that time
     //delete from backend
-    let result = await API.deleteProject(
+    const result = await API.deleteProject(
       this.activeProjects[projectToDelete].settings.data.projectId
     );
 

@@ -47,4 +47,9 @@ export default class ProjectOverview extends Vue {
   border: var(--v-bg_secondary-base) solid 0 !important;
   border-bottom-right-radius: 5px !important;
 }
+
+.custom-text-field {
+  width: fit-content;
+  min-width: 50px;
+}
 </style>
