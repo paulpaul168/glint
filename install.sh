@@ -31,10 +31,35 @@ fi
 
 install_fedora(){
     echo "Welcome to the dark side. Starting Installation...";
-    sudo dnf -y install python3-pip python3-venv golang-go golang-honnef-go-tools-dev php-cli
+    sudo dnf -y install python3-pip golang-go php-cli git
+
+    git clone https://github.com/paulpaul168/glint.git
+
+    cd glint/backend
+    python3.9 -m venv venv
+    source venv/bin/activate
+    pip install -r requirements.txt
+
     go install github.com/securego/gosec/v2/cmd/gosec@latest
     npm install eslint --save-dev
     rustup component add clippy
+}
+
+install_ubuntu(){
+    echo "Why would you use Ubuntu? Whatever! Starting Installation...";
+    sudo apt -y install python3-pip python3-venv golang-go golang-honnef-go-tools-dev php-cli git
+
+    git clone https://github.com/paulpaul168/glint.git
+
+    cd glint/backend
+    python3.9 -m venv venv
+    source venv/bin/activate
+    pip install -r requirements.txt
+
+    go install github.com/securego/gosec/v2/cmd/gosec@latest
+    npm install eslint --save-dev
+    rustup component add clippy
+
 }
 
 SUPPORTED_OS="Fedora Linux"
@@ -46,7 +71,7 @@ SECOND_SUPPORTED_OS="Ubuntu"
 if [ "$OS" = "$SUPPORTED_OS" ]; then
     install_fedora
 elif [ "$OS" = "$SECOND_SUPPORTED_OS" ]; then   
-    echo "Why would you use Ubuntu? Whatever! Starting Installation...";
+    install_ubuntu
 else
     echo "Sorry. We are racist and only support Fedora or Ubuntu.";
 fi
