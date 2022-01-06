@@ -53,8 +53,17 @@ export default class File extends Vue {
   text-transform: none;
   justify-content: left;
   padding-left: 4px !important;
-  padding-right: 4px !important; /*TODO: I'd like to have this auto expand to use the remaining space */
+  padding-right: 8px !important; /*TODO: I'd like to have this auto expand to use the remaining space */
   flex-grow: 1;
+}
+
+.file-name::v-deep .v-btn__content {
+  overflow: hidden;
+  white-space: nowrap;
+  max-width: 300px;
+  text-overflow: ellipsis;
+  display: inline-block;
+  text-align: left;
 }
 
 .disable-button {

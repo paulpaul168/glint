@@ -161,6 +161,15 @@ export default class Folder extends Vue {
   flex-grow: 1;
 }
 
+.folder-name::v-deep .v-btn__content {
+  overflow: hidden;
+  white-space: nowrap;
+  max-width: 300px;
+  text-overflow: ellipsis;
+  display: inline-block;
+  text-align: left;
+}
+
 .disable-button {
   pointer-events: none;
 }

@@ -688,7 +688,7 @@ export default class Home extends Vue {
 }
 
 .project-list {
-  max-width: 400px;
+  max-width: 600px;
   min-width: 250px;
   width: fit-content;
   /*min-width: 200px; the automatic content based resizing doesn't quite work, fixed size is better for now*/
