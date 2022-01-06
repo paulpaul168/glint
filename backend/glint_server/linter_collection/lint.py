@@ -9,10 +9,11 @@ from glint_server.linter_collection.php import lint_php_project
 
 def get_supported_linters() -> dict[str, list[str]]:
     return {
-        "python": ["bandit", "pylint"],
         "go": ["gosec", "staticcheck"],
         "javascript": ["eslint"],
         "php": ["phpcs"],
+        "python": ["bandit", "pylint"],
+        "rust": ["clippy"],
     }
 
 
@@ -32,14 +33,14 @@ def lint_project(path: str, linters: dict[str, str]) -> dict:
             linter = linters[lang]
 
             lint = None
-            if lang == "python":
-                lint = lint_python_project(path, linter)
-            elif lang == "go":
+            if lang == "go":
                 lint = lint_go_project(path, linter)
             elif lang == "javascript":
                 lint = lint_javascript_project(path, linter)
             elif lang == "php":
                 lint = lint_php_project(path, linter)
+            elif lang == "python":
+                lint = lint_python_project(path, linter)
 
             if lang not in result["linters"]:
                 result["linters"].update(lint["linters"])
@@ -69,10 +70,11 @@ def lint_project_error(error_msg: str) -> dict[str, Any]:
 
 def detect_languages(path: str) -> set[str]:
     extensions = {
-        ".py": "python",
         ".go": "go",
         ".js": "javascript",
         ".php": "php",
+        ".py": "python",
+        ".rs": "rust",
     }
 
     languages = set()
