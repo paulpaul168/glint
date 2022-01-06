@@ -157,6 +157,7 @@ export default class ProjectSettings extends Vue {
 
 .rename-text-field {
   margin-right: 0.6em;
+  width: 100px;
 }
 
 .v-input--is-focused::v-deep .v-input__slot,

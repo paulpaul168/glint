@@ -210,7 +210,8 @@ export default class SecretsSearchSettings extends Vue {
         regex: "/flag2{.*}/",
       },
     };
-    this.$emit("set-patterns", resp.patterns);
+    //this.$emit("set-patterns", resp.patterns);
+    this.$emit("set-patterns", this.patterns);
   }
 
   private setPatterns(): void {

@@ -1,6 +1,9 @@
 <template>
   <div class="main-content-pane" style="margin-right: 15px">
-    <div style="height: 100%" v-if="project.viewMode == 'files'">
+    <div
+      style="height: 100%; padding: 0 12px"
+      v-if="project.viewMode == 'files'"
+    >
       <v-row style="margin-top: 0">
         <v-tabs
           v-model="project.activeFile"
@@ -200,7 +203,13 @@
         </v-tabs-items>
       </v-row>
     </div>
-    <project-overview v-if="project.viewMode == 'overview'"></project-overview>
+    <project-overview
+      v-if="project.viewMode == 'overview'"
+      :project="project"
+      :searchPatterns="searchPatterns"
+      :searchResults="searchResults"
+      v-on="$listeners"
+    ></project-overview>
   </div>
 </template>
 
@@ -215,7 +224,14 @@ import FileTab from "@/components/FileTab.vue";
 import FileFooter from "@/components/FileFooter.vue";
 import ProjectOverview from "@/components/ProjectOverview.vue";
 
-import { FileState, GoToFileEvent, Lint, Project } from "./types/interfaces";
+import {
+  FileState,
+  GoToFileEvent,
+  Lint,
+  Project,
+  SearchPatterns,
+  SearchResult,
+} from "./types/interfaces";
 import { getLanguage } from "@/services/LanguageDetection";
 import { Dictionary } from "vue-router/types/router";
 
@@ -233,6 +249,8 @@ export default class ContentView extends Vue {
   name = "ContentView";
   @Prop({ default: false }) uploading!: boolean;
   @Prop() project!: Project;
+  @Prop() searchPatterns!: SearchPatterns;
+  @Prop() searchResults!: Dictionary<SearchResult[]>;
   private internalProject: Project = {
     settings: {
       data: {

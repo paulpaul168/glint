@@ -22,6 +22,10 @@
       <content-view
         :project="activeProjects[activeProject]"
         :uploading="false"
+        :searchPatterns="searchPatterns"
+        :searchResults="
+          searchResults[activeProjects[activeProject].settings.data.projectId]
+        "
         ref="contentView"
         @notification="passNotification"
         @files-change="uploadFileChanges"
@@ -30,6 +34,7 @@
         @retry-get-lint="setGetLintTries"
         @request-new-lint="requestNewLint"
         @create-project-event="fillProject($event)"
+        @close-project-overview="toggleProjectView"
       />
     </div>
     <global-notifier :notification="notification"></global-notifier>
@@ -106,7 +111,8 @@ export default class Home extends Vue {
   private internalProjectId = 0;
 
   private searchPatterns: SearchPatterns = {};
-  private searchResults: Dictionary<SearchResult[]> = {};
+  //a dict of projects containing a dict of files
+  private searchResults: Dictionary<Dictionary<SearchResult[]>> = {};
 
   private linter = "auto";
 
@@ -120,9 +126,11 @@ export default class Home extends Vue {
     //TODO add some sort of buffering or project specific storage to not have to re-find all the matches
     this.searchResults = {};
     for (const project of this.activeProjects) {
+      const projectId = project.settings.data.projectId;
+      this.searchResults[projectId] = {};
       for (const state of project.files) {
-        this.searchResults[state.file.path] = [];
-        for (const [, pattern] of Object.entries(this.searchPatterns)) {
+        this.searchResults[projectId][state.file.path] = [];
+        for (const [id, pattern] of Object.entries(this.searchPatterns)) {
           const regex = new RegExp(
             pattern.regex
               .replaceAll("\\", "\\\\")
@@ -141,7 +149,7 @@ export default class Home extends Vue {
               lineEnd = lineEnd == -1 ? state.file.content.length : lineEnd;
               console.log("line pos:", lineStartPos, lineEnd);
               const result: SearchResult = {
-                query: pattern.regex,
+                patternId: id,
                 snippet: state.file.content.substring(lineStartPos, lineEnd),
                 source: state.file,
                 line: this.getLineNumberFromPos(
@@ -149,7 +157,7 @@ export default class Home extends Vue {
                   match.index
                 ),
               };
-              this.searchResults[state.file.path].push(result);
+              this.searchResults[projectId][state.file.path].push(result);
             }
           }
         }
@@ -697,6 +705,5 @@ export default class Home extends Vue {
 
 .content-view {
   flex-grow: 100;
-  padding-left: 12px;
 }
 </style>

@@ -83,15 +83,17 @@ export interface ProjectData {
   linters: LinterMapping;
 }
 
+export interface SearchPattern {
+  name: string;
+  regex: string;
+}
+
 export interface SearchPatterns {
-  [id: string]: {
-    name: string;
-    regex: string;
-  };
+  [id: string]: SearchPattern;
 }
 
 export interface SearchResult {
-  query: string;
+  patternId: string;
   snippet: string;
   source: FileHandle;
   line: number;

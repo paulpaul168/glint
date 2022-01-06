@@ -58,18 +58,17 @@ export default class LintView extends Vue {
 
 <style scoped>
 .lint-view {
-  border: var(--v-bg_secondary-base) solid 0 !important;
-  border-bottom-right-radius: 5px !important;
+  border: var(--v-bg_secondary-base) solid 0;
+  border-bottom-right-radius: 5px;
 
   height: 100%;
-  overflow-y: auto !important;
+  overflow-y: auto;
 
   scrollbar-color: var(--v-bg_tertiary-lighten1) var(--v-bg_secondary-base);
-  border-bottom-right-radius: 5px;
 }
 
 .code-editor {
-  height: auto !important;
+  height: auto;
 }
 
 .outdated-notif {
@@ -78,8 +77,5 @@ export default class LintView extends Vue {
   left: 50%;
   transform: translateX(-50%);
   font-weight: bold;
-  /*padding: 0.1em 0.3em;
-  background-color: var(--v-warning-darken2);
-  border-radius: 3px;*/
 }
 </style>
