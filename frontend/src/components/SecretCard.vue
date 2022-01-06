@@ -1,5 +1,5 @@
 <template>
-  <v-item-group>
+  <v-item-group style="padding-left: 12px">
     <v-row>
       <v-col class="header-col" cols="9">
         <v-card-title class="header">
@@ -87,9 +87,8 @@ export default class SecretCard extends Vue {
 
 <style scoped>
 .header {
-  margin-top: 1em;
-  padding-left: 0;
-  padding-bottom: 0em;
+  padding: 0.2em 0;
+  padding-bottom: 0;
   text-align: left;
 }
 

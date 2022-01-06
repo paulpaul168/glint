@@ -89,8 +89,9 @@ LINT_DIR
 ### Milestone 2
 
 - [x] File handling (I can edit files and store them to lint the new file)
-- [ ] File Project handling (frontend: ability to reopen files after closing, jump to source buttons & shareable links)
-- [ ] Secret Finder UI + basic functionality
+- [x] File Project handling (frontend: ability to reopen files after closing)
+- [ ] Jump to source buttons & shareable links
+- [x] Secret Finder UI + basic functionality
 - [x] languages: js, go, python
 
 ### Milestone 3

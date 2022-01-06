@@ -21,18 +21,58 @@
       </div>
     </div>
     <div>
-      <v-divider class="centered-divider"></v-divider>
+      <v-divider style="margin: -0.5px 0"></v-divider>
     </div>
     <div style="height: calc(90% - 48px)" class="secrets-panel">
+      <div v-if="resultsSum > 0" class="secrets-header">
+        <h3>Found Secrets</h3>
+      </div>
+      <div style="height: 100%" v-else>
+        <h3 style="text-align: center; position: relative; top: 45%">
+          No Secrets were found in this Project
+        </h3>
+      </div>
       <v-container class="secrets-container">
-        <ul v-for="file in Object.keys(searchResults)" :key="file">
-          <h3>{{ file }}</h3>
-          <secret-card
-            v-for="result in searchResults[file]"
-            :key="result.patternId + result.snippet"
-            :result="result"
-            :pattern="searchPatterns[result.patternId]"
-          ></secret-card>
+        <ul
+          v-for="(file, index) in Object.keys(searchResults)"
+          :key="file"
+          style="padding-left: 12px"
+        >
+          <v-divider v-if="index != 0" class="centered-divider"></v-divider>
+          <div v-if="searchResults[file].length > 0">
+            <div class="d-flex flex-row">
+              <v-btn icon :ripple="false" @click="toggleFileExpansion(file)">
+                <v-icon
+                  :class="
+                    fileResultsExpanded[file] ? 'chevron-open' : 'chevron-close'
+                  "
+                  small
+                >
+                  mdi-chevron-right
+                </v-icon>
+              </v-btn>
+              <span class="file-header-text text-h6 header-component">
+                {{ file }}
+              </span>
+              <v-spacer></v-spacer>
+              <span class="file-secrets-summary text-caption">
+                <span style="color: grey">Matches:&nbsp;</span>
+                <span style="color: var(--v-primary-base)">
+                  {{ searchResults[file].length }}
+                </span>
+              </span>
+            </div>
+            <v-expand-transition>
+              <div v-show="fileResultsExpanded[file]">
+                <secret-card
+                  v-for="result in searchResults[file]"
+                  :key="result.patternId + result.snippet"
+                  :result="result"
+                  :pattern="searchPatterns[result.patternId]"
+                ></secret-card>
+              </div>
+            </v-expand-transition>
+          </div>
         </ul>
       </v-container>
     </div>
@@ -40,7 +80,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
+import { Component, Prop, Vue, Watch } from "vue-property-decorator";
 import { Dictionary } from "vue-router/types/router";
 import { Project, SearchPatterns, SearchResult } from "./types/interfaces";
 
@@ -66,6 +106,25 @@ export default class ProjectOverview extends Vue {
     },
   })
   searchResults!: Dictionary<SearchResult[]>;
+
+  private fileResultsExpanded: Dictionary<boolean> = {};
+  private resultsSum = 0;
+
+  @Watch("searchResults", { immediate: true })
+  private resultsChanged(): void {
+    console.log("hello");
+    this.resultsSum = 0;
+    for (const key of Object.keys(this.searchResults)) {
+      this.fileResultsExpanded[key] = true;
+      this.resultsSum += this.searchResults[key].length;
+    }
+  }
+
+  private toggleFileExpansion(file: string): void {
+    this.fileResultsExpanded[file] = !this.fileResultsExpanded[file];
+    this.$forceUpdate();
+    //force update has to be done, otherwise v-for caches the element and doesn't re-render it (in the new expand state) until another DOM change
+  }
 
   private emitCloseOverview(): void {
     this.$emit("close-project-overview");
@@ -102,7 +161,7 @@ export default class ProjectOverview extends Vue {
 }
 
 .centered-divider {
-  margin: -0.5px 0%;
+  margin: 2em 5.7%;
 }
 
 .stats-panel {
@@ -113,9 +172,19 @@ export default class ProjectOverview extends Vue {
 }
 
 .secrets-panel {
+  position: relative;
   border: var(--v-bg_secondary-base) solid 0;
   border-bottom-right-radius: 5px;
   overflow: hidden;
+}
+
+.secrets-header {
+  z-index: 10;
+  position: absolute;
+  text-align: center;
+  top: 0.3em;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .secrets-container {
@@ -125,6 +194,28 @@ export default class ProjectOverview extends Vue {
   overflow-y: auto;
 
   scrollbar-color: var(--v-bg_tertiary-lighten1) var(--v-bg_secondary-base);
+
+  padding-top: 2em;
+}
+
+.file-header-text {
+  margin: 0 0.6em;
+}
+
+.file-secrets-summary {
+  margin-left: 1em;
+  margin-bottom: 0.45em;
+  margin-right: 16px;
+  align-self: flex-end;
+}
+
+.chevron-open {
+  transform: rotate(90deg);
+  transition: 0.3s;
+}
+
+.chevron-close {
+  transition: 0.2s;
 }
 
 .custom-text-field {
