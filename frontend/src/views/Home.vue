@@ -31,6 +31,9 @@
         @files-change="uploadFileChanges"
         @open-files-change="storeOpenFileChanges"
         @rename-file="handleFileRename($event)"
+        @files-view-change="
+          activeProjects[activeProject].filesViewMode = $event
+        "
         @retry-get-lint="setGetLintTries"
         @request-new-lint="requestNewLint"
         @create-project-event="fillProject($event)"
@@ -103,7 +106,8 @@ export default class Home extends Vue {
         linters: {},
         lintFiles: [],
       },
-      viewMode: "files",
+      contentViewMode: "files",
+      filesViewMode: "auto",
       remainingLintChecks: 5,
     },
   ];
@@ -147,7 +151,6 @@ export default class Home extends Vue {
                 this.getLineStartPos(state.file.content, match.index) + 1;
               let lineEnd = state.file.content.indexOf("\n", lineStartPos);
               lineEnd = lineEnd == -1 ? state.file.content.length : lineEnd;
-              console.log("line pos:", lineStartPos, lineEnd);
               const result: SearchResult = {
                 patternId: id,
                 snippet: state.file.content.substring(lineStartPos, lineEnd),
@@ -166,14 +169,15 @@ export default class Home extends Vue {
   }
 
   private toggleProjectView(): void {
-    const viewMode = this.activeProjects[this.activeProject].viewMode;
-    if (viewMode == "files") {
-      this.activeProjects[this.activeProject].viewMode = "overview";
-    } else if (viewMode == "overview") {
-      this.activeProjects[this.activeProject].viewMode = "files";
+    const contentViewMode =
+      this.activeProjects[this.activeProject].contentViewMode;
+    if (contentViewMode == "files") {
+      this.activeProjects[this.activeProject].contentViewMode = "overview";
+    } else if (contentViewMode == "overview") {
+      this.activeProjects[this.activeProject].contentViewMode = "files";
     } else {
       //should never be needed, but if there's an error we return to a known state
-      this.activeProjects[this.activeProject].viewMode = "files";
+      this.activeProjects[this.activeProject].contentViewMode = "files";
     }
   }
 
@@ -216,7 +220,8 @@ export default class Home extends Vue {
         linters: {},
         lintFiles: [],
       },
-      viewMode: "files",
+      contentViewMode: "files",
+      filesViewMode: "auto",
       remainingLintChecks: 5,
     };
 
@@ -372,7 +377,8 @@ export default class Home extends Vue {
       openFiles: [],
       activeFile: 0,
       lintData: lintData, //TODO if this can't be fetched here there is no way (short of editing and saving a file) to get to lint results later on.
-      viewMode: "files",
+      contentViewMode: "files",
+      filesViewMode: "auto",
       remainingLintChecks: 5,
     };
 

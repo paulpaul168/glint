@@ -75,7 +75,11 @@ export interface Project {
   lintData: LintResponse;
   lintCheckTimer?: number;
   remainingLintChecks?: number;
-  viewMode?: string; //which state the UI is in, can be "files" = depending on files, either shows source, lint or uploader, "project" = show project overview
+  contentViewMode?: "files" | "overview";
+  //which state the UI is in, "files" = depending on files, either shows source, lint or uploader, "overview" = show project overview
+
+  filesViewMode?: "auto" | "uploader" | "source" | "lint";
+  //which state the UI is in (if contentVM is == "files"), "uploader" = empty with upload "+" button, "source" = show project source, "lint" = show lint results, "auto" = ContentView.vue decides based on available data
 }
 
 export interface ProjectData {

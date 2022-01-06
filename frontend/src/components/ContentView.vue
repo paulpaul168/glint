@@ -2,7 +2,7 @@
   <div class="main-content-pane" style="margin-right: 15px">
     <div
       style="height: 100%; padding: 0 12px"
-      v-if="project.viewMode == 'files'"
+      v-if="project.contentViewMode == 'files'"
     >
       <v-row style="margin-top: 0">
         <v-tabs
@@ -39,7 +39,10 @@
             :key="state.id"
           >
             <v-toolbar
-              v-if="viewMode == 'source' || viewMode == 'lint'"
+              v-if="
+                internalProject.filesViewMode == 'source' ||
+                internalProject.filesViewMode == 'lint'
+              "
               class="toolbar"
               dense
               elevation="0"
@@ -111,10 +114,12 @@
                     "
                     @click="handleLintSwitcher"
                   >
-                    <v-icon v-if="viewMode == 'lint'" small>mdi-pencil</v-icon>
+                    <v-icon v-if="internalProject.filesViewMode == 'lint'" small>
+                      mdi-pencil
+                    </v-icon>
                     <v-icon
                       v-else-if="
-                        viewMode == 'source' &&
+                        internalProject.filesViewMode == 'source' &&
                         project.lintData.status == 'done'
                       "
                       small
@@ -123,7 +128,7 @@
                     </v-icon>
                     <v-icon
                       v-else-if="
-                        viewMode == 'source' &&
+                        internalProject.filesViewMode == 'source' &&
                         project.lintData.status == 'processing' &&
                         project.remainingLintChecks <= 0
                       "
@@ -142,21 +147,25 @@
                     </v-icon>
                   </v-btn>
                 </template>
-                <span v-if="viewMode == 'lint'">Show Source</span>
+                <span v-if="internalProject.filesViewMode == 'lint'">
+                  Show Source
+                </span>
                 <span
                   v-else-if="
-                    viewMode == 'source' &&
+                    internalProject.filesViewMode == 'source' &&
                     project.lintData.status == 'processing' &&
                     project.remainingLintChecks <= 0
                   "
                 >
                   Retry fetching Lint result
                 </span>
-                <span v-if="viewMode == 'source'">Show Lint</span>
+                <span v-if="internalProject.filesViewMode == 'source'">
+                  Show Lint
+                </span>
               </v-tooltip>
             </v-toolbar>
             <lint-view
-              v-if="viewMode == 'lint'"
+              v-if="internalProject.filesViewMode == 'lint'"
               :fileState="state"
               :outdated="lintOutdated"
               :linter="
@@ -170,7 +179,10 @@
               @go-to-source="openFileAt($event)"
             ></lint-view>
             <code-view
-              v-if="viewMode == 'source' || viewMode == 'uploader'"
+              v-if="
+                internalProject.filesViewMode == 'source' ||
+                internalProject.filesViewMode == 'uploader'
+              "
               :fileState="state"
               :language="
                 state.language == 'auto'
@@ -180,12 +192,12 @@
               @input="codeEdited"
             ></code-view>
             <upload-dialog
-              v-if="viewMode == 'uploader'"
+              v-if="internalProject.filesViewMode == 'uploader'"
               :uploading="uploading"
               v-on="$listeners"
             ></upload-dialog>
             <file-footer
-              v-if="viewMode == 'source'"
+              v-if="internalProject.filesViewMode == 'source'"
               :language="state.language"
               :languageLabel="state.detectedLanguage"
               @language-set="changeLanguage($event)"
@@ -194,7 +206,7 @@
           <div
             v-if="
               internalProject.openFiles == 0 &&
-              internalProject.viewMode == 'files'
+              project.contentViewMode == 'files'
             "
             style="height: 100%"
           >
@@ -204,7 +216,7 @@
       </v-row>
     </div>
     <project-overview
-      v-if="project.viewMode == 'overview'"
+      v-if="project.contentViewMode == 'overview'"
       :project="project"
       :searchPatterns="searchPatterns"
       :searchResults="searchResults"
@@ -278,10 +290,10 @@ export default class ContentView extends Vue {
       linters: {},
       lintFiles: [],
     },
-    viewMode: "files",
+    contentViewMode: "files",
+    filesViewMode: "uploader",
     remainingLintChecks: 5,
   };
-  private viewMode = "uploader"; //which state the UI is in, "uploader" = empty with upload "+" button, "source" = show project source, "lint" = show lint results
 
   private lintsByFile: Dictionary<Lint[]> = { none: [] };
   private lintOutdated = false;
@@ -372,34 +384,40 @@ export default class ContentView extends Vue {
   }
 
   private selectViewMode(): void {
-    if (this.internalProject.settings.data.projectId == "") {
-      if (this.internalProject.files.length == 0) {
-        this.viewMode = "uploader";
-        console.log("showing uploader and adding empty file");
-        this.internalProject.openFiles = [
-          {
-            id: 0,
-            edited: false,
-            unsaved: false,
-            language: "auto",
-            detectedLanguage: "txt",
-            file: { name: "unnamed", path: "unnamed", content: "" },
-          },
-        ];
+    if (this.project.filesViewMode == "auto") {
+      if (this.internalProject.settings.data.projectId == "") {
+        if (this.internalProject.files.length == 0) {
+          this.internalProject.filesViewMode = "uploader";
+          console.log("showing uploader and adding empty file");
+          this.internalProject.openFiles = [
+            {
+              id: 0,
+              edited: false,
+              unsaved: false,
+              language: "auto",
+              detectedLanguage: "txt",
+              file: { name: "unnamed", path: "unnamed", content: "" },
+            },
+          ];
+        } else {
+          console.log(
+            "files:",
+            this.internalProject.files.length,
+            this.internalProject.files[0].file.name
+          );
+          this.$emit("notification", {
+            type: "error",
+            message:
+              "Encountered Project without any ID set but that contains files. Only empty projects are allowed to have no ID!",
+          });
+        }
       } else {
-        console.log(
-          "files:",
-          this.internalProject.files.length,
-          this.internalProject.files[0].file.name
-        );
-        this.$emit("notification", {
-          type: "error",
-          message:
-            "Encountered Project without any ID set but that contains files. Only empty projects are allowed to have no ID!",
-        });
+        this.internalProject.filesViewMode = "source";
       }
+      this.$emit("files-view-change", this.internalProject.filesViewMode);
     } else {
-      this.viewMode = "source";
+      console.log("using previous view mode");
+      this.internalProject.filesViewMode = this.project.filesViewMode;
     }
   }
 
@@ -444,8 +462,9 @@ export default class ContentView extends Vue {
   }
 
   private codeEdited(): void {
-    if (this.viewMode == "uploader") {
-      this.viewMode = "source"; //TODO probably more to do here once that happens (someone writing in an empty file while the upload button is showing)
+    if (this.internalProject.filesViewMode == "uploader") {
+      this.internalProject.filesViewMode = "source"; //TODO probably more to do here once that happens (someone writing in an empty file while the upload button is showing)
+      this.$emit("files-view-change", this.internalProject.filesViewMode);
     }
     (this.internalProject.openFiles as FileState[])[
       this.internalProject.activeFile as number
@@ -549,11 +568,12 @@ export default class ContentView extends Vue {
 
   private handleLintSwitcher(): void {
     if (this.project.lintData.status == "done") {
-      if (this.viewMode == "source") {
-        this.viewMode = "lint";
-      } else if (this.viewMode == "lint") {
-        this.viewMode = "source";
+      if (this.internalProject.filesViewMode == "source") {
+        this.internalProject.filesViewMode = "lint";
+      } else if (this.internalProject.filesViewMode == "lint") {
+        this.internalProject.filesViewMode = "source";
       }
+      this.$emit("files-view-change", this.internalProject.filesViewMode);
     } else if (
       this.project.lintData.status == "processing" &&
       (this.project.remainingLintChecks || 0) <= 0
