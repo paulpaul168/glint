@@ -53,6 +53,11 @@ export async function getProjectData(id: string): Promise<ProjectDataResponse> {
     linters: {},
   };
 
+  if (id == "") {
+    emptyResponse.errorMessage = "Tried loading project data with empty ID";
+    return emptyResponse;
+  }
+
   let resp;
   try {
     resp = await fetch(apiAddress + "projects/" + id, {
@@ -257,7 +262,7 @@ export async function getLinters(): Promise<LinterListResponse> {
 
   let resp;
   try {
-    resp = await fetch(apiAddress + "projects", {
+    resp = await fetch(apiAddress + "linters", {
       method: "GET",
     });
   } catch (error) {

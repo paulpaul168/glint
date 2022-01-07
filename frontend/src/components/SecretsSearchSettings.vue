@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 <template>
   <v-dialog v-model="dialog" max-width="600">
     <template v-slot:activator="{ on, attrs }">
@@ -218,22 +219,21 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue, Watch } from "vue-property-decorator";
+import { Component, Vue } from "vue-property-decorator";
 import { SearchPatterns } from "./types/interfaces";
 
 import * as API from "@/services/BackendAPI";
-import { SearchPatternsResponse } from "@/services/types/api_responses_interfaces";
-import { Dictionary } from "vue-router/types/router";
+import {
+  AddSearchPatternResponse,
+  GenericStatusResponse,
+  SearchPatternsResponse,
+} from "@/services/types/api_responses_interfaces";
+
 @Component
 export default class SecretsSearchSettings extends Vue {
   name = "SecretsSearchSettings";
   private dialog = false;
   private patterns: SearchPatterns = {};
-  private patternsValidity: Dictionary<{
-    nameValid: boolean;
-    patternValid: boolean;
-  }> = {};
-  private allPatternsValid = true;
   private editPattern = -1;
 
   private addPatternMode = false;
@@ -242,38 +242,22 @@ export default class SecretsSearchSettings extends Vue {
 
   private fetchingPatterns = false;
 
-  private discardSettings(): void {
-    console.log("discarding secrets settings but not implemented yet");
-    this.dialog = false;
-  }
-
-  private storeSettings(): void {
-    console.log("storing secrets settings but not implemented yet");
-    this.dialog = false;
-  }
-
   created(): void {
     this.fetchPatterns();
   }
 
-  @Watch("patterns")
-  private createValidityEntries(): void {
-    this.patternsValidity = {};
-    for (const key of Object.keys(this.patterns)) {
-      this.patternsValidity[key] = { nameValid: true, patternValid: true };
-    }
-  }
-
   private async fetchPatterns(): Promise<void> {
     this.fetchingPatterns = true;
-    const resp: SearchPatternsResponse = await API.getSearchPatterns();
-    if (resp.errorMessage != undefined) {
-      this.$emit("notification", { type: "error", message: resp.errorMessage });
+    const result: SearchPatternsResponse = await API.getSearchPatterns();
+    if (result.errorMessage != undefined) {
+      this.$emit("notification", {
+        type: "error",
+        message: result.errorMessage,
+      });
       this.fetchingPatterns = false;
       return;
     }
-    this.createValidityEntries();
-    this.patterns = resp;
+    this.patterns = result;
     this.emitSetPatterns();
     this.fetchingPatterns = false;
   }
@@ -287,7 +271,7 @@ export default class SecretsSearchSettings extends Vue {
       ? (this.editPattern = index)
       : (this.editPattern = -1);
 
-    const result = await API.setSearchPattern(
+    const result: AddSearchPatternResponse = await API.setSearchPattern(
       this.patterns[Object.keys(this.patterns)[index]],
       Object.keys(this.patterns)[index]
     );
@@ -303,7 +287,7 @@ export default class SecretsSearchSettings extends Vue {
   }
 
   private async addPattern(): Promise<void> {
-    const result = await API.setSearchPattern({
+    const result: AddSearchPatternResponse = await API.setSearchPattern({
       patternName: this.newPatternName,
       regex: this.newPatternRegex,
     });
@@ -320,7 +304,7 @@ export default class SecretsSearchSettings extends Vue {
   }
 
   private async deletePattern(index: number): Promise<void> {
-    const result = await API.deleteSearchPattern(
+    const result: GenericStatusResponse = await API.deleteSearchPattern(
       Object.keys(this.patterns)[index]
     );
     if (result.errorMessage != undefined) {

@@ -58,7 +58,12 @@
           </v-tooltip>
         </v-row>
         <v-row class="settings-row">
-          <v-select
+          <linter-mapping-setting
+            :projectMetadata="project.settings.data"
+            :mappings="project.settings.linters"
+            v-on="$listeners"
+          ></linter-mapping-setting>
+          <!--<v-select
             style="width: 226px"
             v-model="linter"
             class="dropdown"
@@ -72,7 +77,7 @@
             :menu-props="{ top: true, offsetY: true, nudgeTop: 14 }"
             :items="linterList"
             @change="emitLinterSet"
-          ></v-select>
+          ></v-select>-->
         </v-row>
         <v-row class="settings-row">
           <v-btn color="error" block @click="emitDeleteProject">
@@ -91,12 +96,18 @@
 <script lang="ts">
 import { Component, Prop, Vue, Watch } from "vue-property-decorator";
 
+import LinterMappingSetting from "@/components/LinterMappingsSetting.vue";
+import { Project } from "./types/interfaces";
+
 @Component({
-  components: {},
+  components: {
+    LinterMappingSetting,
+  },
 })
 export default class ProjectSettings extends Vue {
   name = "ProjectSettings";
   @Prop({ default: "No Project" }) activeProjectName!: string;
+  @Prop() project!: Project;
   private projectNameEdit = "No Project";
   private renameHasFocus = false;
   private isExpanded = false;
@@ -192,13 +203,5 @@ export default class ProjectSettings extends Vue {
 .settings-close {
   transform: scaleY(1);
   transition: 0.3s;
-}
-
-.dropdown {
-  min-width: 7em;
-}
-
-.dropdown::v-deep .v-input__icon--clear .v-icon {
-  font-size: 1em;
 }
 </style>

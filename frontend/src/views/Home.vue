@@ -16,6 +16,7 @@
         @delete-project="deleteActiveProject"
         @close-project="closeActiveProject"
         @set-patterns="searchPatterns = $event"
+        @set-linter-mappings="setLinters"
       />
     </div>
     <div class="content-view">
@@ -58,6 +59,7 @@ import {
   FileChangeEvent,
   FileHandle,
   FileState,
+  LinterMapping,
   Notification,
   OpenFileChangeEvent,
   Project,
@@ -307,6 +309,10 @@ export default class Home extends Vue {
     this.downloading = false;
   }
 
+  private setLinters(linters: LinterMapping): void {
+    this.activeProjects[this.activeProject].settings.linters = linters;
+  }
+
   private openFile(path: string): void {
     let isAlreadyOpen = false;
     this.activeProjects[this.activeProject].openFiles?.forEach(
@@ -373,7 +379,7 @@ export default class Home extends Vue {
           sourcesUrl: project.sourcesUrl,
           lintUrl: project.lintUrl,
         },
-        linters: {},
+        linters: projectData.linters,
       },
       files: [],
       openFiles: [],

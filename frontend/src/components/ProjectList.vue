@@ -71,6 +71,7 @@
 
     <v-spacer></v-spacer>
     <project-settings
+      :project="projects[activeProject]"
       :activeProjectName="projects[activeProject].settings.data.name"
       v-on="$listeners"
     ></project-settings>
@@ -114,9 +115,9 @@ export default class ProjectList extends Vue {
   min-width: 250px;
   width: fit-content;
   background-color: var(--v-bg_tertiary-base);
-  border: var(--v-bg_tertiary-base) solid 0 !important;
-  border-bottom-left-radius: 5px !important;
-  border-top-left-radius: 5px !important;
+  border: var(--v-bg_tertiary-base) solid 0;
+  border-bottom-left-radius: 5px;
+  border-top-left-radius: 5px;
   padding-top: 9.8px;
 }
 
@@ -128,7 +129,7 @@ export default class ProjectList extends Vue {
   border-radius: 0;
   overflow-y: scroll;
   scrollbar-color: var(--v-bg_tertiary-lighten1) var(--v-bg_tertiary-base);
-  border-bottom-right-radius: 50px;
+  border-bottom-right-radius: 5px;
 }
 
 .active-project-label {

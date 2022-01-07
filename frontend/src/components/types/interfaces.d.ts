@@ -54,6 +54,10 @@ export interface LinterMapping {
   [language: string]: string;
 }
 
+export interface AvailableLinters {
+  [language: string]: string[];
+}
+
 export interface Lint {
   fileName?: string; //a bit superfluous for the lintview, but needed in the lintcard to generate the link to the file
 
