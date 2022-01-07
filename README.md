@@ -100,7 +100,7 @@ LINT_DIR
 - [ ] Zip file handling (, URL download handling)
 - [ ] Docker file
 - [ ] Easter eggs
-- [ ] User defined & stored secret finder regexes
+- [x] User defined & stored secret finder regexes
 
 ## RESTful API
 

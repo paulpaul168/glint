@@ -58,15 +58,7 @@
               v-model="patterns[key].regex"
               class="pattern-regex"
               :rules="[
-                (v) => {
-                  const valid = /^\/.*\/g?i?m?s?u?y?$/.test(v);
-                  if (!valid) {
-                    patternsValidity[key].patternValid = false;
-                    return 'Enter a valid regex!';
-                  }
-                  patternsValidity[key].patternValid = true;
-                  return true;
-                },
+                (v) => /^\/.*\/g?i?m?s?u?y?$/.test(v) || 'Enter a valid regex!',
               ]"
               outlined
               flat
@@ -89,7 +81,7 @@
               :error-messages="
                 newPatternRegex.length > 0 ? '' : 'Enter a valid regex!'
               "
-              label="/Regex/flags"
+              label="/regex/flags"
             >
             </v-text-field>
           </v-row>
@@ -109,17 +101,12 @@
                   v-bind="attrs"
                   v-on="on"
                   :disabled="
-                    index == editPattern &&
                     !(
-                      patternsValidity[key].nameValid == false ||
-                      patternsValidity[key].patternValid == false
+                      patterns[key].patternName.length > 0 &&
+                      /^\/.*\/g?i?m?s?u?y?$/.test(patterns[key].regex)
                     )
                   "
-                  @click="
-                    editPattern != index
-                      ? (editPattern = index)
-                      : (editPattern = -1)
-                  "
+                  @click="savePatternEdit(index)"
                 >
                   <v-icon v-if="index != editPattern" small>mdi-pencil</v-icon>
                   <v-icon v-else small>mdi-check</v-icon>
@@ -293,6 +280,26 @@ export default class SecretsSearchSettings extends Vue {
 
   private emitSetPatterns(): void {
     this.$emit("set-patterns", this.patterns);
+  }
+
+  private async savePatternEdit(index: number): Promise<void> {
+    this.editPattern != index
+      ? (this.editPattern = index)
+      : (this.editPattern = -1);
+
+    const result = await API.setSearchPattern(
+      this.patterns[Object.keys(this.patterns)[index]],
+      Object.keys(this.patterns)[index]
+    );
+    if (result.errorMessage != undefined) {
+      this.$emit("notification", {
+        type: "error",
+        message: result.errorMessage,
+      });
+      return;
+    }
+    this.emitSetPatterns();
+    this.fetchPatterns();
   }
 
   private async addPattern(): Promise<void> {
