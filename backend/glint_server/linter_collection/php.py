@@ -7,7 +7,7 @@ from glint_server.linter_collection.exceptions import LintError
 
 
 def lint_php_project(path: str, linter: str):
-    if linter == "PHP_CodeSniffer" or linter == "auto":
+    if linter == "PHP_CodeSniffer":
         return lint_phpcs_project(path)
     else:
         raise LintError(f"Php linter '{linter}' is not known.")

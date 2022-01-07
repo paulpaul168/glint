@@ -1,5 +1,5 @@
 from glint_server import app
-from glint_server.linter_collection import lint_project_error
+from glint_server.linter_collection.lint import lint_project_error_short
 import os, json, urllib.parse, shutil
 from pathlib import PurePath
 
@@ -53,7 +53,7 @@ def save_file(file_name: str, content: str) -> None:
 def load_json_file(file_name: str) -> tuple[dict, str]:
     file_name = os.path.join(app.config["LINT_DIR"], file_name)
     if not os.path.exists(file_name):
-        return lint_project_error(file_name + " not found."), 404
+        return lint_project_error_short(file_name + " not found."), 404
     with open(urllib.parse.unquote(file_name), "r") as f:
         return json.loads(f.read()), 200
 
@@ -63,8 +63,6 @@ def get_project_files(project_id) -> tuple[dict, str]:
     lint, error_code = load_json_file(project_id + "/lint.glint")
     if error_code != 200:
         return lint, error_code
-    if lint["status"] != "done":
-        return lint, 418  # TODO: hmm not sure if we are really a teapod here...
 
     found_files = []
     for root, _, files in os.walk(path):
@@ -75,7 +73,9 @@ def get_project_files(project_id) -> tuple[dict, str]:
             with open(os.path.join(root, name)) as f:
                 content = f.read()
 
-            file_path = PurePath(os.path.join(path, name)).relative_to(path).as_posix()
+            file_path = (
+                PurePath(os.path.join(path, name)).relative_to(path).as_posix()
+            )
             file = {
                 "name": name,
                 "path": file_path,

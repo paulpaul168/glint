@@ -6,7 +6,7 @@ from glint_server.linter_collection.exceptions import LintError
 
 
 def lint_go_project(path: str, linter: str) -> dict:
-    if linter == "gosec" or linter == "auto":
+    if linter == "gosec":
         return lint_gosec_project(path)
     elif linter == "staticcheck":
         return lint_staticcheck_project(path)

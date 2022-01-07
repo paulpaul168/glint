@@ -9,7 +9,7 @@ from glint_server.linter_collection.exceptions import LintError
 
 
 def lint_javascript_project(project_path: str, linter: str) -> dict:
-    if linter == "staticcheck" or linter == "auto":
+    if linter == "eslint":
         return lint_eslint_project(project_path)
     else:
         raise LintError(f"Javascript linter '{linter}' is not known.")
@@ -76,7 +76,9 @@ def normalize_eslint(results: list[dict], project_path: str) -> dict:
     files = dict()
 
     for result in results:
-        path = PurePath(result["filePath"]).relative_to(project_path).as_posix()
+        path = (
+            PurePath(result["filePath"]).relative_to(project_path).as_posix()
+        )
 
         if path not in files:
             files[path] = {

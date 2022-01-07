@@ -7,8 +7,7 @@ from glint_server.linter_collection.exceptions import LintError
 
 
 def lint_python_project(path: str, linter: str):
-    print(linter)
-    if linter == "bandit" or linter == "auto":
+    if linter == "bandit":
         return lint_bandit_project(path)
     elif linter == "pylint":
         return lint_pylint_project(path)
@@ -23,7 +22,8 @@ def lint_pylint_project(project_path: str):
         return normalize_pylint([])
 
     process = subprocess.run(
-        ["python3", "-m", "pylint", "--output-format=json", "--jobs=0"] + files,
+        ["python3", "-m", "pylint", "--output-format=json", "--jobs=0"]
+        + files,
         text=True,
         capture_output=True,
     )
@@ -34,11 +34,15 @@ def lint_pylint_project(project_path: str):
     if process.returncode & 32 == 32:
         print(process.args)
         print(process.stdout)
-        raise LintError(f"Pylint returned with usage error {process.returncode}")
+        raise LintError(
+            f"Pylint returned with usage error {process.returncode}"
+        )
 
     if process.returncode & 1 == 1:
         print(process.stderr)
-        raise LintError(f"Pylint returned with a fatal error {process.returncode}")
+        raise LintError(
+            f"Pylint returned with a fatal error {process.returncode}"
+        )
 
     pylint_res = json.loads(process.stdout)
     # TODO: Maybe we should filter the pylint output so that we don't get

@@ -17,19 +17,29 @@ def get_supported_linters() -> dict[str, list[str]]:
     }
 
 
+def get_auto_linter(lang: str) -> str:
+    mapping = {
+        "go": "gosec",
+        "javascript": "eslint",
+        "php": "phpcs",
+        "python": "bandit",
+        "rust": "clippy",
+    }
+    return mapping[lang]
+
+
 def lint_project(path: str, linters: dict[str, str]) -> dict:
     langs = detect_languages(path)
+    linters = get_linters(langs, linters)
 
     result = {
         "status": "done",
-        "linters": dict(),
+        "linters": linters,
         "files": [],
     }
 
     try:
         for lang in langs:
-            if lang not in linters:
-                linters[lang] = "auto"
             linter = linters[lang]
 
             lint = None
@@ -47,23 +57,57 @@ def lint_project(path: str, linters: dict[str, str]) -> dict:
 
             result["files"] += lint["files"]
     except LintError as e:
-        return lint_project_error(e.message)
+        return lint_project_error(path, linters, e.message)
 
     return result
 
 
-def lint_project_processing() -> dict[str, Any]:
+def get_linters(
+    langs: set[str], linter_prefs: dict[str, str]
+) -> dict[str, str]:
+    linters = dict()
+
+    # We make a new set to avoid modifying the passed reference
+    target_langs = set(langs)
+    target_langs.update(linter_prefs.keys())
+    for lang in target_langs:
+        if lang in linter_prefs and linter_prefs[lang] != "auto":
+            linters[lang] = linter_prefs[lang]
+        else:
+            linters[lang] = get_auto_linter(lang)
+
+    return linters
+
+
+def lint_project_processing(
+    path: str, linter_prefs: dict[str, str]
+) -> dict[str, Any]:
     """The temporary result while the linting process is still ongoing."""
+
+    return lint_project_error(path, linter_prefs, "processing")
+
+
+def lint_project_error(
+    path: str, linter_prefs: dict[str, str], error_msg: str
+) -> dict[str, Any]:
+    """The result when an error occurred during linting."""
+
+    langs = detect_languages(path)
+    linters = get_linters(langs, linter_prefs)
+
     return {
-        "status": "processing",
+        "status": error_msg,
+        "linters": linters,
         "files": [],
     }
 
 
-def lint_project_error(error_msg: str) -> dict[str, Any]:
-    """The result when an error occurred during linting."""
+def lint_project_error_short(error_msg: str) -> dict[str, Any]:
+    """The result when an error and we don't even know the project yet"""
+
     return {
         "status": error_msg,
+        "linters": {},
         "files": [],
     }
 
