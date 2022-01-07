@@ -363,6 +363,7 @@ export default class Home extends Vue {
         });
       }
     }
+    this.activeProjects[this.activeProject].contentViewMode = "files";
   }
 
   private createProjectFromResponse(

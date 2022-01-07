@@ -202,7 +202,7 @@
             <file-footer
               v-if="internalProject.filesViewMode == 'source'"
               :language="state.language"
-              :languageLabel="state.detectedLanguage"
+              :detectedLanguage="state.detectedLanguage"
               @language-set="changeLanguage($event)"
             ></file-footer>
           </v-tab-item>
@@ -315,7 +315,6 @@ export default class ContentView extends Vue {
   private filesChanged(): void {
     this.internalProject.files = [];
     for (const state of this.project.files) {
-      console.log("file");
       const newState: FileState = {
         file: {
           name: "",
@@ -357,6 +356,8 @@ export default class ContentView extends Vue {
       newState.file.content = (" " + state.file.content).slice(1);
       newState.language = (" " + state.language).slice(1);
       newState.detectedLanguage = (" " + state.detectedLanguage).slice(1);
+      newState.unsaved = state.unsaved;
+      newState.edited = state.edited;
       this.internalProject.openFiles?.push(newState);
     });
     this.selectViewMode();

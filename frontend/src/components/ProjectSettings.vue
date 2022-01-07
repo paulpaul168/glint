@@ -63,21 +63,6 @@
             :mappings="project.settings.linters"
             v-on="$listeners"
           ></linter-mapping-setting>
-          <!--<v-select
-            style="width: 226px"
-            v-model="linter"
-            class="dropdown"
-            dense
-            outlined
-            label="Linter"
-            placeholder="auto"
-            hide-details="auto"
-            clearable
-            no-data-text="No Linters available for this language"
-            :menu-props="{ top: true, offsetY: true, nudgeTop: 14 }"
-            :items="linterList"
-            @change="emitLinterSet"
-          ></v-select>-->
         </v-row>
         <v-row class="settings-row">
           <v-btn color="error" block @click="emitDeleteProject">
@@ -111,19 +96,10 @@ export default class ProjectSettings extends Vue {
   private projectNameEdit = "No Project";
   private renameHasFocus = false;
   private isExpanded = false;
-  private linter = "auto";
-  private linterList = ["linterA", "linterB", "linterC"];
 
   @Watch("activeProjectName")
   private projectNameChanged(): void {
     this.projectNameEdit = this.activeProjectName;
-  }
-
-  private emitLinterSet() {
-    if (this.linter == null) {
-      this.linter = "auto";
-    }
-    this.$emit("linter-set", this.linter);
   }
 
   private emitDeleteProject() {

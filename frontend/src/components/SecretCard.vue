@@ -32,7 +32,14 @@
           class="text"
           style="background-color: var(--v-bg_tertiary-base)"
         >
-          Found secret in {{ result.source.name }} at line {{ result.line }}
+          <div class="d-flex flex-row">
+            Found secret in {{ result.source.name }} at line {{ result.line }}
+            <v-spacer></v-spacer>
+            <span style="text-align: right">Query:&nbsp;</span>
+            <span style="text-align: right; color: var(--v-primary-base)">
+              {{ pattern.regex }}
+            </span>
+          </div>
         </v-card-text>
         <v-divider></v-divider>
         <code-view

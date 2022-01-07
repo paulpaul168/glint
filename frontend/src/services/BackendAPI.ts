@@ -16,7 +16,7 @@ import {
   AddSearchPatternResponse,
 } from "./types/api_responses_interfaces";
 
-export const apiAddress = "https://8c77-2a02-8388-6581-c080-e90a-cc83-c5e0-1360.ngrok.io/api/"; //don't like having to export that, but I think I need it to allow setting sensible default URLs. Do I even want that?
+export const apiAddress = "http://localhost:5000/api/"; //don't like having to export that, but I think I need it to allow setting sensible default URLs. Do I even want that?
 
 export async function getProjects(): Promise<ProjectListResponse> {
   const emptyResponse: ProjectListResponse = {

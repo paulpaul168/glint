@@ -5,7 +5,7 @@
       v-model="languageSelect"
       :class="'dropdown ' + languageSelectLabelClass"
       dense
-      :label="'auto: ' + languageLabel"
+      :label="'auto: ' + detectedLanguage"
       placeholder="auto"
       hide-details="auto"
       clearable
@@ -39,9 +39,9 @@ import { supportedLanguages } from "@/services/LanguageDetection";
 export default class FileFooter extends Vue {
   name = "FileFooter";
   private languageList = supportedLanguages;
-  private languageSelect = "auto";
+  private languageSelect: string | null = "auto";
   @Prop({ default: "auto" }) language!: string;
-  @Prop({ default: "Language" }) languageLabel!: string;
+  @Prop({ default: "Language" }) detectedLanguage!: string;
   private languageSelectLabelClass = "hide-label";
 
   created(): void {
@@ -52,7 +52,10 @@ export default class FileFooter extends Vue {
   private languageChange(): void {
     if (this.language != "auto") {
       this.languageSelect = this.language;
+    } else {
+      this.languageSelect = null;
     }
+    this.$forceUpdate();
   }
 
   private emitLanguageSet() {
@@ -73,7 +76,6 @@ export default class FileFooter extends Vue {
 .dropdown {
   max-width: 10em;
   margin-top: 0;
-  /*margin-bottom: 0.1em;*/
   margin-right: 0.7em;
 }
 
