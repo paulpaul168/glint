@@ -309,12 +309,13 @@ export default class LinterMappingsSettings extends Vue {
   }
 
   private async saveMappingEdit(): Promise<void> {
-    this.internalMappings.push({
-      id: this.internalId++,
-      language: this.newMappingLanguage,
-      linter: this.newMappingLinter,
-    });
-    console.log(this.constructMappingsFromList(this.internalMappings));
+    if (this.addMappingMode) {
+      this.internalMappings.push({
+        id: this.internalId++,
+        language: this.newMappingLanguage,
+        linter: this.newMappingLinter,
+      });
+    }
     const result = await API.editProject(this.projectMetadata.projectId, {
       name: null,
       linters: this.constructMappingsFromList(this.internalMappings),
@@ -339,20 +340,24 @@ export default class LinterMappingsSettings extends Vue {
     this.saveMappingEdit();
   }
 
-  private async deleteMapping(index: number): Promise<void> {
-    /*const result = await API.deleteSearchPattern(
-      Object.keys(this.patterns)[index]
-    );
-    if (result.errorMessage != undefined) {
+  private async deleteMapping(id: number): Promise<void> {
+    let foundIndex = -1;
+    this.internalMappings.forEach((mapping, index) => {
+      if (mapping.id == id) {
+        foundIndex = index;
+        return;
+      }
+    });
+    if (foundIndex != -1) {
+      this.internalMappings.splice(foundIndex, 1);
+      this.saveMappingEdit();
+    } else {
+      console.log("Tried deleting a mapping ID that didn't exist");
       this.$emit("notification", {
         type: "error",
-        message: result.errorMessage,
+        message: "Tried deleting a mapping that didn't exist",
       });
-      return;
     }
-    delete this.patterns[Object.keys(this.patterns)[index]];*/
-    this.$forceUpdate();
-    this.fetchMappings();
   }
 }
 </script>

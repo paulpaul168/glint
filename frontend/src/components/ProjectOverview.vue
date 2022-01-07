@@ -135,7 +135,6 @@ export default class ProjectOverview extends Vue {
 
   @Watch("searchResults", { immediate: true })
   private resultsChanged(): void {
-    console.log("hello");
     this.resultsSum = 0;
     for (const key of Object.keys(this.searchResults)) {
       this.fileResultsExpanded[key] = true;
