@@ -25,13 +25,35 @@
     </div>
     <div style="height: calc(90% - 48px)" class="secrets-panel">
       <div v-if="resultsSum > 0" class="secrets-header">
-        <h3>Found Secrets</h3>
+        <h3 style="color: grey">Found {{ resultsSum }} Secrets</h3>
       </div>
       <div style="height: 100%" v-else>
         <h3 style="text-align: center; position: relative; top: 45%">
           No Secrets were found in this Project
         </h3>
       </div>
+      <v-tooltip bottom open-delay="1000">
+        <template v-slot:activator="{ on, attrs }">
+          <v-btn
+            class="secret-search-button"
+            small
+            elevation="0"
+            color="transparent"
+            v-bind="attrs"
+            v-on="on"
+            :loading="searchingForSecrets"
+            @click="$emit('start-secret-search')"
+          >
+            <template v-slot:loader>
+              <span class="custom-loader">
+                <v-icon>mdi-cached</v-icon>
+              </span>
+            </template>
+            <v-icon small>mdi-cached</v-icon>
+          </v-btn>
+        </template>
+        <span>Refresh Search</span>
+      </v-tooltip>
       <v-container class="secrets-container">
         <ul
           v-for="(file, index) in Object.keys(searchResults)"
@@ -66,7 +88,7 @@
               <div v-show="fileResultsExpanded[file]">
                 <secret-card
                   v-for="result in searchResults[file]"
-                  :key="result.patternId + result.snippet"
+                  :key="result.patternId + '' + result.line + result.snippet"
                   :result="result"
                   :pattern="searchPatterns[result.patternId]"
                 ></secret-card>
@@ -93,6 +115,7 @@ import SecretCard from "@/components/SecretCard.vue";
 })
 export default class ProjectOverview extends Vue {
   name = "ProjectOverview";
+  @Prop({ default: false }) searchingForSecrets!: boolean;
   @Prop() project!: Project;
   @Prop({
     default: () => {
@@ -178,6 +201,13 @@ export default class ProjectOverview extends Vue {
   overflow: hidden;
 }
 
+.secret-search-button {
+  z-index: 10;
+  position: absolute;
+  top: 0.3em;
+  right: 1em;
+}
+
 .secrets-header {
   z-index: 10;
   position: absolute;
@@ -221,5 +251,41 @@ export default class ProjectOverview extends Vue {
 .custom-text-field {
   width: fit-content;
   min-width: 50px;
+}
+
+.custom-loader {
+  animation: loader 1s infinite;
+}
+@-moz-keyframes loader {
+  from {
+    transform: rotate(0);
+  }
+  to {
+    transform: rotate(-360deg);
+  }
+}
+@-webkit-keyframes loader {
+  from {
+    transform: rotate(0);
+  }
+  to {
+    transform: rotate(-360deg);
+  }
+}
+@-o-keyframes loader {
+  from {
+    transform: rotate(0);
+  }
+  to {
+    transform: rotate(-360deg);
+  }
+}
+@keyframes loader {
+  from {
+    transform: rotate(0);
+  }
+  to {
+    transform: rotate(-360deg);
+  }
 }
 </style>

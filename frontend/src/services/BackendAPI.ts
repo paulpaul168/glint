@@ -344,9 +344,7 @@ export async function getLint(projectId: string): Promise<LintResponse> {
 
 export async function getSearchPatterns(): Promise<SearchPatternsResponse> {
   let resp;
-  let returnPatterns: SearchPatternsResponse = {
-    patterns: {},
-  };
+  let returnPatterns: SearchPatternsResponse = {};
   try {
     resp = await fetch(apiAddress + "searchPatterns", {
       method: "GET",
@@ -411,4 +409,35 @@ export async function setSearchPattern(
   }
 
   return await resp.json();
+}
+
+export async function deleteSearchPattern(
+  patternId: string
+): Promise<GenericStatusResponse> {
+  let resp;
+  try {
+    resp = await fetch(`${apiAddress}searchPatterns/${patternId}`, {
+      method: "DELETE",
+    });
+  } catch (error) {
+    return {
+      success: false,
+      errorMessage: "Fatal error while deleting search pattern: " + error,
+    };
+  }
+
+  if (!resp.ok) {
+    return {
+      success: false,
+      errorMessage:
+        "Received non-OK response while deleting search pattern: " +
+        resp.status,
+    };
+  }
+
+  const respJson = await resp.json();
+  if (respJson.status != "OK") {
+    return { success: false, errorMessage: "Unknown Error" };
+  }
+  return { success: true };
 }

@@ -38,6 +38,7 @@
         @request-new-lint="requestNewLint"
         @create-project-event="fillProject($event)"
         @close-project-overview="toggleProjectView"
+        @start-secret-search="searchFiles"
       />
     </div>
     <global-notifier :notification="notification"></global-notifier>
@@ -159,6 +160,7 @@ export default class Home extends Vue {
                   state.file.content,
                   match.index
                 ),
+                col: match.index - lineStartPos,
               };
               this.searchResults[projectId][state.file.path].push(result);
             }

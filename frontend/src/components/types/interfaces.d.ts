@@ -88,7 +88,7 @@ export interface ProjectData {
 }
 
 export interface SearchPattern {
-  name: string;
+  patternName: string;
   regex: string;
 }
 
@@ -101,4 +101,5 @@ export interface SearchResult {
   snippet: string;
   source: FileHandle;
   line: number;
+  col: number;
 }

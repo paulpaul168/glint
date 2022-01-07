@@ -3,7 +3,7 @@
     <v-row>
       <v-col class="header-col" cols="9">
         <v-card-title class="header">
-          <span style="color: grey">Secret:&nbsp;</span>{{ pattern.name }}
+          <span style="color: grey">Secret:&nbsp;</span>{{ pattern.patternName }}
         </v-card-title>
       </v-col>
       <v-col class="header-col text-right" style="padding-right: 0">

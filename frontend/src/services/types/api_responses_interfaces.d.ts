@@ -1,4 +1,4 @@
-import { LinterMapping, SearchPatterns } from "@/components/types/interfaces";
+import { LinterMapping, SearchPattern } from "@/components/types/interfaces";
 
 export interface ProjectListResponse {
   projects: ProjectResponse[];
@@ -53,7 +53,7 @@ export interface AddSearchPatternResponse {
 }
 
 export interface SearchPatternsResponse {
-  patterns: SearchPatterns;
+  [id: string]: SearchPattern;
   errorMessage?: string;
 }
 

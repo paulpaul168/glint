@@ -114,7 +114,10 @@
                     "
                     @click="handleLintSwitcher"
                   >
-                    <v-icon v-if="internalProject.filesViewMode == 'lint'" small>
+                    <v-icon
+                      v-if="internalProject.filesViewMode == 'lint'"
+                      small
+                    >
                       mdi-pencil
                     </v-icon>
                     <v-icon
@@ -305,7 +308,7 @@ export default class ContentView extends Vue {
     this.internalProject = { ...this.project };
     //this.convertLintsToDict();
     //this.filesChanged();
-    this.selectViewMode();
+    //this.selectViewMode();
   }
 
   @Watch("project.files")
@@ -388,7 +391,6 @@ export default class ContentView extends Vue {
       if (this.internalProject.settings.data.projectId == "") {
         if (this.internalProject.files.length == 0) {
           this.internalProject.filesViewMode = "uploader";
-          console.log("showing uploader and adding empty file");
           this.internalProject.openFiles = [
             {
               id: 0,
@@ -399,6 +401,7 @@ export default class ContentView extends Vue {
               file: { name: "unnamed", path: "unnamed", content: "" },
             },
           ];
+          console.log("set open files");
         } else {
           console.log(
             "files:",
@@ -408,7 +411,7 @@ export default class ContentView extends Vue {
           this.$emit("notification", {
             type: "error",
             message:
-              "Encountered Project without any ID set but that contains files. Only empty projects are allowed to have no ID!",
+              "Encountered project without any ID set but that contains files. Only empty projects are allowed to have no ID!",
           });
         }
       } else {
@@ -416,7 +419,18 @@ export default class ContentView extends Vue {
       }
       this.$emit("files-view-change", this.internalProject.filesViewMode);
     } else {
-      console.log("using previous view mode");
+      if (this.project.filesViewMode == "uploader") {
+        this.internalProject.openFiles = [
+          {
+            id: 0,
+            edited: false,
+            unsaved: false,
+            language: "auto",
+            detectedLanguage: "txt",
+            file: { name: "unnamed", path: "unnamed", content: "" },
+          },
+        ];
+      }
       this.internalProject.filesViewMode = this.project.filesViewMode;
     }
   }
