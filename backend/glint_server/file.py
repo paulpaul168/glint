@@ -8,6 +8,10 @@ def path_exists(path: str) -> bool:
     return os.path.exists(os.path.join(app.config["LINT_DIR"], path))
 
 
+def create_path(path: str) -> None:
+    os.makedirs(path)
+
+
 def create_project_folder(name: str) -> str:
     path = os.path.join(app.config["LINT_DIR"], name)
     path_modifier = 0

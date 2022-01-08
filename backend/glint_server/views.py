@@ -8,6 +8,12 @@ from glint_server.threading import do_lint
 import os, urllib.parse
 
 
+@app.before_first_request
+def before_first_request():
+    if not gfile.path_exists(app.config["LINT_DIR"]):
+        gfile.create_path(app.config["LINT_DIR"])
+
+
 @app.get("/")
 def home():
     return {
