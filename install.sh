@@ -45,12 +45,13 @@ install_fedora(){
 
     go install github.com/securego/gosec/v2/cmd/gosec@latest
     npm install eslint --save-dev
-    rustup component add clippy
+    #rustup component add clippy
 
     cd ../frontend
     npm install
-    export NODE_OPTIONS=--openssl-legacy-provider
+    #export NODE_OPTIONS=--openssl-legacy-provider
     npm install -g serve
+    npm run build
 
 }
 
@@ -71,12 +72,13 @@ install_ubuntu(){
 
     go install github.com/securego/gosec/v2/cmd/gosec@latest
     npm install eslint --save-dev
-    rustup component add clippy
+    #rustup component add clippy
 
     cd ../frontend
     npm install
-    export NODE_OPTIONS=--openssl-legacy-provider
+    #export NODE_OPTIONS=--openssl-legacy-provider
     npm install -g serve
+    npm run build
 }
 
 SUPPORTED_OS="Fedora Linux"
