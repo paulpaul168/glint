@@ -38,7 +38,9 @@ export default class File extends Vue {
   state!: FileState;
 
   private clickFile(): void {
-    this.$emit("open-file", this.state.file.path);
+    this.$emit("open-file", {
+      filePath: this.state.file.path,
+    });
   }
 }
 </script>

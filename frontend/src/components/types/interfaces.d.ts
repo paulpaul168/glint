@@ -32,7 +32,7 @@ export interface CreateProjectEvent {
 
 export interface GoToFileEvent {
   filePath: string;
-  line: number;
+  line?: number;
 }
 
 export interface FileHandle {

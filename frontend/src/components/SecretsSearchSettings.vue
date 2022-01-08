@@ -344,7 +344,7 @@ export default class SecretsSearchSettings extends Vue {
 }
 
 .regex-col {
-  flex-grow: 3;
+  flex-grow: 2;
 }
 
 .button-col {

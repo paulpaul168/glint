@@ -168,7 +168,7 @@
               </v-tooltip>
             </v-toolbar>
             <lint-view
-              v-if="internalProject.filesViewMode == 'lint'"
+              v-show="internalProject.filesViewMode == 'lint'"
               :fileState="state"
               :outdated="lintOutdated"
               :linter="
@@ -180,12 +180,15 @@
               "
               :lints="lintsByFile[state.file.name]"
               @go-to-source="openFileAt($event)"
+              v-on="$listeners"
             ></lint-view>
             <code-view
-              v-if="
+              ref="codeView"
+              v-show="
                 internalProject.filesViewMode == 'source' ||
                 internalProject.filesViewMode == 'uploader'
               "
+              :id="'prismeditor'"
               :fileState="state"
               :language="
                 state.language == 'auto'
@@ -241,7 +244,6 @@ import ProjectOverview from "@/components/ProjectOverview.vue";
 
 import {
   FileState,
-  GoToFileEvent,
   Lint,
   Project,
   SearchPatterns,
@@ -387,6 +389,11 @@ export default class ContentView extends Vue {
     }
   }
 
+  @Watch("project.filesViewMode")
+  private viewModeChange(): void {
+    this.internalProject.filesViewMode = this.project.filesViewMode;
+  }
+
   private selectViewMode(): void {
     if (this.project.filesViewMode == "auto") {
       if (this.internalProject.settings.data.projectId == "") {
@@ -464,16 +471,8 @@ export default class ContentView extends Vue {
     //TODO investigate: why do I need to set files languages and not just openFiles? do I even need to? If I do need to set files, I need to emit files-change not open-files-change, but this also triggers a file upload. maybe add a flag whether to upload or not?
   }
 
-  private openFileAt(event: GoToFileEvent): void {
-    //find the file that should be opened
-    this.internalProject.openFiles?.forEach((state, index) => {
-      //this assumes the file is present in the open files list, I don't see a way how this is not the case as only open files show lint view, but dunno, maybe this will create bugs
-      if (state.file.path == event.filePath) {
-        this.internalProject.activeFile = index;
-        //TODO: jumping to (and highlighting?) line
-        //TODO: switching to source view
-      }
-    });
+  scrollTo(line: number): void {
+    (this.$refs.codeView as CodeView[])[0].scrollToLine(line);
   }
 
   private codeEdited(): void {

@@ -85,7 +85,7 @@ export default class SecretCard extends Vue {
   }
 
   private goToFile(): void {
-    this.$emit("go-to-source", {
+    this.$emit("open-file", {
       filePath: this.result.source.path,
       line: this.result.line,
     });

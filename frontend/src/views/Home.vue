@@ -30,6 +30,7 @@
         ref="contentView"
         @notification="passNotification"
         @files-change="uploadFileChanges"
+        @open-file="openFile($event)"
         @open-files-change="storeOpenFileChanges"
         @rename-file="handleFileRename($event)"
         @files-view-change="
@@ -59,6 +60,7 @@ import {
   FileChangeEvent,
   FileHandle,
   FileState,
+  GoToFileEvent,
   LinterMapping,
   Notification,
   OpenFileChangeEvent,
@@ -75,6 +77,7 @@ import {
   ProjectResponse,
 } from "@/services/types/api_responses_interfaces";
 import { Dictionary } from "vue-router/types/router";
+import CodeView from "@/components/CodeView.vue";
 
 @Component({
   components: {
@@ -313,11 +316,12 @@ export default class Home extends Vue {
     this.activeProjects[this.activeProject].settings.linters = linters;
   }
 
-  private openFile(path: string): void {
+  private openFile(data: GoToFileEvent): void {
+    console.log("file", data.filePath);
     let isAlreadyOpen = false;
     this.activeProjects[this.activeProject].openFiles?.forEach(
       (state, index) => {
-        if (state.file.path == path) {
+        if (state.file.path == data.filePath) {
           this.activeProjects[this.activeProject].activeFile = index;
           isAlreadyOpen = true;
           return;
@@ -338,7 +342,7 @@ export default class Home extends Vue {
       };
       let fileFound = false;
       for (const state of this.activeProjects[this.activeProject].files) {
-        if (state.file.path == path) {
+        if (state.file.path == data.filePath) {
           //have to individually copy because otherwise I get a reference which breaks stuff
           //the stupid thing with the slice is needed so it actually strcpy and not just references the strings
           //I need files and openFiles to be separate copies that can be separately edited
@@ -364,6 +368,12 @@ export default class Home extends Vue {
       }
     }
     this.activeProjects[this.activeProject].contentViewMode = "files";
+    this.activeProjects[this.activeProject].filesViewMode = "source";
+    if (data.line != undefined) {
+      this.$nextTick(() => {
+        (this.$refs.contentView as ContentView).scrollTo(data.line || 0);
+      });
+    }
   }
 
   private createProjectFromResponse(
@@ -392,7 +402,7 @@ export default class Home extends Vue {
     };
 
     for (const file of projectData.files as FileHandle[]) {
-      //why is is seen as "any" without me casting to filehandle[]? it's defined as filehandle[] in the interface
+      //why is this seen as "any" without me casting to filehandle[]? it's defined as filehandle[] in the interface
       returnProject.files.push({
         file: file,
         language: "auto",

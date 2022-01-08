@@ -95,19 +95,23 @@ export default class LintCard extends Vue {
       .slice(this.snippetStartLine, this.snippetEndLine)
       .join("\n");
     this.internalFileState.file.name = this.fileState.file.name;
+    this.internalFileState.file.path = this.fileState.file.path;
     this.internalFileState.language = this.fileState.language;
     this.internalFileState.detectedLanguage = this.fileState.detectedLanguage;
     this.internalFileState.file.content = codeSnippet;
     if (this.snippetEndLine - this.snippetStartLine > 1) {
       this.fileLinkText =
-        "lines " + this.snippetStartLine + "-" + this.snippetEndLine;
+        "lines " +
+        (this.snippetStartLine + 1) +
+        "-" +
+        (this.snippetEndLine + 1);
     } else {
-      this.fileLinkText = "line " + this.snippetStartLine;
+      this.fileLinkText = "line " + (this.snippetStartLine + 1);
     }
   }
 
   private goToFile(): void {
-    this.$emit("go-to-source", {
+    this.$emit("open-file", {
       filePath: this.internalFileState.file.path,
       line: this.snippetStartLine,
     });

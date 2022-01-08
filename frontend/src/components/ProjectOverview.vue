@@ -88,9 +88,17 @@
               <div v-show="fileResultsExpanded[file]">
                 <secret-card
                   v-for="result in searchResults[file]"
-                  :key="result.patternId + '' + result.line + result.snippet"
+                  :key="
+                    result.patternId +
+                    '' +
+                    result.line +
+                    '' +
+                    result.col +
+                    result.snippet
+                  "
                   :result="result"
                   :pattern="searchPatterns[result.patternId]"
+                  v-on="$listeners"
                 ></secret-card>
               </div>
             </v-expand-transition>

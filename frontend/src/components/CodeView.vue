@@ -1,5 +1,7 @@
 <template>
   <prism-editor
+    :id="id"
+    ref="editor"
     :style="'height: ' + height"
     class="code-editor"
     v-model="internalState.file.content"
@@ -38,6 +40,7 @@ import "prismjs/themes/prism-tomorrow.css";
 export default class CodeView extends Vue {
   name = "CodeView";
 
+  @Prop({ default: "" }) id!: string;
   @Prop({ default: false }) readonly!: boolean;
   @Prop({ default: true }) lineNumbers!: boolean;
   @Prop({ default: "calc(100% - 26px)" }) height!: string;
@@ -68,6 +71,54 @@ export default class CodeView extends Vue {
   fileStateChanged(): void {
     this.internalState = this.fileState;
     this.highlighter(this.internalState.file.content);
+  }
+
+  scrollToLine(line: number): void {
+    const editor = document.getElementById("prismeditor");
+    const editorContainer = (
+      editor?.getElementsByClassName(
+        "prism-editor__container"
+      ) as HTMLCollection
+    )[0];
+    const editorContent = editorContainer.childNodes[1].childNodes;
+    let lineCounter = 0;
+    let reachedLine = false;
+    let lastElementNode: HTMLElement;
+    //let focusElement; //I can't do anything with the actual focus element as that's a
+    //text node and I can't scroll to a text node. I'll keep this in, in case I find a way
+    //to utilise this in the future (highlighting?)
+    //console.log("line", line);
+    // eslint-disable-next-line no-undef
+    for (const child of editorContent) {
+      if (child.nodeType == 1) {
+        lastElementNode = child as HTMLElement;
+      }
+      if (child.nodeValue != null) {
+        let pos = child.nodeValue.indexOf("\n");
+        //console.log("child node", child);
+        while (pos != -1) {
+          lineCounter++;
+          //console.log("match", lineCounter);
+          if (lineCounter >= line) {
+            reachedLine = true;
+            break;
+          }
+          pos = child.nodeValue.indexOf("\n", pos + 1);
+        }
+        if (reachedLine) {
+          //focusElement = child;
+          break;
+        }
+      }
+    }
+
+    if (editor != undefined) {
+      console.log("trying to scroll");
+      this.$nextTick(() => {
+        editor.scrollTo(0, (lastElementNode as HTMLElement).offsetTop);
+      });
+    }
+    //(this.$refs.editor as HTMLBaseElement).scrollTop = ;
   }
 
   private codeEdited(): void {
