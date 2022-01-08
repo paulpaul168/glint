@@ -6,6 +6,7 @@ from glint_server.linter_collection.python import lint_python_project
 from glint_server.linter_collection.go import lint_go_project
 from glint_server.linter_collection.php import lint_php_project
 from glint_server.linter_collection.rust import lint_rust_project
+from glint_server.linter_collection.rust import lint_c_project
 
 
 def get_supported_linters() -> dict[str, list[str]]:
@@ -15,6 +16,7 @@ def get_supported_linters() -> dict[str, list[str]]:
         "php": ["phpcs"],
         "python": ["bandit", "pylint"],
         "rust": ["clippy"],
+        "c": ["cpplint"],
     }
 
 
@@ -25,6 +27,7 @@ def get_auto_linter(lang: str) -> str:
         "php": "phpcs",
         "python": "bandit",
         "rust": "clippy",
+        "c": "cpplint",
     }
     return mapping[lang]
 
@@ -54,6 +57,8 @@ def lint_project(path: str, linters: dict[str, str]) -> dict:
                 lint = lint_python_project(path, linter)
             elif lang == "rust":
                 lint = lint_rust_project(path, linter)
+            elif lang == "c":
+                lint = lint_c_project(path, linter)
 
             if lang not in result["linters"]:
                 result["linters"].update(lint["linters"])
@@ -65,9 +70,7 @@ def lint_project(path: str, linters: dict[str, str]) -> dict:
     return result
 
 
-def get_linters(
-    langs: set[str], linter_prefs: dict[str, str]
-) -> dict[str, str]:
+def get_linters(langs: set[str], linter_prefs: dict[str, str]) -> dict[str, str]:
     linters = dict()
 
     # We make a new set to avoid modifying the passed reference
@@ -82,9 +85,7 @@ def get_linters(
     return linters
 
 
-def lint_project_processing(
-    path: str, linter_prefs: dict[str, str]
-) -> dict[str, Any]:
+def lint_project_processing(path: str, linter_prefs: dict[str, str]) -> dict[str, Any]:
     """The temporary result while the linting process is still ongoing."""
 
     return lint_project_error(path, linter_prefs, "processing")
@@ -122,6 +123,19 @@ def detect_languages(path: str) -> set[str]:
         ".php": "php",
         ".py": "python",
         ".rs": "rust",
+        ".c": "c",
+        "c": "c",
+        "c++": "c",
+        "cc": "c",
+        "cpp": "c",
+        "cu": "c",
+        "cuh": "c",
+        "cxx": "c",
+        "h": "c",
+        "h++": "c",
+        "hh": "c",
+        "hpp": "c",
+        "hxx": "c",
     }
 
     languages = set()
