@@ -75,9 +75,9 @@ def upload_file(project_id, file_id):
         }
         return data, 404
 
-    if request_data["content"] == None:
-        gfile.move_file(file_url, request_data["path"])
-    else:
+    if request_data["path"] != None:
+        gfile.move_file(file_url, os.path.join(project_id, request_data["path"]))
+    if request_data["content"] != None:
         gfile.save_file(file_url, request_data["content"])
     return {
         "status": "OK",
