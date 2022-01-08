@@ -20,11 +20,17 @@ def lint_clippy_project(project_path: str) -> dict:
         capture_output=True,
     )
 
+    if process.returncode != 0:
+        print(process.stderr)
+        raise LintError(f"Clippy returned with exit code {process.returncode}")
+
     # Clippy produces json line format instead of json
     clippy_res = []
     for line in process.stdout.splitlines():
         clippy_res.append(json.loads(line))
 
+    print(process.returncode)
+    print(json.dumps(clippy_res))
     return normalize_clippy(clippy_res, project_path)
 
 
