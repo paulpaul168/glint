@@ -89,6 +89,9 @@ def normalize_eslint(results: list[dict], project_path: str) -> dict:
             }
 
         for message in result["messages"]:
+            if message["ruleId"] is None:
+                continue
+
             lint = {
                 "line": message["line"],
                 "endLine": message["endLine"],

@@ -5,6 +5,7 @@ from glint_server.linter_collection.javascript import lint_javascript_project
 from glint_server.linter_collection.python import lint_python_project
 from glint_server.linter_collection.go import lint_go_project
 from glint_server.linter_collection.php import lint_php_project
+from glint_server.linter_collection.rust import lint_rust_project
 
 
 def get_supported_linters() -> dict[str, list[str]]:
@@ -51,6 +52,8 @@ def lint_project(path: str, linters: dict[str, str]) -> dict:
                 lint = lint_php_project(path, linter)
             elif lang == "python":
                 lint = lint_python_project(path, linter)
+            elif lang == "rust":
+                lint = lint_rust_project(path, linter)
 
             if lang not in result["linters"]:
                 result["linters"].update(lint["linters"])
