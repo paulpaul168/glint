@@ -50,6 +50,12 @@ def save_file(file_name: str, content: str) -> None:
         f.write(content)
 
 
+def move_file(file_name_old: str, file_name_new: str) -> None:
+    file_path_old = os.path.join(app.config["LINT_DIR"], file_name_old)
+    file_path_new = os.path.join(app.config["LINT_DIR"], file_name_new)
+    shutil.move(file_path_old, file_path_new)
+
+
 def load_json_file(file_name: str) -> tuple[dict, str]:
     file_name = os.path.join(app.config["LINT_DIR"], file_name)
     if not os.path.exists(file_name):
@@ -73,9 +79,7 @@ def get_project_files(project_id) -> tuple[dict, str]:
             with open(os.path.join(root, name)) as f:
                 content = f.read()
 
-            file_path = (
-                PurePath(os.path.join(path, name)).relative_to(path).as_posix()
-            )
+            file_path = PurePath(os.path.join(path, name)).relative_to(path).as_posix()
             file = {
                 "name": name,
                 "path": file_path,

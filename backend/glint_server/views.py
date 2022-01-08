@@ -65,14 +65,20 @@ def delete_file(project_id, file_id):
 @app.put("/api/projects/<project_id>/sources/<path:file_id>")
 def upload_file(project_id, file_id):
     request_data = request.json
+    if request_data["content"] == None and request_data["path"] == None:
+        return {"status": "bad request"}, 400
+
     file_url = os.path.join(project_id, file_id)
     if not gfile.path_exists(file_url):
         data = {
-            "status": "File does not exists",
+            "status": "File does not exist",
         }
         return data, 404
 
-    gfile.save_file(file_url, request_data["content"])
+    if request_data["content"] == None:
+        gfile.move_file(file_url, request_data["path"])
+    else:
+        gfile.save_file(file_url, request_data["content"])
     return {
         "status": "OK",
     }
