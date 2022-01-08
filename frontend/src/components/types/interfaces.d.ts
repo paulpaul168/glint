@@ -32,6 +32,7 @@ export interface CreateProjectEvent {
 
 export interface GoToFileEvent {
   filePath: string;
+  projectID?: string;
   line?: number;
 }
 

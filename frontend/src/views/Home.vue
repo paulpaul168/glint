@@ -316,6 +316,22 @@ export default class Home extends Vue {
   }
 
   private openFile(data: GoToFileEvent): void {
+    if (data.projectID != undefined) {
+      //if a projectId is set, switch to that project
+      if (
+        this.activeProjects[this.activeProject].settings.data.projectId ==
+        data.projectID
+      ) {
+        //but only if we aren't already in that project
+        this.activeProjects.forEach((project, index) => {
+          if (project.settings.data.projectId == data.projectID) {
+            this.activeProject = index;
+            return;
+          }
+        });
+      }
+    }
+
     let isAlreadyOpen = false;
     this.activeProjects[this.activeProject].openFiles?.forEach(
       (state, index) => {
