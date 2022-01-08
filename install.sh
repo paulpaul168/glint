@@ -31,7 +31,7 @@ fi
 
 install_fedora(){
     echo "Welcome to the dark side. Starting Installation...";
-    sudo dnf -y install python3.9 python3-pip \
+    sudo dnf -y install python3.9 python3-pip python3-gunicorn python3-toml python3-flask\
                 golang-go golang-honnef-tools \
                 php-cli \
                 nodejs \
@@ -57,7 +57,7 @@ install_fedora(){
 
 install_ubuntu(){
     echo "Why would you use Ubuntu? Whatever! Starting Installation...";
-    sudo apt -y install python3.9 python3-pip python3-venv \
+    sudo apt -y install python3.9 python3-pip python3-venv python3-gunicorn python3-toml python3-flask\
                         golang-go golang-golang-x-tools-dev \
                         php-cli \
                         nodejs \
