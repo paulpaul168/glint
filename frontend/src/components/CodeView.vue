@@ -87,18 +87,14 @@ export default class CodeView extends Vue {
     //let focusElement; //I can't do anything with the actual focus element as that's a
     //text node and I can't scroll to a text node. I'll keep this in, in case I find a way
     //to utilise this in the future (highlighting?)
-    //console.log("line", line);
-    // eslint-disable-next-line no-undef
     for (const child of editorContent) {
       if (child.nodeType == 1) {
         lastElementNode = child as HTMLElement;
       }
       if (child.nodeValue != null) {
         let pos = child.nodeValue.indexOf("\n");
-        //console.log("child node", child);
         while (pos != -1) {
           lineCounter++;
-          //console.log("match", lineCounter);
           if (lineCounter >= line) {
             reachedLine = true;
             break;
@@ -113,12 +109,10 @@ export default class CodeView extends Vue {
     }
 
     if (editor != undefined) {
-      console.log("trying to scroll");
       this.$nextTick(() => {
         editor.scrollTo(0, (lastElementNode as HTMLElement).offsetTop);
       });
     }
-    //(this.$refs.editor as HTMLBaseElement).scrollTop = ;
   }
 
   private codeEdited(): void {

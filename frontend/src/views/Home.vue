@@ -77,7 +77,6 @@ import {
   ProjectResponse,
 } from "@/services/types/api_responses_interfaces";
 import { Dictionary } from "vue-router/types/router";
-import CodeView from "@/components/CodeView.vue";
 
 @Component({
   components: {
@@ -317,7 +316,6 @@ export default class Home extends Vue {
   }
 
   private openFile(data: GoToFileEvent): void {
-    console.log("file", data.filePath);
     let isAlreadyOpen = false;
     this.activeProjects[this.activeProject].openFiles?.forEach(
       (state, index) => {

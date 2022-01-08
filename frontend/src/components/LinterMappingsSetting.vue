@@ -243,7 +243,6 @@ export default class LinterMappingsSettings extends Vue {
 
   @Watch("mappings")
   private mappingsChange(): void {
-    console.log("mappings change");
     this.internalMappings = [];
     for (const key of Object.keys(this.mappings)) {
       this.internalMappings.push({

@@ -2,7 +2,7 @@
   <div class="main-content-pane" style="margin-right: 15px">
     <div
       style="height: 100%; padding: 0 12px"
-      v-if="project.contentViewMode == 'files'"
+      v-show="project.contentViewMode == 'files'"
     >
       <v-row style="margin-top: 0">
         <v-tabs
@@ -222,7 +222,7 @@
       </v-row>
     </div>
     <project-overview
-      v-if="project.contentViewMode == 'overview'"
+      v-show="project.contentViewMode == 'overview'"
       :project="project"
       :searchPatterns="searchPatterns"
       :searchResults="searchResults"
@@ -306,7 +306,7 @@ export default class ContentView extends Vue {
   //this may need to be converted into a deep watcher, but for now I'll try not to as it makes the code a bit nicer and tidier if only a few things within a project change without the entire project being replaced
   @Watch("project")
   projectChanged(): void {
-    console.log("project changed");
+    //console.log("project changed");
     this.internalProject = { ...this.project };
     //this.convertLintsToDict();
     //this.filesChanged();
@@ -339,7 +339,7 @@ export default class ContentView extends Vue {
 
   @Watch("project.openFiles")
   private openFilesChanged(): void {
-    console.log("open file change");
+    //console.log("open file change");
     this.internalProject.openFiles = [];
     this.project.openFiles?.forEach((state) => {
       const newState: FileState = {
@@ -370,7 +370,7 @@ export default class ContentView extends Vue {
   //consider moving the individual watchers into the "main" watcher (may increase code runtime but makes it a bit simpler?)
   @Watch("project.lintData")
   convertLintsToDict(): void {
-    console.log("lint changed");
+    //console.log("lint changed");
     //convert the array of lints of various files into a dict with one entry of many lints per file
     for (const lintFile of this.project.lintData.lintFiles) {
       this.lintsByFile[lintFile.name] = lintFile.lints;
