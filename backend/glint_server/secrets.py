@@ -102,11 +102,11 @@ def default_secrets() -> dict[str, dict[str, str]]:
         },
         "Facebook token": {
             "patternName": "Facebook token",
-            "regex": "/(?i)(facebook[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\\\"]([a-f0-9]{32})['\\\"]/",
+            "regex": "/(facebook[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\\\"]([a-f0-9]{32})['\\\"]/i",
         },
         "Twitter token": {
             "patternName": "Twitter token",
-            "regex": "/(?i)(twitter[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\\\"]([a-f0-9]{35,44})['\\\"]/",
+            "regex": "/(twitter[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\\\"]([a-f0-9]{35,44})['\\\"]/i",
         },
         "Adobe Client ID (Oauth Web)": {
             "patternName": "Adobe Client ID (Oauth Web)",
