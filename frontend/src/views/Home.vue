@@ -320,7 +320,9 @@ export default class Home extends Vue {
   //TODO: GoToFileEvent sounds weird for this, but it contains the needed data. consider renaming?
   private async deleteFile(data: GoToFileEvent): Promise<void> {
     let projectId = "";
+    console.log("trying to delete file");
     if (data.projectId != undefined) {
+      console.log("project ID specified", data.projectId);
       projectId = data.projectId;
     } else {
       projectId =
@@ -350,7 +352,7 @@ export default class Home extends Vue {
     if (data.projectId != undefined) {
       //if a projectId is set, switch to that project
       if (
-        this.activeProjects[this.activeProject].settings.data.projectId ==
+        this.activeProjects[this.activeProject].settings.data.projectId !=
         data.projectId
       ) {
         //but only if we aren't already in that project
@@ -701,7 +703,7 @@ export default class Home extends Vue {
       this.activeProjects[this.activeProject].settings.data.projectId,
       {
         name: null,
-        linters: null,
+        linters: this.activeProjects[this.activeProject].settings.linters,
       }
     );
     this.setGetLintTries();

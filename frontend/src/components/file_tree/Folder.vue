@@ -53,28 +53,32 @@
         <span>Close Project</span>
       </v-tooltip>
     </div>
-    <v-expand-transition>
-      <div v-show="internalIsExpanded" class="folder-collapsible">
-        <folder
-          v-for="(state, name) in folders"
-          :key="name"
-          :fileStates="state"
-          :folderName="name"
-          :isInActiveProject="isInActiveProject"
-        ></folder>
-        <file
-          v-for="(state, index) of files"
-          :key="index"
-          class="file"
-          :state="state"
-          :project="project"
-          :active="
-            project.openFiles[project.activeFile].file.path == state.path
-          "
-          v-on="$listeners"
-        ></file>
-      </div>
-    </v-expand-transition>
+    <div style="width: 100%" class="d-flex flex-row">
+      <v-expand-transition>
+        <div v-show="internalIsExpanded" class="folder-collapsible">
+          <folder
+            v-for="(state, name) in folders"
+            :key="name"
+            :fileStates="state"
+            :folderName="name"
+            :isInActiveProject="isInActiveProject"
+          ></folder>
+          <file
+            v-for="(state, index) of files"
+            :key="index"
+            class="file"
+            :state="state"
+            :project="project"
+            :active="
+              (project.openFiles[project.activeFile] != undefined
+                ? project.openFiles[project.activeFile].file.path
+                : '') == state.file.path && isInActiveProject
+            "
+            v-on="$listeners"
+          ></file>
+        </div>
+      </v-expand-transition>
+    </div>
   </div>
 </template>
 
@@ -152,6 +156,7 @@ export default class Folder extends Vue {
 
 <style scoped>
 .folder-collapsible {
+  flex-grow: 1;
   margin-left: 36px;
   margin-right: 0;
   width: fit-content;

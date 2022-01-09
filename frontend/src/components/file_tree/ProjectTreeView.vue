@@ -1,6 +1,9 @@
 <template>
   <folder
-    :class="'project-tree ' + (active ? 'project-tree-active' : '')"
+    :class="
+      'd-flex flex-column project-tree ' + (active ? 'project-tree-active' : '')
+    "
+    :project="project"
     :fileStates="project.files"
     :folderName="project.settings.data.name"
     :isExpanded="true"
@@ -43,6 +46,8 @@ export default class ProjectTreeView extends Vue {
         linter: "",
       },
       files: [],
+      openFiles: [],
+      activeFile: 0,
     },
   })
   project!: Project;

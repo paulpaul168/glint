@@ -10,13 +10,12 @@
     </v-btn>
     <v-spacer></v-spacer>
     <v-btn
+      v-if="active"
       class="delete-mapping-button"
       icon
-      v-bind="attrs"
-      v-on="on"
       @click="
         $emit('delete-file', {
-          filePath: state.path,
+          filePath: state.file.path,
           projectId: project.settings.data.projectId,
         })
       "
@@ -65,7 +64,7 @@ export default class File extends Vue {
 <style scoped>
 .file {
   margin: 0 0.4em;
-  width: fit-content;
+  width: auto;
 }
 
 .file-name {
