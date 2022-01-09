@@ -1,3 +1,4 @@
+from glint_server.secrets import default_secrets
 from werkzeug.wrappers import response
 from glint_server import app
 from flask import json, request
@@ -13,6 +14,8 @@ def before_first_request():
     if not gfile.path_exists(app.config["LINT_DIR"]):
         gfile.create_path(app.config["LINT_DIR"])
 
+    gfile.save_file("patterns.glint", json.dumps(default_secrets()))
+
 
 @app.get("/")
 def home():
@@ -26,7 +29,9 @@ def home():
 def get_project_list():
     projects = []
     for project_id in gfile.list_dirs():
-        metadata, error_code = gfile.load_json_file(project_id + "/metadata.glint")
+        metadata, error_code = gfile.load_json_file(
+            project_id + "/metadata.glint"
+        )
         if error_code != 200:
             return metadata, error_code
         project_data = {
@@ -37,7 +42,10 @@ def get_project_list():
             + "/api/projects/"
             + project_id
             + "/sources",
-            "lintUrl": app.config["HOST"] + "/api/projects/" + project_id + "/lint",
+            "lintUrl": app.config["HOST"]
+            + "/api/projects/"
+            + project_id
+            + "/lint",
         }
         projects.append(project_data)
     return {"projects": projects}
@@ -82,7 +90,9 @@ def upload_file(project_id, file_id):
         return data, 404
 
     if request_data["path"] != None:
-        gfile.move_file(file_url, os.path.join(project_id, request_data["path"]))
+        gfile.move_file(
+            file_url, os.path.join(project_id, request_data["path"])
+        )
     if request_data["content"] != None:
         gfile.save_file(file_url, request_data["content"])
     return {
@@ -93,7 +103,9 @@ def upload_file(project_id, file_id):
 @app.post("/api/projects/<project_id>/sources")
 def new_source_file(project_id):
     request_data = request.json
-    file_url = os.path.join(project_id, request_data["path"], request_data["fileName"])
+    file_url = os.path.join(
+        project_id, request_data["path"], request_data["fileName"]
+    )
 
     if not gfile.path_exists(project_id):
         return {"status": "Error Project not found"}, 404
@@ -105,7 +117,8 @@ def new_source_file(project_id):
         + project_id
         + "/sources/"
         + urllib.parse.quote(
-            os.path.join(request_data["path"], request_data["fileName"]), safe=""
+            os.path.join(request_data["path"], request_data["fileName"]),
+            safe="",
         ),
     }
     return data
@@ -117,7 +130,9 @@ def change_linter(project_id):
         return {"status": "Bad request."}, 400
 
     if request.json["name"] != None:
-        metadata, error_code = gfile.load_json_file(project_id + "/metadata.glint")
+        metadata, error_code = gfile.load_json_file(
+            project_id + "/metadata.glint"
+        )
         if error_code != 200:
             return metadata, error_code
         metadata["name"] = request.json["name"]
@@ -138,15 +153,23 @@ def create_project():
     for file in post_content["files"]:
         gfile.save_file(project_id + "/" + file["path"], file["content"])
 
-    gfile.save_file(project_id + "/metadata.glint", json.dumps({"name": project_name}))
+    gfile.save_file(
+        project_id + "/metadata.glint", json.dumps({"name": project_name})
+    )
     do_lint(project_id, post_content["linters"])
 
     data = {
         "name": project_name,
         "projectId": project_id,
         "projectUrl": app.config["HOST"] + "/api/projects/" + project_id,
-        "sourcesUrl": app.config["HOST"] + "/api/projects/" + project_id + "/sources",
-        "lintUrl": app.config["HOST"] + "/api/projects/" + project_id + "/lint",
+        "sourcesUrl": app.config["HOST"]
+        + "/api/projects/"
+        + project_id
+        + "/sources",
+        "lintUrl": app.config["HOST"]
+        + "/api/projects/"
+        + project_id
+        + "/lint",
     }
     return data
 
