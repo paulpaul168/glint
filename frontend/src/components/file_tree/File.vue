@@ -9,19 +9,16 @@
       {{ state.file.name }}
     </v-btn>
     <v-spacer></v-spacer>
-    <v-btn
-      v-if="active"
-      class="delete-mapping-button"
-      icon
-      @click="deleteFile"
-    >
+    <span v-if="nrWarnings" style="margin: auto 0.2em; color: grey">{{ nrWarnings }}</span>
+    <v-icon v-if="nrWarnings" color="warning" small>mdi-alert-circle</v-icon>
+    <v-btn v-if="active" class="delete-mapping-button" icon @click="deleteFile">
       <v-icon small>mdi-delete</v-icon>
     </v-btn>
   </div>
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
+import { Component, Prop, Vue, Watch } from "vue-property-decorator";
 import { FileState, Project } from "../types/interfaces";
 
 @Component({
@@ -30,6 +27,7 @@ import { FileState, Project } from "../types/interfaces";
 export default class File extends Vue {
   name = "File";
   @Prop() project!: Project;
+  @Prop({ default: "" }) folderTree!: string;
   @Prop({ default: false }) active!: boolean;
   @Prop({ default: true }) isClickable!: boolean;
   @Prop({
@@ -46,6 +44,19 @@ export default class File extends Vue {
     },
   })
   state!: FileState;
+
+  private nrWarnings = 0;
+
+  @Watch("project.lintData")
+  lintsChange(): void {
+    for (const lintFile of this.project.lintData.lintFiles) {
+      if (lintFile.path == this.folderTree + this.state.file.path) {
+        this.nrWarnings = lintFile.lints.length;
+        return;
+      }
+    }
+    this.nrWarnings = 0;
+  }
 
   private clickFile(): void {
     console.log("clicked file", this.state.file.path);

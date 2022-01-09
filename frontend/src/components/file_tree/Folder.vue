@@ -72,6 +72,7 @@
             class="file"
             :state="state"
             :project="project"
+            :folderTree="folderTree"
             :active="
               (project.openFiles[project.activeFile] != undefined
                 ? project.openFiles[project.activeFile].file.path
