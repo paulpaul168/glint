@@ -1,5 +1,16 @@
 # glint
 
+## Development instructions
+### backend/RESTAPI documentation
+
+[backend/README.md](https://github.com/paulpaul168/glint/tree/main/backend#readme)
+
+### frontend documentation
+
+[frontend/README.md](https://github.com/paulpaul168/glint/tree/main/frontend#readme)
+
+---
+
 ## Get started
 
 ### First installation
@@ -24,23 +35,6 @@ docker build -t glint .
 spin up docker container (might need sudo)
 ```bash
 docker run -it -p 3000:3000 -p 5000:5000 --rm --name glint-container glint
-```
-
----
-#### Run only the backend during development
-```bash
-cd backend
-python3.9 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-```
-start flask development server
-```bash
-FLASK_APP=glint_server FLASK_ENV=development flask run
-```
-alternativly use gunicorn (also used for deployment)
-```bash
-/bin/bash -c 'source venv/bin/activate; gunicorn -w 24 --bind 0.0.0.0:5000 glint_server:app'
 ```
 
 ## Milestones
