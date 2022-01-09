@@ -113,6 +113,9 @@ def new_source_file(project_id):
 
 @app.patch("/api/projects/<project_id>")
 def change_linter(project_id):
+    if request.json["name"] == None and request.json["linters"] == None:
+        return {"status": "Bad request."}, 400
+
     if request.json["name"] != None:
         metadata, error_code = gfile.load_json_file(project_id + "/metadata.glint")
         if error_code != 200:
