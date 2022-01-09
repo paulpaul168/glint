@@ -68,6 +68,9 @@
           class="file"
           :state="state"
           :project="project"
+          :active="
+            project.openFiles[project.activeFile].file.path == state.path
+          "
           v-on="$listeners"
         ></file>
       </div>

@@ -257,6 +257,38 @@ export async function addFile(
   return returnDict;
 }
 
+export async function deleteFile(
+  projectId: string,
+  filePath: string
+): Promise<GenericStatusResponse> {
+  const returnResponse: GenericStatusResponse = {
+    success: false,
+  };
+
+  let resp;
+  try {
+    resp = await fetch(
+      `${apiAddress}projects/${projectId}/sources/${filePath}`,
+      {
+        method: "DELETE",
+      }
+    );
+  } catch (error) {
+    returnResponse.success = false;
+    returnResponse.errorMessage = "Fatal error when deleting file: " + error;
+    return returnResponse;
+  }
+
+  if (!resp.ok) {
+    returnResponse.success = false;
+    returnResponse.errorMessage =
+      "Received non-OK response when deleting file: " + resp.status;
+    return returnResponse;
+  }
+  returnResponse.success = true;
+  return returnResponse;
+}
+
 export async function getLinters(): Promise<LinterListResponse> {
   const emptyResponse: LinterListResponse = {};
 

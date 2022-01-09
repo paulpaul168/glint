@@ -8,6 +8,21 @@
     >
       {{ state.file.name }}
     </v-btn>
+    <v-spacer></v-spacer>
+    <v-btn
+      class="delete-mapping-button"
+      icon
+      v-bind="attrs"
+      v-on="on"
+      @click="
+        $emit('delete-file', {
+          filePath: state.path,
+          projectId: project.settings.data.projectId,
+        })
+      "
+    >
+      <v-icon small>mdi-delete</v-icon>
+    </v-btn>
   </div>
 </template>
 

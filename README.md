@@ -101,13 +101,14 @@ LINT_DIR
 
 - [x] File handling (I can edit files and store them to lint the new file)
 - [x] File Project handling (frontend: ability to reopen files after closing)
-- [ ] Jump to source buttons & shareable links
+- [x] Jump to source buttons
 - [x] Secret Finder UI + basic functionality
 - [x] languages: js, go, python
 
 ### Milestone 3
 
-- [ ] Manual linter selection
+- [x] Manual linter selection
+- [ ] shareable links
 - [ ] Zip file handling (, URL download handling)
 - [ ] Docker file
 - [ ] Easter eggs
