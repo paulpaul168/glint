@@ -697,12 +697,19 @@ export default class Home extends Vue {
     });
   }
 
+  @Watch("activeProjects", { deep: true })
+  filesChange(): void {
+    console.log("files change");
+  }
+
   private async uploadFileChanges(event: FileChangeEvent): Promise<void> {
     let encounteredErrors = false;
     let foundMatchingFile = false;
     for (const state of event.openFiles) {
       for (const oldState of this.activeProjects[this.activeProject].files) {
         if (oldState.id == state.id) {
+          //TODO If I ever rewrite this, a lot of headache could be removed by simply
+          //not sending all files in the internal events. why was I so stupid
           foundMatchingFile = true;
           if (
             oldState.file.name == state.file.name &&
@@ -710,16 +717,18 @@ export default class Home extends Vue {
             oldState.file.content == state.file.content
           ) {
             //console.log(oldState.file.content, "---", state.file.content);
-            //console.log("identical file");
+            console.log("identical file");
+            console.log(oldState.file.path, state.file.path);
             break;
           }
-          //console.log("writing file");
+          console.log("writing file");
           const projectId =
             this.activeProjects[this.activeProject].settings.data.projectId;
           let oldFilePath: string | undefined = undefined;
           if (oldState.file.name != state.file.name) {
             //file got renamed
             oldFilePath = oldState.file.path;
+            console.log("rename", oldFilePath);
           }
           const result = await API.overwriteFile(
             projectId,
@@ -786,29 +795,18 @@ export default class Home extends Vue {
   }
 
   private async handleFileRename(event: OpenFileChangeEvent): Promise<void> {
+    console.log("renaming", event.openFiles[event.activeFile].file.path);
     this.activeProjects[this.activeProject].files.forEach(
       async (state, index) => {
         //go through all files to update the renamed one in the list
-        if (
-          state.file.path ==
-          this.activeProjects[this.activeProject].openFiles?.[event.activeFile]
-            .file.path
-        ) {
+        if (state.id == event.openFiles[event.activeFile].id) {
           //if the file paths match, update file name and path on backend and then UI
-          //TODO: I'm sure this is horrible and there's a nicer way to fix the issue this is fixing
-          //but I don't have time to fix it properly
-          const renamedFiles = [
-            ...this.activeProjects[this.activeProject].files,
-          ];
-          renamedFiles[index].file.name =
-            event.openFiles[event.activeFile].file.name;
-          renamedFiles[index].file.path =
-            event.openFiles[event.activeFile].file.path;
           await this.uploadFileChanges({
-            files: renamedFiles,
+            files: this.activeProjects[this.activeProject].files,
             openFiles: event.openFiles,
             activeFile: event.activeFile,
           });
+          console.log("updating UI", event.openFiles[event.activeFile].file.name);
           this.activeProjects[this.activeProject].files[index].file.name =
             event.openFiles[event.activeFile].file.name;
           this.activeProjects[this.activeProject].files[index].file.path =

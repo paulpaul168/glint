@@ -295,7 +295,7 @@ export default class ContentView extends Vue {
         detectedLanguage: "",
         unsaved: false,
         edited: false,
-        id: -1,
+        id: state.id,
       };
       newState.file.name = (" " + state.file.name).slice(1);
       newState.file.path = (" " + state.file.path).slice(1);
@@ -321,7 +321,7 @@ export default class ContentView extends Vue {
         detectedLanguage: "",
         unsaved: false,
         edited: false,
-        id: -1,
+        id: state.id,
       };
       newState.file.name = (" " + state.file.name).slice(1);
       newState.file.path = (" " + state.file.path).slice(1);
@@ -538,13 +538,12 @@ export default class ContentView extends Vue {
   }
 
   private renameFile(name: string): void {
-    //TODO this doesn't handle path changes on the rename yet
     const activeTab = this.internalProject.activeFile as number;
     const oldPath = this.internalProject.openFiles?.[activeTab].file.path;
 
     (this.internalProject.openFiles as FileState[])[activeTab].file.name = name;
     (this.internalProject.openFiles as FileState[])[activeTab].file.path =
-      oldPath?.substring(0, oldPath.lastIndexOf("/")) + name;
+      oldPath?.substring(0, oldPath.lastIndexOf("/") + 1) + name;
     (this.internalProject.openFiles as FileState[])[activeTab].unsaved = true;
     this.$emit("rename-file", {
       openFiles: this.internalProject.openFiles,

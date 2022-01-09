@@ -133,6 +133,7 @@ export default class Folder extends Vue {
     this.internalIsExpanded = this.isExpanded;
   }
 
+  @Watch("project")
   @Watch("fileStates")
   private extractDisplayData(): void {
     this.folders = {};
