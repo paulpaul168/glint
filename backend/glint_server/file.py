@@ -69,6 +69,12 @@ def move_file(file_name_old: str, file_name_new: str) -> None:
     file_path_new = os.path.join(app.config["LINT_DIR"], file_name_new)
     shutil.move(file_path_old, file_path_new)
 
+    if os.path.exists(file_path_old):
+        if os.path.isdir(file_path_old):
+            shutil.rmtree(file_path_old)
+        else:
+            os.remove(file_path_old)
+
 
 def load_json_file(file_name: str) -> tuple[dict, str]:
     file_name = os.path.join(app.config["LINT_DIR"], file_name)
