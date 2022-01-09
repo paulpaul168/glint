@@ -6,19 +6,18 @@
           alt="Vuetify Logo"
           class="shrink mr-2"
           contain
-          src="https://cdn.vuetifyjs.com/images/logos/vuetify-logo-dark.png"
+          src="@/assets/glint_logo.png"
           transition="scale-transition"
-          width="30"
+          width="100"
         />
-        glint
       </div>
 
       <v-spacer></v-spacer>
 
-      <v-btn href="/help" target="_blank" text>
+      <!--<v-btn href="/help" target="_blank" text>
         <span class="mr-2">Help</span>
         <v-icon>mdi-open-in-new</v-icon>
-      </v-btn>
+      </v-btn>-->
     </v-app-bar>
 
     <v-main style="height: 100vh">

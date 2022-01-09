@@ -8,18 +8,34 @@
     >
       {{ state.file.name }}
     </v-btn>
+    <v-spacer></v-spacer>
+    <v-btn
+      class="delete-mapping-button"
+      icon
+      v-bind="attrs"
+      v-on="on"
+      @click="
+        $emit('delete-file', {
+          filePath: state.path,
+          projectId: project.settings.data.projectId,
+        })
+      "
+    >
+      <v-icon small>mdi-delete</v-icon>
+    </v-btn>
   </div>
 </template>
 
 <script lang="ts">
 import { Component, Prop, Vue } from "vue-property-decorator";
-import { FileState } from "../types/interfaces";
+import { FileState, Project } from "../types/interfaces";
 
 @Component({
   components: {},
 })
 export default class File extends Vue {
   name = "File";
+  @Prop() project!: Project;
   @Prop({ default: false }) active!: boolean;
   @Prop({ default: true }) isClickable!: boolean;
   @Prop({
@@ -40,6 +56,7 @@ export default class File extends Vue {
   private clickFile(): void {
     this.$emit("open-file", {
       filePath: this.state.file.path,
+      projectId: this.project.settings.data.projectId,
     });
   }
 }

@@ -65,11 +65,7 @@
                 </template>
                 <span>Send File to Server</span>
               </v-tooltip>
-              <v-tooltip
-                v-if="lintOutdated && project.lintData.status != 'processing'"
-                bottom
-                open-delay="1000"
-              >
+              <v-tooltip bottom open-delay="1000">
                 <template v-slot:activator="{ on, attrs }">
                   <v-btn
                     class="toolbar-element"
@@ -78,7 +74,7 @@
                     color="transparent"
                     v-bind="attrs"
                     v-on="on"
-                    :loading="
+                    :disabled="
                       project.lintData.status == 'processing' &&
                       project.remainingLintChecks > 0
                     "
@@ -89,11 +85,7 @@
                 </template>
                 <span>Request new Lint</span>
               </v-tooltip>
-              <v-tooltip
-                v-if="project.lintData.status"
-                bottom
-                open-delay="1000"
-              >
+              <v-tooltip bottom open-delay="1000">
                 <template v-slot:activator="{ on, attrs }">
                   <v-btn
                     class="toolbar-element"

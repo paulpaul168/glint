@@ -67,7 +67,10 @@
           :key="index"
           class="file"
           :state="state"
-          :isClickable="isInActiveProject"
+          :project="project"
+          :active="
+            project.openFiles[project.activeFile].file.path == state.path
+          "
           v-on="$listeners"
         ></file>
       </div>
@@ -78,7 +81,7 @@
 <script lang="ts">
 import { Component, Prop, Vue, Watch } from "vue-property-decorator";
 import { Dictionary } from "vue-router/types/router";
-import { FileState } from "../types/interfaces";
+import { FileState, Project } from "../types/interfaces";
 import File from "./File.vue";
 
 @Component({
@@ -88,6 +91,7 @@ import File from "./File.vue";
 })
 export default class Folder extends Vue {
   name = "Folder";
+  @Prop() project!: Project;
   @Prop({ default: "<folder name>" }) folderName!: string;
   @Prop() fileStates!: FileState[];
   @Prop({ default: false }) isRoot!: boolean;

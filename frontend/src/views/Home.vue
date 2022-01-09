@@ -12,6 +12,7 @@
         @refresh-projects="loadProjects"
         @toggle-project-info="toggleProjectView"
         @open-file="openFile($event)"
+        @delete-file="deleteFile($event)"
         @rename-project="renameActiveProject($event)"
         @delete-project="deleteActiveProject"
         @close-project="closeActiveProject"
@@ -71,6 +72,7 @@ import {
 import { getLanguage } from "@/services/LanguageDetection";
 import { SubmitProject } from "@/services/types/api_requests_interfaces";
 import {
+  GenericStatusResponse,
   LintResponse,
   ProjectDataResponse,
   ProjectListResponse,
@@ -315,7 +317,52 @@ export default class Home extends Vue {
     this.activeProjects[this.activeProject].settings.linters = linters;
   }
 
+  //TODO: GoToFileEvent sounds weird for this, but it contains the needed data. consider renaming?
+  private async deleteFile(data: GoToFileEvent): Promise<void> {
+    let projectId = "";
+    if (data.projectId != undefined) {
+      projectId = data.projectId;
+    } else {
+      projectId =
+        this.activeProjects[this.activeProject].settings.data.projectId;
+    }
+    const result: GenericStatusResponse = await API.deleteFile(
+      projectId,
+      data.filePath
+    );
+
+    if (result.errorMessage != undefined) {
+      console.log(result.errorMessage);
+      this.passNotification({
+        type: "error",
+        message: result.errorMessage,
+      });
+      return;
+    }
+
+    //TODO this is awful and I hate it, but it's the quickest way to make sure that
+    //the project list is properly synced with no errors. I can't go through various error states
+    //and check how to gracefully get out of them, it takes too long and the deadline is too close
+    this.loadProjects();
+  }
+
   private openFile(data: GoToFileEvent): void {
+    if (data.projectId != undefined) {
+      //if a projectId is set, switch to that project
+      if (
+        this.activeProjects[this.activeProject].settings.data.projectId ==
+        data.projectId
+      ) {
+        //but only if we aren't already in that project
+        this.activeProjects.forEach((project, index) => {
+          if (project.settings.data.projectId == data.projectId) {
+            this.activeProject = index;
+            return;
+          }
+        });
+      }
+    }
+
     let isAlreadyOpen = false;
     this.activeProjects[this.activeProject].openFiles?.forEach(
       (state, index) => {
