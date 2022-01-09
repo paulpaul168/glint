@@ -3,11 +3,11 @@
 ## Development instructions
 ### backend/RESTAPI documentation
 
-[backend/README.md](https://github.com/paulpaul168/glint/tree/main/backend#readme)
+[backend/README.md](backend/README.md)
 
 ### frontend documentation
 
-[frontend/README.md](https://github.com/paulpaul168/glint/tree/main/frontend#readme)
+[frontend/README.md](frontend/README.md)
 
 ---
 
