@@ -207,8 +207,7 @@ NEW source file
 
 ```json
 {
-  "fileName": "fileName.ext",
-  "path": "path/to/file/fileName.ext",
+  "filePath": "path/to/file/fileName.ext",
   "content": "{fileContent}"
 }
 ```
@@ -217,8 +216,8 @@ Response
 
 ```json
 {
-  "fileName": "fileName.ext",
-  "fileUrl": "/api/projects/{projectId}/sources/{fileId}"
+  "filePath": "path/to/file/fileName.ext",
+  "fileUrl": "/api/projects/{projectId}/sources/{filePath}"
 }
 ```
 
