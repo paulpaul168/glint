@@ -2,7 +2,7 @@ import json
 import subprocess
 import tempfile
 from typing import TextIO
-from backend.glint_server.linter_collection.javascript import normalize_eslint
+from glint_server.linter_collection.javascript import normalize_eslint
 from glint_server.linter_collection.exceptions import LintError
 
 
