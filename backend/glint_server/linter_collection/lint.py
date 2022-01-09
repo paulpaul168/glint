@@ -1,8 +1,6 @@
 import os
 from typing import Any
-from backend.glint_server.linter_collection.typescript import (
-    lint_typescript_project,
-)
+from glint_server.linter_collection.typescript import lint_typescript_project
 from glint_server.linter_collection.exceptions import LintError
 from glint_server.linter_collection.javascript import lint_javascript_project
 from glint_server.linter_collection.python import lint_python_project
