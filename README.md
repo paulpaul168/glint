@@ -27,7 +27,7 @@ FLASK_APP=glint_server FLASK_ENV=development flask run
 
 ```
 docker build -t glint .
-docker run -it -p 3000:3000 -p 5000:5000 --rm name glint-container glint
+docker run -it -p 3000:3000 -p 5000:5000 --rm --name glint-container glint
 ```
 
 #### Storage structure:
