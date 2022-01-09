@@ -92,6 +92,8 @@ LINT_DIR
 
 ### POST /api/projects
 
+As multiple text files
+
 ```json
 {
   "name": "projectName",
@@ -102,6 +104,19 @@ LINT_DIR
       "content": "{fileContent}"
     }
   ],
+  "linters": {
+    "language": "linter|auto",
+    "language2": "linter|auto"
+  }
+}
+```
+
+As one zip file
+
+```json
+{
+  "name": "projectName",
+  "zip": "ZHVkb2RsZHVkZXBwZGFkYWhlcnN0",
   "linters": {
     "language": "linter|auto",
     "language2": "linter|auto"
