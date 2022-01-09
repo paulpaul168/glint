@@ -90,8 +90,11 @@ def get_project_files(project_id) -> tuple[dict, str]:
             if "glint" in os.path.splitext(name)[1]:
                 continue
 
-            with open(os.path.join(root, name)) as f:
-                content = f.read()
+            try:
+                with open(os.path.join(root, name)) as f:
+                    content = f.read()
+            except UnicodeDecodeError:
+                continue
 
             file_path = (
                 PurePath(os.path.join(root, name)).relative_to(path).as_posix()
