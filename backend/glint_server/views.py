@@ -115,7 +115,7 @@ def new_source_file(project_id):
         + project_id
         + "/sources/"
         + urllib.parse.quote(
-            os.path.join(request_data["path"], request_data["fileName"]),
+            os.path.join(request_data["filePath"]),
             safe="",
         ),
     }
