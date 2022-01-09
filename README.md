@@ -175,7 +175,8 @@ projectName and projectId are "identical", but ID has special characters escaped
 ```
 
 fields that should not be updated should be set to `null` (but still specified)
-This will automatically start the linting process
+At least `linters` or `name` should be set.
+This will automatically start the linting process.
 
 Response
 http status
