@@ -22,7 +22,8 @@ def lint_pylint_project(project_path: str):
         return normalize_pylint([])
 
     process = subprocess.run(
-        ["python3", "-m", "pylint", "--output-format=json", "--jobs=0"] + files,
+        ["python3", "-m", "pylint", "--output-format=json", "--jobs=0"]
+        + files,
         text=True,
         capture_output=True,
     )
@@ -33,11 +34,15 @@ def lint_pylint_project(project_path: str):
     if process.returncode & 32 == 32:
         print(process.args)
         print(process.stdout)
-        raise LintError(f"Pylint returned with usage error {process.returncode}")
+        raise LintError(
+            f"Pylint returned with usage error {process.returncode}"
+        )
 
     if process.returncode & 1 == 1:
         print(process.stderr)
-        raise LintError(f"Pylint returned with a fatal error {process.returncode}")
+        raise LintError(
+            f"Pylint returned with a fatal error {process.returncode}"
+        )
 
     pylint_res = json.loads(process.stdout)
     # TODO: Maybe we should filter the pylint output so that we don't get
@@ -101,7 +106,9 @@ def normalize_bandit(results: list[dict], project_path: str) -> dict:
     files = dict()
 
     for result in results:
-        path = result["filename"]
+        path = (
+            PurePath(result["filename"]).relative_to(project_path).as_posix()
+        )
 
         if path not in files:
             files[path] = {
