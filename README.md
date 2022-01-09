@@ -26,7 +26,7 @@ chmod +x install.sh
 ```bash
 ./run.sh
 ```
-### Alternativly: run glint via docker
+### Alternativly: run glint via docker (untested)
 first build the docker container (might need sudo)
 ```bash
 docker build -t glint .
