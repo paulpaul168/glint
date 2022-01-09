@@ -13,7 +13,7 @@
       flat
       hide-details="auto"
       :background-color="hasFocus ? 'bg_secondary' : 'transparent'"
-      :disabled="!active"
+      :disabled="true"
       @focus="hasFocus = true"
       @blur="hasFocus = false"
       @change="emitRename"
