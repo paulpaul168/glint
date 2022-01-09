@@ -11,7 +11,16 @@ cd backend
 python3.9 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
+```
+
+#### Run the backend during development
+```bash
 FLASK_APP=glint_server FLASK_ENV=development flask run
+```
+
+#### Run the backend for deployment
+```bash
+/bin/bash -c 'source venv/bin/activate; gunicorn -w 24 --bind 0.0.0.0:5000 glint_server:app'
 ```
 
 ## Run the docker container
