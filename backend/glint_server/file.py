@@ -94,7 +94,7 @@ def get_project_files(project_id) -> tuple[dict, str]:
                 content = f.read()
 
             file_path = (
-                PurePath(os.path.join(path, name)).relative_to(path).as_posix()
+                PurePath(os.path.join(root, name)).relative_to(path).as_posix()
             )
             file = {
                 "name": name,

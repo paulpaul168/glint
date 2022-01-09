@@ -79,7 +79,7 @@ def delete_file(project_id, file_id):
 @app.put("/api/projects/<project_id>/sources/<path:file_id>")
 def upload_file(project_id, file_id):
     request_data = request.json
-    if request_data["content"] == None and request_data["path"] == None:
+    if request_data["content"] is None and request_data["path"] is None:
         return {"status": "bad request"}, 400
 
     file_url = os.path.join(project_id, file_id)
@@ -89,11 +89,11 @@ def upload_file(project_id, file_id):
         }
         return data, 404
 
-    if request_data["path"] != None:
+    if request_data["path"] is not None:
         gfile.move_file(
             file_url, os.path.join(project_id, request_data["path"])
         )
-    if request_data["content"] != None:
+    if request_data["content"] is not None:
         gfile.save_file(file_url, request_data["content"])
     return {
         "status": "OK",
@@ -124,10 +124,10 @@ def new_source_file(project_id):
 
 @app.patch("/api/projects/<project_id>")
 def change_linter(project_id):
-    if request.json["name"] == None and request.json["linters"] == None:
+    if request.json["name"] is None and request.json["linters"] is None:
         return {"status": "Bad request."}, 400
 
-    if request.json["name"] != None:
+    if request.json["name"] is not None:
         metadata, error_code = gfile.load_json_file(
             project_id + "/metadata.glint"
         )
@@ -136,7 +136,7 @@ def change_linter(project_id):
         metadata["name"] = request.json["name"]
         gfile.save_file(project_id + "/metadata.glint", json.dumps(metadata))
 
-    if request.json["linters"] != None:
+    if request.json["linters"] is not None:
         do_lint(project_id, request.json["linters"])
 
     return {"status": "OK"}
@@ -228,9 +228,9 @@ def update_search_pattern(pattern_id):
 
     regex = request.json["regex"]
     pattern_name = request.json["patternName"]
-    if regex != None:
+    if regex is not None:
         patterns[pattern_id]["regex"] = regex
-    if pattern_name != None:
+    if pattern_name is not None:
         patterns[pattern_id]["patternName"] = pattern_name
 
     gfile.save_file("patterns.glint", json.dumps(patterns))
