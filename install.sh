@@ -35,7 +35,7 @@ install_fedora(){
                 golang-go golang-honnef-tools \
                 php-cli \
                 nodejs \
-                cargo rust
+                cargo rust clippy
 
     sudo chmod +x run.sh
     cd backend
