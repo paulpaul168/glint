@@ -1,4 +1,5 @@
 def default_secrets() -> dict[str, dict[str, str]]:
+    # return {}
     return {
         "gitlab_personal_access_token": {
             "patternName": "GitLab Personal Access Token",
@@ -78,7 +79,7 @@ def default_secrets() -> dict[str, dict[str, str]]:
         },
         "Google (GCP) Service-account": {
             "patternName": "Google (GCP) Service-account",
-            "regex": '/\\"type\\": \\"service_account\\"/',
+            "regex": '/"type": "service_account"/',
         },
         "Password in URL": {
             "patternName": "Password in URL",
@@ -86,7 +87,7 @@ def default_secrets() -> dict[str, dict[str, str]]:
         },
         "Heroku API Key": {
             "patternName": "Heroku API Key",
-            "regex": "/ (?i)(heroku[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\\\"]([0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12})['\\\"]/",
+            "regex": "/ (heroku[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\"]([0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12})['\"]/i",
         },
         "Slack Webhook": {
             "patternName": "Slack Webhook",
@@ -102,63 +103,63 @@ def default_secrets() -> dict[str, dict[str, str]]:
         },
         "Facebook token": {
             "patternName": "Facebook token",
-            "regex": "/(facebook[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\\\"]([a-f0-9]{32})['\\\"]/i",
+            "regex": "/(facebook[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\"]([a-f0-9]{32})['\"]/i",
         },
         "Twitter token": {
             "patternName": "Twitter token",
-            "regex": "/(twitter[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\\\"]([a-f0-9]{35,44})['\\\"]/i",
+            "regex": "/(twitter[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\"]([a-f0-9]{35,44})['\"]/i",
         },
         "Adobe Client ID (Oauth Web)": {
             "patternName": "Adobe Client ID (Oauth Web)",
-            "regex": "/(?i)(adobe[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\\\"]([a-f0-9]{32})['\\\"]/",
+            "regex": "/(adobe[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\"]([a-f0-9]{32})['\"]/i",
         },
         "Adobe Client Secret": {
             "patternName": "Adobe Client Secret",
-            "regex": "/(p8e-)(?i)[a-z0-9]{32}/",
+            "regex": "/(p8e-)[a-z0-9]{32}/i",
         },
         "Alibaba AccessKey ID": {
             "patternName": "Alibaba AccessKey ID",
-            "regex": "/(LTAI)(?i)[a-z0-9]{20}/",
+            "regex": "/(LTAI)[a-z0-9]{20}/i",
         },
         "Alibaba Secret Key": {
             "patternName": "Alibaba Secret Key",
-            "regex": "/(?i)(alibaba[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\\\"]([a-z0-9]{30})['\\\"]/",
+            "regex": "/(alibaba[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\"]([a-z0-9]{30})['\"]/i",
         },
         "Asana Client ID": {
             "patternName": "Asana Client ID",
-            "regex": "/(?i)(asana[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\\\"]([0-9]{16})['\\\"]/",
+            "regex": "/(asana[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\"]([0-9]{16})['\"]/i",
         },
         "Asana Client Secret": {
             "patternName": "Asana Client Secret",
-            "regex": "/(?i)(asana[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\\\"]([a-z0-9]{32})['\\\"]/",
+            "regex": "/(asana[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\"]([a-z0-9]{32})['\"]/i",
         },
         "Atlassian API token": {
             "patternName": "Atlassian API token",
-            "regex": "/(?i)(atlassian[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\\\"]([a-z0-9]{24})['\\\"]/",
+            "regex": "/(atlassian[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\"]([a-z0-9]{24})['\"]/i",
         },
         "Bitbucket client ID": {
             "patternName": "Bitbucket client ID",
-            "regex": "/(?i)(bitbucket[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\\\"]([a-z0-9]{32})['\\\"]/",
+            "regex": "/(bitbucket[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\"]([a-z0-9]{32})['\"]/i",
         },
         "Bitbucket client secret": {
             "patternName": "Bitbucket client secret",
-            "regex": "/(?i)(bitbucket[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\\\"]([a-z0-9_\\-]{64})['\\\"]/",
+            "regex": "/(bitbucket[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\"]([a-z0-9_\\-]{64})['\"]/i",
         },
         "Beamer API token": {
             "patternName": "Beamer API token",
-            "regex": "/(?i)(beamer[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\\\"](b_[a-z0-9=_\\-]{44})['\\\"]/",
+            "regex": "/(beamer[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\"](b_[a-z0-9=_\\-]{44})['\"]/i",
         },
         "Clojars API token": {
             "patternName": "Clojars API token",
-            "regex": "/(CLOJARS_)(?i)[a-z0-9]{60}/",
+            "regex": "/(CLOJARS_)[a-z0-9]{60}/i",
         },
         "Contentful delivery API token": {
             "patternName": "Contentful delivery API token",
-            "regex": "/(?i)(contentful[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\\\"]([a-z0-9\\-=_]{43})['\\\"]/",
+            "regex": "/(contentful[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\"]([a-z0-9\\-=_]{43})['\"]/i",
         },
         "Contentful preview API token": {
             "patternName": "Contentful preview API token",
-            "regex": "/(?i)(contentful[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\\\"]([a-z0-9\\-=_]{43})['\\\"]/",
+            "regex": "/(contentful[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\"]([a-z0-9\\-=_]{43})['\"]/i",
         },
         "Databricks API token": {
             "patternName": "Databricks API token",
@@ -166,67 +167,67 @@ def default_secrets() -> dict[str, dict[str, str]]:
         },
         "Discord API key": {
             "patternName": "Discord API key",
-            "regex": "/(?i)(discord[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\\\"]([a-h0-9]{64})['\\\"]/",
+            "regex": "/(discord[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\"]([a-h0-9]{64})['\"]/i",
         },
         "Discord client ID": {
             "patternName": "Discord client ID",
-            "regex": "/(?i)(discord[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\\\"]([0-9]{18})['\\\"]/",
+            "regex": "/(discord[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\"]([0-9]{18})['\"]/i",
         },
         "Discord client secret": {
             "patternName": "Discord client secret",
-            "regex": "/(?i)(discord[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\\\"]([a-z0-9=_\\-]{32})['\\\"]/",
+            "regex": "/(discord[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\"]([a-z0-9=_\\-]{32})['\"]/i",
         },
         "Doppler API token": {
             "patternName": "Doppler API token",
-            "regex": "/['\\\"](dp\\.pt\\.)(?i)[a-z0-9]{43}['\\\"]/",
+            "regex": "/['\"](dp\\.pt\\.)[a-z0-9]{43}['\"]/i",
         },
         "Dropbox API secret/key": {
             "patternName": "Dropbox API secret/key",
-            "regex": "/(?i)(dropbox[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\\\"]([a-z0-9]{15})['\\\"]/",
+            "regex": "/(dropbox[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\"]([a-z0-9]{15})['\"]/i",
         },
         "Dropbox short lived API token": {
             "patternName": "Dropbox short lived API token",
-            "regex": "/(?i)(dropbox[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\\\"](sl\\.[a-z0-9\\-=_]{135})['\\\"]/",
+            "regex": "/(dropbox[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\"](sl\\.[a-z0-9\\-=_]{135})['\"]/i",
         },
         "Dropbox long lived API token": {
             "patternName": "Dropbox long lived API token",
-            "regex": "/(?i)(dropbox[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\\\"][a-z0-9]{11}(AAAAAAAAAA)[a-z0-9\\-_=]{43}['\\\"]/",
+            "regex": "/(dropbox[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\"][a-z0-9]{11}(AAAAAAAAAA)[a-z0-9\\-_=]{43}['\"]/i",
         },
         "Duffel API token": {
             "patternName": "Duffel API token",
-            "regex": "/['\\\"]duffel_(test|live)_(?i)[a-z0-9_-]{43}['\\\"]/",
+            "regex": "/['\"]duffel_(test|live)_[a-z0-9_-]{43}['\"]/i",
         },
         "Dynatrace API token": {
             "patternName": "Dynatrace API token",
-            "regex": "/['\\\"]dt0c01\\.(?i)[a-z0-9]{24}\\.[a-z0-9]{64}['\\\"]/",
+            "regex": "/['\"]dt0c01\\.[a-z0-9]{24}\\.[a-z0-9]{64}['\"]/i",
         },
         "EasyPost API token": {
             "patternName": "EasyPost API token",
-            "regex": "/['\\\"]EZAK(?i)[a-z0-9]{54}['\\\"]/",
+            "regex": "/['\"]EZAK[a-z0-9]{54}['\"]/i",
         },
         "EasyPost test API token": {
             "patternName": "EasyPost test API token",
-            "regex": "/['\\\"]EZTK(?i)[a-z0-9]{54}['\\\"]/",
+            "regex": "/['\"]EZTK[a-z0-9]{54}['\"]/i",
         },
         "Fastly API token": {
             "patternName": "Fastly API token",
-            "regex": "/(?i)(fastly[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\\\"]([a-z0-9\\-=_]{32})['\\\"]/",
+            "regex": "/(fastly[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\"]([a-z0-9\\-=_]{32})['\"]/i",
         },
         "Finicity client secret": {
             "patternName": "Finicity client secret",
-            "regex": "/(?i)(finicity[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\\\"]([a-z0-9]{20})['\\\"]/",
+            "regex": "/(finicity[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\"]([a-z0-9]{20})['\"]/i",
         },
         "Finicity API token": {
             "patternName": "Finicity API token",
-            "regex": "/(?i)(finicity[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\\\"]([a-f0-9]{32})['\\\"]/",
+            "regex": "/(finicity[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\"]([a-f0-9]{32})['\"]/i",
         },
         "Flutterweave public key": {
             "patternName": "Flutterweave public key",
-            "regex": "/FLWPUBK_TEST-(?i)[a-h0-9]{32}-X/",
+            "regex": "/FLWPUBK_TEST-[a-h0-9]{32}-X/i",
         },
         "Flutterweave secret key": {
             "patternName": "Flutterweave secret key",
-            "regex": "/FLWSECK_TEST-(?i)[a-h0-9]{32}-X/",
+            "regex": "/FLWSECK_TEST-[a-h0-9]{32}-X/i",
         },
         "Flutterweave encrypted key": {
             "patternName": "Flutterweave encrypted key",
@@ -234,31 +235,31 @@ def default_secrets() -> dict[str, dict[str, str]]:
         },
         "Frame.io API token": {
             "patternName": "Frame.io API token",
-            "regex": "/fio-u-(?i)[a-z0-9-_=]{64}/",
+            "regex": "/fio-u-[a-z0-9-_=]{64}/i",
         },
         "GoCardless API token": {
             "patternName": "GoCardless API token",
-            "regex": "/['\\\"]live_(?i)[a-z0-9-_=]{40}['\\\"]/",
+            "regex": "/['\"]live_[a-z0-9-_=]{40}['\"]/i",
         },
         "Grafana API token": {
             "patternName": "Grafana API token",
-            "regex": "/['\\\"]eyJrIjoi(?i)[a-z0-9-_=]{72,92}['\\\"]/",
+            "regex": "/['\"]eyJrIjoi[a-z0-9-_=]{72,92}['\"]/i",
         },
         "Hashicorp Terraform user/org API token": {
             "patternName": "Hashicorp Terraform user/org API token",
-            "regex": "/['\\\"][a-z0-9]{14}\\.atlasv1\\.[a-z0-9-_=]{60,70}['\\\"]/i",
+            "regex": "/['\"][a-z0-9]{14}\\.atlasv1\\.[a-z0-9-_=]{60,70}['\"]/i",
         },
         "Hubspot API token": {
             "patternName": "Hubspot API token",
-            "regex": "/(hubspot[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\\\"]([a-h0-9]{8}-[a-h0-9]{4}-[a-h0-9]{4}-[a-h0-9]{4}-[a-h0-9]{12})['\\\"]/i",
+            "regex": "/(hubspot[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\"]([a-h0-9]{8}-[a-h0-9]{4}-[a-h0-9]{4}-[a-h0-9]{4}-[a-h0-9]{12})['\"]/i",
         },
         "Intercom API token": {
             "patternName": "Intercom API token",
-            "regex": "/(intercom[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\\\"]([a-z0-9=_]{60})['\\\"]/i",
+            "regex": "/(intercom[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\"]([a-z0-9=_]{60})['\"]/i",
         },
         "Intercom client secret/ID": {
             "patternName": "Intercom client secret/ID",
-            "regex": "/(intercom[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\\\"]([a-h0-9]{8}-[a-h0-9]{4}-[a-h0-9]{4}-[a-h0-9]{4}-[a-h0-9]{12})['\\\"]/i",
+            "regex": "/(intercom[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\"]([a-h0-9]{8}-[a-h0-9]{4}-[a-h0-9]{4}-[a-h0-9]{4}-[a-h0-9]{12})['\"]/i",
         },
         "Ionic API token": {
             "patternName": "Ionic API token",
@@ -270,31 +271,31 @@ def default_secrets() -> dict[str, dict[str, str]]:
         },
         "Linear client secret/ID": {
             "patternName": "Linear client secret/ID",
-            "regex": "/(linear[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\\\"]([a-f0-9]{32})['\\\"]/i",
+            "regex": "/(linear[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\"]([a-f0-9]{32})['\"]/i",
         },
         "Lob API Key": {
             "patternName": "Lob API Key",
-            "regex": "/(lob[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\\\"]((live|test)_[a-f0-9]{35})['\\\"]/i",
+            "regex": "/(lob[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\"]((live|test)_[a-f0-9]{35})['\"]/i",
         },
         "Lob Publishable API Key": {
             "patternName": "Lob Publishable API Key",
-            "regex": "/(lob[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\\\"]((test|live)_pub_[a-f0-9]{31})['\\\"]/i",
+            "regex": "/(lob[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\"]((test|live)_pub_[a-f0-9]{31})['\"]/i",
         },
         "Mailchimp API key": {
             "patternName": "Mailchimp API key",
-            "regex": "/(mailchimp[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\\\"]([a-f0-9]{32}-us20)['\\\"]/i",
+            "regex": "/(mailchimp[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\"]([a-f0-9]{32}-us20)['\"]/i",
         },
         "Mailgun private API token": {
             "patternName": "Mailgun private API token",
-            "regex": "/(mailgun[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\\\"](key-[a-f0-9]{32})['\\\"]/i",
+            "regex": "/(mailgun[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\"](key-[a-f0-9]{32})['\"]/i",
         },
         "Mailgun public validation key": {
             "patternName": "Mailgun public validation key",
-            "regex": "/(mailgun[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\\\"](pubkey-[a-f0-9]{32})['\\\"]/i",
+            "regex": "/(mailgun[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\"](pubkey-[a-f0-9]{32})['\"]/i",
         },
         "Mailgun webhook signing key": {
             "patternName": "Mailgun webhook signing key",
-            "regex": "/(mailgun[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\\\"]([a-h0-9]{32}-[a-h0-9]{8}-[a-h0-9]{8})['\\\"]/i",
+            "regex": "/(mailgun[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\"]([a-h0-9]{32}-[a-h0-9]{8}-[a-h0-9]{8})['\"]/i",
         },
         "Mapbox API token": {
             "patternName": "Mapbox API token",
@@ -302,27 +303,27 @@ def default_secrets() -> dict[str, dict[str, str]]:
         },
         "messagebird-api-token": {
             "patternName": "MessageBird API token",
-            "regex": "/(messagebird[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\\\"]([a-z0-9]{25})['\\\"]/i",
+            "regex": "/(messagebird[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\"]([a-z0-9]{25})['\"]/i",
         },
         "MessageBird API client ID": {
             "patternName": "MessageBird API client ID",
-            "regex": "/(messagebird[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\\\"]([a-h0-9]{8}-[a-h0-9]{4}-[a-h0-9]{4}-[a-h0-9]{4}-[a-h0-9]{12})['\\\"]/i",
+            "regex": "/(messagebird[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\"]([a-h0-9]{8}-[a-h0-9]{4}-[a-h0-9]{4}-[a-h0-9]{4}-[a-h0-9]{12})['\"]/i",
         },
         "New Relic user API Key": {
             "patternName": "New Relic user API Key",
-            "regex": "/['\\\"](NRAK-[A-Z0-9]{27})['\\\"]/",
+            "regex": "/['\"](NRAK-[A-Z0-9]{27})['\"]/",
         },
         "New Relic user API ID": {
             "patternName": "New Relic user API ID",
-            "regex": "/(newrelic[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\\\"]([A-Z0-9]{64})['\\\"]/i",
+            "regex": "/(newrelic[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\"]([A-Z0-9]{64})['\"]/i",
         },
         "New Relic ingest browser API token": {
             "patternName": "New Relic ingest browser API token",
-            "regex": "/['\\\"](NRJS-[a-f0-9]{19})['\\\"]/",
+            "regex": "/['\"](NRJS-[a-f0-9]{19})['\"]/",
         },
         "npm access token": {
             "patternName": "npm access token",
-            "regex": "/['\\\"](npm_[a-z0-9]{36})['\\\"]/i",
+            "regex": "/['\"](npm_[a-z0-9]{36})['\"]/i",
         },
         "Planetscale password": {
             "patternName": "Planetscale password",
@@ -358,15 +359,15 @@ def default_secrets() -> dict[str, dict[str, str]]:
         },
         "Linkedin Client secret": {
             "patternName": "Linkedin Client secret",
-            "regex": "/(linkedin[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\\\"]([a-z]{16})['\\\"]/i",
+            "regex": "/(linkedin[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\"]([a-z]{16})['\"]/i",
         },
         "Linkedin Client ID": {
             "patternName": "Linkedin Client ID",
-            "regex": "/(linkedin[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\\\"]([a-z0-9]{14})['\\\"]/i",
+            "regex": "/(linkedin[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\"]([a-z0-9]{14})['\"]/i",
         },
         "Twitch API token": {
             "patternName": "Twitch API token",
-            "regex": "/(twitch[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\\\"]([a-z0-9]{30})['\\\"]/i",
+            "regex": "/(twitch[a-z0-9_ .\\-,]{0,25})(=|>|:=|\\|\\|:|<=|=>|:).{0,5}['\"]([a-z0-9]{30})['\"]/i",
         },
         "Typeform API token": {
             "patternName": "Typeform API token",
