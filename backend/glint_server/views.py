@@ -103,16 +103,13 @@ def upload_file(project_id, file_id):
 @app.post("/api/projects/<project_id>/sources")
 def new_source_file(project_id):
     request_data = request.json
-    file_path = os.path.join(
-        project_id, request_data["path"], request_data["fileName"]
-    )
+    file_path = os.path.join(project_id, request_data["filePath"])
 
     if not gfile.path_exists(project_id):
         return {"status": "Error Project not found"}, 404
 
     gfile.save_file(file_path, request_data["content"])
     data = {
-        "fileName": request_data["fileName"],
         "filePath": file_path,
         "fileUrl": "/api/projects/"
         + project_id
