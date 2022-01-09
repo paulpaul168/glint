@@ -1,6 +1,6 @@
 /* eslint-disable prettier/prettier */
 <template>
-  <v-dialog v-model="dialog" max-width="600">
+  <v-dialog v-model="dialog" max-width="70%">
     <template v-slot:activator="{ on, attrs }">
       <v-btn
         class="rounded-md dialog-button"
