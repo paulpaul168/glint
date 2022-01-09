@@ -1,5 +1,8 @@
 import os
 from typing import Any
+from backend.glint_server.linter_collection.typescript import (
+    lint_typescript_project,
+)
 from glint_server.linter_collection.exceptions import LintError
 from glint_server.linter_collection.javascript import lint_javascript_project
 from glint_server.linter_collection.python import lint_python_project
@@ -13,6 +16,7 @@ def get_supported_linters() -> dict[str, list[str]]:
     return {
         "go": ["gosec", "staticcheck"],
         "javascript": ["eslint"],
+        "typescript": ["eslint"],
         "php": ["phpcs"],
         "python": ["bandit", "pylint"],
         "rust": ["clippy"],
@@ -24,6 +28,7 @@ def get_auto_linter(lang: str) -> str:
     mapping = {
         "go": "gosec",
         "javascript": "eslint",
+        "typescript": "eslint",
         "php": "phpcs",
         "python": "bandit",
         "rust": "clippy",
@@ -51,6 +56,8 @@ def lint_project(path: str, linters: dict[str, str]) -> dict:
                 lint = lint_go_project(path, linter)
             elif lang == "javascript":
                 lint = lint_javascript_project(path, linter)
+            elif lang == "typescript":
+                lint = lint_typescript_project(path, linter)
             elif lang == "php":
                 lint = lint_php_project(path, linter)
             elif lang == "python":
@@ -70,7 +77,9 @@ def lint_project(path: str, linters: dict[str, str]) -> dict:
     return result
 
 
-def get_linters(langs: set[str], linter_prefs: dict[str, str]) -> dict[str, str]:
+def get_linters(
+    langs: set[str], linter_prefs: dict[str, str]
+) -> dict[str, str]:
     linters = dict()
 
     # We make a new set to avoid modifying the passed reference
@@ -85,7 +94,9 @@ def get_linters(langs: set[str], linter_prefs: dict[str, str]) -> dict[str, str]
     return linters
 
 
-def lint_project_processing(path: str, linter_prefs: dict[str, str]) -> dict[str, Any]:
+def lint_project_processing(
+    path: str, linter_prefs: dict[str, str]
+) -> dict[str, Any]:
     """The temporary result while the linting process is still ongoing."""
 
     return lint_project_error(path, linter_prefs, "processing")
@@ -120,6 +131,7 @@ def detect_languages(path: str) -> set[str]:
     extensions = {
         ".go": "go",
         ".js": "javascript",
+        ".ts": "typescript",
         ".php": "php",
         ".py": "python",
         ".rs": "rust",
