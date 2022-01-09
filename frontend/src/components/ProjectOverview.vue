@@ -15,15 +15,15 @@
         </h2>
       </div>
     </div>
-    <div style="height: 10%">
+    <!--<div style="height: 10%">
       <div class="stats-panel">
         <h3 style="text-align: center">Stats Panel Placeholder</h3>
       </div>
-    </div>
+    </div>-->
     <div>
       <v-divider style="margin: -0.5px 0"></v-divider>
     </div>
-    <div style="height: calc(90% - 48px)" class="secrets-panel">
+    <div style="height: calc(100% - 48px)" class="secrets-panel">
       <div v-if="resultsSum > 0" class="secrets-header">
         <h3 style="color: grey">Found {{ resultsSum }} Secrets</h3>
       </div>
