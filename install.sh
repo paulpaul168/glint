@@ -49,7 +49,12 @@ install_fedora(){
 
     cd ../frontend
     npm install
-    #export NODE_OPTIONS=--openssl-legacy-provider
+
+    NODE_VER=$(node --version)
+    if [ "17" = ${NODE_VER:1:2} ]; then
+        echo "Node version is $NODE_VER (major version = 17) -> applying fix: See this git issue (https://github.com/webpack/webpack/issues/14532) for info"
+        export NODE_OPTIONS=--openssl-legacy-provider
+    fi
     npm install -g serve
     npm run build
 
@@ -76,7 +81,11 @@ install_ubuntu(){
 
     cd ../frontend
     npm install
-    #export NODE_OPTIONS=--openssl-legacy-provider
+    NODE_VER=$(node --version)
+    if [ "17" = ${NODE_VER:1:2} ]; then
+        echo "Node version is $NODE_VER (major version = 17) -> applying fix: See this git issue (https://github.com/webpack/webpack/issues/14532) for info"
+        export NODE_OPTIONS=--openssl-legacy-provider
+    fi
     npm install -g serve
     npm run build
 }
