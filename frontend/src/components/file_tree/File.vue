@@ -61,7 +61,6 @@ export default class File extends Vue {
   }
 
   private clickFile(): void {
-    console.log("clicked file", this.state.file.path);
     this.$emit("open-file", {
       filePath: this.state.file.path,
       projectId: this.project.settings.data.projectId,

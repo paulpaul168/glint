@@ -519,7 +519,6 @@ export default class ContentView extends Vue {
 
   private closeFile(): void {
     let activeTab = this.internalProject.activeFile as number;
-    console.log("cur active", activeTab);
     this.internalProject.openFiles?.splice(activeTab, 1);
     if (activeTab >= (this.internalProject.openFiles as FileState[]).length) {
       //if the last file in the list was active and then closed the activeTab index is out of boudns
@@ -528,7 +527,6 @@ export default class ContentView extends Vue {
         activeTab = 0;
       }
       this.internalProject.activeFile = activeTab;
-      console.log("new active", activeTab);
     }
     this.$emit("open-files-change", {
       openFiles: this.internalProject.openFiles,

@@ -13,12 +13,13 @@
       @click-folder="setActive"
       v-on="$listeners"
     ></folder>
-    <v-divider v-if="active" style="margin: 0 0.6em"></v-divider>
-    <upload-file-dialog
-      v-if="active"
-      :projectId="project.settings.data.projectId"
-      v-on="$listeners"
-    ></upload-file-dialog>
+    <div v-if="active && project.settings.data.projectId != ''">
+      <v-divider style="margin: 0 0.6em"></v-divider>
+      <upload-file-dialog
+        :projectId="project.settings.data.projectId"
+        v-on="$listeners"
+      ></upload-file-dialog>
+    </div>
   </div>
 </template>
 
