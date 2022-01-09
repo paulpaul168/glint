@@ -9,6 +9,9 @@ const routes: Array<RouteConfig> = [
     path: "/",
     name: "Home",
     component: Home,
+    meta: {
+      title: "glint",
+    },
   },
   {
     path: "/about",
@@ -18,6 +21,9 @@ const routes: Array<RouteConfig> = [
     // which is lazy-loaded when the route is visited.
     component: () =>
       import(/* webpackChunkName: "about" */ "../views/About.vue"),
+    meta: {
+      title: "glint",
+    },
   },
 ];
 
@@ -25,6 +31,11 @@ const router = new VueRouter({
   mode: "history",
   base: process.env.BASE_URL,
   routes,
+});
+
+router.beforeEach((to, from, next) => {
+  document.title = to.meta?.title;
+  next();
 });
 
 export default router;

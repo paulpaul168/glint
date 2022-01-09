@@ -320,9 +320,7 @@ export default class Home extends Vue {
   //TODO: GoToFileEvent sounds weird for this, but it contains the needed data. consider renaming?
   private async deleteFile(data: GoToFileEvent): Promise<void> {
     let projectId = "";
-    console.log("trying to delete file");
     if (data.projectId != undefined) {
-      console.log("project ID specified", data.projectId);
       projectId = data.projectId;
     } else {
       projectId =
@@ -605,19 +603,15 @@ export default class Home extends Vue {
   private async uploadFileChanges(event: FileChangeEvent): Promise<void> {
     let encounteredErrors = false;
     for (const state of event.openFiles) {
-      console.log("compare state", state.file.name);
       let foundMatchingFile = false;
       for (const oldState of this.activeProjects[this.activeProject].files) {
-        console.log("old state", oldState.file.name);
         if (oldState.id == state.id) {
           foundMatchingFile = true;
-          console.log("ids match!");
           if (
             oldState.file.name == state.file.name &&
             oldState.file.path == state.file.path &&
             oldState.file.content == state.file.content
           ) {
-            console.log("content is identical");
             //console.log(oldState.file.content, "---", state.file.content);
             break;
           }

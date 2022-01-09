@@ -282,6 +282,12 @@ export default class LinterMappingsSettings extends Vue {
 
   private async fetchMappings(): Promise<void> {
     this.fetchingMappings = true;
+    if (
+      this.projectMetadata.projectId == undefined ||
+      this.projectMetadata.projectId == ""
+    ) {
+      return;
+    }
     const resp: ProjectDataResponse = await API.getProjectData(
       this.projectMetadata.projectId
     );
