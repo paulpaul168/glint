@@ -221,20 +221,20 @@ export async function addFile(
 ): Promise<AddFileResponse> {
   let resp;
   try {
+    console.log("add file", file);
     resp = await fetch(`${apiAddress}projects/${projectId}/sources`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        fileName: file.name,
-        path: file.path,
+        filePath: file.path,
         content: file.content,
       }),
     });
   } catch (error) {
     return {
-      fileName: "",
+      filePath: "",
       fileUrl: new URL(apiAddress),
       errorMessage: "Fatal error when adding file to project: " + error,
     };
@@ -242,7 +242,7 @@ export async function addFile(
 
   if (!resp.ok) {
     return {
-      fileName: "",
+      filePath: "",
       fileUrl: new URL(apiAddress),
       errorMessage:
         "Received non-OK response while saving file: " + resp.status,
@@ -251,8 +251,10 @@ export async function addFile(
 
   const respJson = await resp.json();
   const returnDict: AddFileResponse = {
-    fileName: respJson["fileName"],
-    fileUrl: new URL(respJson["fileUrl"]), //do I need to do this? if so, don't I need to do this everywhere with URLs?
+    filePath: respJson["filePath"],
+    fileUrl: new URL(
+      apiAddress + decodeURI(respJson["fileUrl"]).replace("/api/", "")
+    ), //do I need to do this? if so, don't I need to do this everywhere with URLs?
   };
   return returnDict;
 }

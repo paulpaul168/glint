@@ -84,6 +84,7 @@ import { Component, Prop, Vue } from "vue-property-decorator";
 import SettingsPanel from "@/components/SettingsPanel.vue";
 import ProjectSettings from "@/components/ProjectSettings.vue";
 import ProjectTreeView from "@/components/file_tree/ProjectTreeView.vue";
+
 import { Project } from "./types/interfaces";
 
 @Component({

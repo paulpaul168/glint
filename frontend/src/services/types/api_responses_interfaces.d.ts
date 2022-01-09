@@ -23,7 +23,7 @@ export interface ProjectDataResponse {
 }
 
 export interface AddFileResponse {
-  fileName: string;
+  filePath: string;
   fileUrl: URL;
   errorMessage?: string;
 }

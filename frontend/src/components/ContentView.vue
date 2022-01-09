@@ -319,6 +319,7 @@ export default class ContentView extends Vue {
         detectedLanguage: "",
         unsaved: false,
         edited: false,
+        id: -1,
       };
       newState.file.name = (" " + state.file.name).slice(1);
       newState.file.path = (" " + state.file.path).slice(1);
@@ -344,6 +345,7 @@ export default class ContentView extends Vue {
         detectedLanguage: "",
         unsaved: false,
         edited: false,
+        id: -1,
       };
       newState.file.name = (" " + state.file.name).slice(1);
       newState.file.path = (" " + state.file.path).slice(1);
@@ -352,6 +354,7 @@ export default class ContentView extends Vue {
       newState.detectedLanguage = (" " + state.detectedLanguage).slice(1);
       newState.unsaved = state.unsaved;
       newState.edited = state.edited;
+      newState.id = state.id;
       this.internalProject.openFiles?.push(newState);
     });
     this.selectViewMode();

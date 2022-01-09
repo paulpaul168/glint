@@ -11,6 +11,7 @@
         @create-project="createEmptyProject"
         @refresh-projects="loadProjects"
         @toggle-project-info="toggleProjectView"
+        @upload-files="addFile($event)"
         @open-file="openFile($event)"
         @delete-file="deleteFile($event)"
         @rename-project="renameActiveProject($event)"
@@ -57,6 +58,7 @@ import ProjectList from "@/components/ProjectList.vue";
 import GlobalNotifier from "@/components/GlobalNotifier.vue";
 
 import {
+  AddFileEvent,
   CreateProjectEvent,
   FileChangeEvent,
   FileHandle,
@@ -191,9 +193,7 @@ export default class Home extends Vue {
         this.searchResults[projectId][state.file.path] = [];
         for (const [id, pattern] of Object.entries(this.searchPatterns)) {
           const regex = new RegExp(
-            pattern.regex
-              .replaceAll("\\", "\\\\")
-              .substring(1, pattern.regex.lastIndexOf("/")),
+            pattern.regex.substring(1, pattern.regex.lastIndexOf("/")),
             "g" +
               pattern.regex
                 .substring(pattern.regex.lastIndexOf("/") + 1)
@@ -440,6 +440,7 @@ export default class Home extends Vue {
         detectedLanguage: "",
         unsaved: false,
         edited: false,
+        id: -1,
       };
       let fileFound = false;
       for (const state of this.activeProjects[this.activeProject].files) {
@@ -452,6 +453,7 @@ export default class Home extends Vue {
           fileToOpen.file.content = (" " + state.file.content).slice(1);
           fileToOpen.language = (" " + state.language).slice(1);
           fileToOpen.detectedLanguage = (" " + state.detectedLanguage).slice(1);
+          fileToOpen.id = state.id;
           fileFound = true;
           break;
         }
@@ -510,6 +512,7 @@ export default class Home extends Vue {
         detectedLanguage: getLanguage(file.name),
         unsaved: false,
         edited: false,
+        id: this.internalFileId++,
       });
     }
 
@@ -534,10 +537,6 @@ export default class Home extends Vue {
       ];
       bufferProject.openFiles = bufferProject.files.slice();
       (bufferProject.openFiles as FileState[])[0].id = 0;
-
-      for (const state of bufferProject.openFiles as FileState[]) {
-        state.id = this.internalFileId++;
-      }
     } else {
       bufferProject.files = [];
       for (let file of event.files) {
@@ -547,6 +546,7 @@ export default class Home extends Vue {
           language: "auto",
           detectedLanguage: getLanguage(file.name),
           file: file,
+          id: this.internalFileId++,
         });
       }
       //bufferProject.openFiles = bufferProject.files.slice();
@@ -580,6 +580,7 @@ export default class Home extends Vue {
         1000,
         this.activeProject
       );
+
       this.activeProjects[this.activeProject] = bufferProject;
       (this.$refs["contentView"] as ContentView).projectChanged(); //this is a horrible fix and I don't know why I need it, the project watcher should see this. maybe because the original bufferproject is from the same list thus not changing the reference?
     }
@@ -656,12 +657,29 @@ export default class Home extends Vue {
     return result;
   }
 
+  private async addFile(event: AddFileEvent): Promise<void> {
+    console.log("adding file", event);
+    await this.uploadFileChanges({
+      files: event.files,
+      openFiles: event.files,
+      activeFile: 0,
+    });
+  }
+
   private async uploadFileChanges(event: FileChangeEvent): Promise<void> {
     let encounteredErrors = false;
+    let foundMatchingFile = false;
     for (const state of event.openFiles) {
-      let foundMatchingFile = false;
       for (const oldState of this.activeProjects[this.activeProject].files) {
+        console.log("checking state", oldState, state);
         if (oldState.id == state.id) {
+          console.log(
+            "found matching file",
+            state.file.name,
+            state.id,
+            oldState.file.name,
+            oldState.id
+          );
           foundMatchingFile = true;
           if (
             oldState.file.name == state.file.name &&
@@ -697,16 +715,35 @@ export default class Home extends Vue {
       }
       if (foundMatchingFile == false) {
         console.log("found no matching file");
-        // went through all old files but didn't find an ID match, this must mean a new file; TODO add API new file endpoint
+        for (const state of event.files) {
+          const projectId =
+            this.activeProjects[this.activeProject].settings.data.projectId;
+          const result = await API.addFile(projectId, state.file);
+          if (result.errorMessage != undefined) {
+            this.passNotification({
+              type: "error",
+              message: result.errorMessage || "Unknown error",
+            });
+            encounteredErrors = true;
+          }
+        }
       }
     }
 
     this.activeProjects[this.activeProject].openFiles = event.openFiles;
+    console.log("encountered error", encounteredErrors);
     if (!encounteredErrors) {
-      this.activeProjects[this.activeProject].files = event.files;
-      (this.activeProjects[this.activeProject].openFiles as FileState[])[
-        event.activeFile
-      ].unsaved = false;
+      if (foundMatchingFile) {
+        this.activeProjects[this.activeProject].files = event.files;
+        (this.activeProjects[this.activeProject].openFiles as FileState[])[
+          event.activeFile
+        ].unsaved = false;
+      } else {
+        console.log("concat new file");
+        this.activeProjects[this.activeProject].files = this.activeProjects[
+          this.activeProject
+        ].files.concat(event.files);
+      }
     }
   }
 

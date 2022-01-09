@@ -5,12 +5,18 @@ export interface Events {
   fileChange: FileChangeEvent;
   openFileChange: OpenFileChangeEvent;
   goToFile: GoToFileEvent;
+  addFile: AddFileEvent;
 }
 
 export interface Notification {
   type: string;
   message: string;
   timeout?: number;
+}
+
+export interface AddFileEvent {
+  projectId: string;
+  files: FileState[];
 }
 
 export interface FileChangeEvent {
