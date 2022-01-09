@@ -6,7 +6,7 @@ from glint_server.linter_collection.python import lint_python_project
 from glint_server.linter_collection.go import lint_go_project
 from glint_server.linter_collection.php import lint_php_project
 from glint_server.linter_collection.rust import lint_rust_project
-from glint_server.linter_collection.rust import lint_c_project
+from glint_server.linter_collection.c import lint_c_project
 
 
 def get_supported_linters() -> dict[str, list[str]]:
