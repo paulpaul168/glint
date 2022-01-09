@@ -1,11 +1,7 @@
 <template>
   <div
     :class="
-      isRoot
-        ? internalIsExpanded
-          ? 'padding-open'
-          : 'padding-close'
-        : 'padding-close'
+      isRoot ? (internalIsExpanded ? 'padding-open' : 'padding-close') : ''
     "
   >
     <div style="margin: 0 0.4em" class="d-flex flex-row">
@@ -29,7 +25,8 @@
       </v-btn>
       <v-btn
         :class="
-          'folder-name text-body-1 ' + (isClickable ? '' : 'disable-button')
+          'folder-name text-body-1 ' +
+          (isRoot ? '' : isClickable ? '' : 'disable-button')
         "
         text
         :ripple="false"
@@ -59,9 +56,15 @@
           <folder
             v-for="(state, name) in folders"
             :key="name"
+            :project="project"
             :fileStates="state"
+            :folderTree="folderTree + name + '/'"
             :folderName="name"
             :isInActiveProject="isInActiveProject"
+            :isClickable="false"
+            :isRoot="false"
+            @open-file="handleFileClick($event)"
+            @delete-file="handleFileDelete($event)"
           ></folder>
           <file
             v-for="(state, index) of files"
@@ -72,9 +75,11 @@
             :active="
               (project.openFiles[project.activeFile] != undefined
                 ? project.openFiles[project.activeFile].file.path
-                : '') == state.file.path && isInActiveProject
+                : ''
+              ).replace(folderTree, '') == state.file.path && isInActiveProject
             "
-            v-on="$listeners"
+            @open-file="handleFileClick($event)"
+            @delete-file="handleFileDelete($event)"
           ></file>
         </div>
       </v-expand-transition>
@@ -85,7 +90,7 @@
 <script lang="ts">
 import { Component, Prop, Vue, Watch } from "vue-property-decorator";
 import { Dictionary } from "vue-router/types/router";
-import { FileState, Project } from "../types/interfaces";
+import { FileState, GoToFileEvent, Project } from "../types/interfaces";
 import File from "./File.vue";
 
 @Component({
@@ -96,11 +101,12 @@ import File from "./File.vue";
 export default class Folder extends Vue {
   name = "Folder";
   @Prop() project!: Project;
+  @Prop({ default: "" }) folderTree!: string;
   @Prop({ default: "<folder name>" }) folderName!: string;
   @Prop() fileStates!: FileState[];
   @Prop({ default: false }) isRoot!: boolean;
   @Prop({ default: false }) isInActiveProject!: boolean;
-  @Prop({ default: false }) isExpanded!: boolean;
+  @Prop({ default: true }) isExpanded!: boolean;
   @Prop({ default: false }) isDeletable!: boolean;
   @Prop({ default: true }) isClickable!: boolean;
 
@@ -135,17 +141,66 @@ export default class Folder extends Vue {
       if (pathParts == undefined || pathParts.length <= 1) {
         this.files.push(state);
       } else {
-        const subState = state;
+        const subState: FileState = {
+          file: {
+            name: (" " + state.file.name).slice(1),
+            path: (" " + state.file.path).slice(1),
+            content: state.file.content,
+          },
+          language: state.language,
+          detectedLanguage: state.detectedLanguage,
+          unsaved: state.unsaved,
+          edited: state.edited,
+        };
         subState.file.path = subState.file.path.substring(
           subState.file.path.indexOf("/") + 1
         ); //remove the highest level folder (this folder) from path before passing on
+        if (this.folders[pathParts[0]] == undefined) {
+          this.folders[pathParts[0]] = [];
+        }
         this.folders[pathParts[0]].push(subState);
       }
     }
   }
 
+  private handleFileClick(clickedFile: GoToFileEvent): void {
+    if (!this.isRoot) {
+      //if the folder is not the root folder, add the folder name to the path of the file before re-emitting
+      const newClickEvent: GoToFileEvent = {
+        filePath: this.folderName + "/" + clickedFile.filePath,
+        projectId: clickedFile.projectId,
+      };
+
+      this.$emit("open-file", newClickEvent);
+      return;
+    }
+    this.$emit("open-file", clickedFile);
+    return;
+  }
+
+  private handleFileDelete(fileToDelete: GoToFileEvent): void {
+    if (!this.isRoot) {
+      //if the folder is not the root folder, add the folder name to the path of the file before re-emitting
+      const newClickEvent: GoToFileEvent = {
+        filePath: this.folderName + "/" + fileToDelete.filePath,
+        projectId: fileToDelete.projectId,
+      };
+
+      this.$emit("delete-file", newClickEvent);
+      return;
+    }
+    this.$emit("delete-file", fileToDelete);
+    return;
+  }
+
   private clickFolder(): void {
-    this.$emit("click-folder");
+    if (this.isInActiveProject) {
+      if (this.isRoot) {
+        this.$emit("toggle-project-info");
+      }
+    } else {
+      this.$emit("click-folder");
+    }
   }
 
   private toggleFolderExpansion(): void {

@@ -75,6 +75,9 @@ export async function getProjectData(id: string): Promise<ProjectDataResponse> {
     return emptyResponse;
   }
   const respJson = await resp.json();
+  for (const file of respJson.files) {
+    console.log("resp", file.path);
+  }
 
   return respJson;
 }

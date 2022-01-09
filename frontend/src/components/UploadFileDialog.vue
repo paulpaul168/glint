@@ -62,22 +62,12 @@ export default class UploadFileDialog extends Vue {
 
   private async selectFiles(files: File[]): Promise<void> {
     this.selectedFiles = [];
-    let sanitizedFilePath = this.filePath;
-    //there has to be a better and more robust way to sanitize file paths
-    if (sanitizedFilePath.charAt(0) == "/") {
-      sanitizedFilePath = sanitizedFilePath.substring(1);
-    }
-    if (
-      sanitizedFilePath.length > 0 &&
-      sanitizedFilePath.charAt(sanitizedFilePath.length - 1) != "/"
-    ) {
-      sanitizedFilePath += "/";
-    }
+
     for (let file of files) {
       this.selectedFiles.push({
         file: {
           name: file.name,
-          path: sanitizedFilePath + file.name,
+          path: file.name,
           content: await file.text(),
         },
         language: "auto",
@@ -89,9 +79,36 @@ export default class UploadFileDialog extends Vue {
   }
 
   private upload(): void {
+    let files: FileState[] = [];
+    let sanitizedFilePath = this.filePath;
+    //there has to be a better and more robust way to sanitize file paths
+    if (sanitizedFilePath.charAt(0) == "/") {
+      sanitizedFilePath = sanitizedFilePath.substring(1);
+    }
+    if (
+      sanitizedFilePath.length > 0 &&
+      sanitizedFilePath.charAt(sanitizedFilePath.length - 1) != "/"
+    ) {
+      sanitizedFilePath += "/";
+    }
+    for (const state of this.selectedFiles) {
+      const newState: FileState = {
+        file: {
+          name: state.file.name,
+          path: sanitizedFilePath + state.file.name,
+          content: state.file.content,
+        },
+        language: state.language,
+        detectedLanguage: state.detectedLanguage,
+        unsaved: false,
+        edited: false,
+      };
+      files.push(newState);
+    }
+
     const eventData: AddFileEvent = {
       projectId: this.projectId,
-      files: this.selectedFiles,
+      files: files,
     };
     this.$emit("upload-files", eventData);
     this.dialog = false;

@@ -1,5 +1,6 @@
 export interface Events {
   files: CreateProjectEvent;
+  zip: CreateProjectZipEvent;
   lints: LintEvent;
   notifs: Notification;
   fileChange: FileChangeEvent;
@@ -33,6 +34,12 @@ export interface OpenFileChangeEvent {
 export interface CreateProjectEvent {
   projectName: string;
   files: FileHandle[];
+  error?: unknown;
+}
+
+export interface CreateProjectZipEvent {
+  projectName: string;
+  zip: string;
   error?: unknown;
 }
 

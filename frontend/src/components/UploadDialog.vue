@@ -48,7 +48,11 @@
 
 <script lang="ts">
 import { Component, Prop, Vue, Watch } from "vue-property-decorator";
-import { FileHandle, CreateProjectEvent } from "./types/interfaces";
+import {
+  FileHandle,
+  CreateProjectEvent,
+  CreateProjectZipEvent,
+} from "./types/interfaces";
 
 @Component
 export default class UploadDialog extends Vue {
@@ -61,6 +65,7 @@ export default class UploadDialog extends Vue {
   private dragClass = "";
   private projectName = "New Project";
   private selectedFiles: FileHandle[] = [];
+  private selectedZip = ""; //base64 string of zip content
 
   @Watch("dialogDrag")
   private dragChange() {
@@ -90,23 +95,41 @@ export default class UploadDialog extends Vue {
   private async selectFiles(files: File[]): Promise<void> {
     this.selectedFiles = [];
     for (let file of files) {
-      this.selectedFiles.push({
-        name: file.name,
-        path: file.name, //TODO needs to be extended once .zip is supported
-        content: await file.text(),
-      });
+      const extension = file.name.split(".").pop();
+      if (extension == "zip") {
+        let arrayBuffer = await file.arrayBuffer();
+        let dataString = "";
+        new Uint8Array(arrayBuffer).forEach(function (byte: number) {
+          dataString += String.fromCharCode(byte);
+        });
+        const base64String = btoa(dataString);
+        this.selectedZip = base64String;
+      } else {
+        this.selectedFiles.push({
+          name: file.name,
+          path: file.name, //TODO needs to be extended once .zip is supported
+          content: await file.text(),
+        });
+      }
     }
   }
 
   private upload(): void {
-    const eventData: CreateProjectEvent = {
-      projectName: this.projectName,
-      files: this.selectedFiles,
-    };
-    this.$emit("create-project-event", eventData);
-    this.dialog = false;
-    //TODO return the result (maybe somehow reformatted) here to allow for proper project management in the side pane. can't do right now because data structure with interfaces and all still has to be designed/planned.
-    return;
+    if (this.selectedZip == "") {
+      const eventData: CreateProjectEvent = {
+        projectName: this.projectName,
+        files: this.selectedFiles,
+      };
+      this.$emit("create-project-event", eventData);
+      this.dialog = false;
+    } else {
+      const eventData: CreateProjectZipEvent = {
+        projectName: this.projectName,
+        zip: this.selectedZip,
+      };
+      this.$emit("create-project-zip-event", eventData);
+      this.dialog = false;
+    }
   }
 }
 </script>

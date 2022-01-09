@@ -13,12 +13,7 @@
       v-if="active"
       class="delete-mapping-button"
       icon
-      @click="
-        $emit('delete-file', {
-          filePath: state.file.path,
-          projectId: project.settings.data.projectId,
-        })
-      "
+      @click="deleteFile"
     >
       <v-icon small>mdi-delete</v-icon>
     </v-btn>
@@ -53,7 +48,15 @@ export default class File extends Vue {
   state!: FileState;
 
   private clickFile(): void {
+    console.log("clicked file", this.state.file.path);
     this.$emit("open-file", {
+      filePath: this.state.file.path,
+      projectId: this.project.settings.data.projectId,
+    });
+  }
+
+  private deleteFile(): void {
+    this.$emit("delete-file", {
       filePath: this.state.file.path,
       projectId: this.project.settings.data.projectId,
     });

@@ -2,7 +2,8 @@ import { FileHandle, LinterMapping } from "@/components/types/interfaces";
 
 export interface SubmitProject {
   name: string;
-  files: FileHandle[];
+  files?: FileHandle[];
+  zip?: string;
   linters: LinterMapping;
 }
 

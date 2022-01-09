@@ -60,7 +60,10 @@
           :key="file"
           style="padding-left: 12px"
         >
-          <v-divider v-if="index != 0" class="centered-divider"></v-divider>
+          <v-divider
+            v-if="index != 0 && searchResults[file].length > 0"
+            class="centered-divider"
+          ></v-divider>
           <div v-if="searchResults[file].length > 0">
             <div class="d-flex flex-row">
               <v-btn icon :ripple="false" @click="toggleFileExpansion(file)">

@@ -41,6 +41,7 @@
         @retry-get-lint="setGetLintTries"
         @request-new-lint="requestNewLint"
         @create-project-event="fillProject($event)"
+        @create-project-zip-event="uploadProjectZip($event)"
         @close-project-overview="toggleProjectView"
         @start-secret-search="searchFiles"
       />
@@ -60,6 +61,7 @@ import GlobalNotifier from "@/components/GlobalNotifier.vue";
 import {
   AddFileEvent,
   CreateProjectEvent,
+  CreateProjectZipEvent,
   FileChangeEvent,
   FileHandle,
   FileState,
@@ -359,6 +361,11 @@ export default class Home extends Vue {
       this.activeProjects = newProjectList;
     }
     this.downloading = false;
+    this.activeProjects.forEach((project, index) => {
+      if (project.lintData.status == "processing") {
+        this.setGetLintTries(index);
+      }
+    });
     callback?.();
   }
 
@@ -565,7 +572,10 @@ export default class Home extends Vue {
       });
 
       if (result.errorMessage != undefined) {
-        //I dislike having to do this again here when it's already been done in the function but can't think of anything better right now
+        this.passNotification({
+          type: "error",
+          message: result.errorMessage,
+        });
         return;
       }
 
@@ -584,6 +594,23 @@ export default class Home extends Vue {
       this.activeProjects[this.activeProject] = bufferProject;
       (this.$refs["contentView"] as ContentView).projectChanged(); //this is a horrible fix and I don't know why I need it, the project watcher should see this. maybe because the original bufferproject is from the same list thus not changing the reference?
     }
+  }
+
+  private async uploadProjectZip(data: CreateProjectZipEvent): Promise<void> {
+    const result = await API.submitProject({
+      name: data.projectName,
+      zip: data.zip,
+      linters: {},
+    });
+
+    if (result.errorMessage != undefined) {
+      this.passNotification({
+        type: "error",
+        message: result.errorMessage,
+      });
+      return;
+    }
+    this.loadProjects();
   }
 
   private async renameActiveProject(newName: string): Promise<void> {
@@ -658,7 +685,6 @@ export default class Home extends Vue {
   }
 
   private async addFile(event: AddFileEvent): Promise<void> {
-    console.log("adding file", event);
     await this.uploadFileChanges({
       files: event.files,
       openFiles: event.files,
@@ -671,15 +697,7 @@ export default class Home extends Vue {
     let foundMatchingFile = false;
     for (const state of event.openFiles) {
       for (const oldState of this.activeProjects[this.activeProject].files) {
-        console.log("checking state", oldState, state);
         if (oldState.id == state.id) {
-          console.log(
-            "found matching file",
-            state.file.name,
-            state.id,
-            oldState.file.name,
-            oldState.id
-          );
           foundMatchingFile = true;
           if (
             oldState.file.name == state.file.name &&
@@ -714,7 +732,6 @@ export default class Home extends Vue {
         }
       }
       if (foundMatchingFile == false) {
-        console.log("found no matching file");
         for (const state of event.files) {
           const projectId =
             this.activeProjects[this.activeProject].settings.data.projectId;
@@ -731,7 +748,6 @@ export default class Home extends Vue {
     }
 
     this.activeProjects[this.activeProject].openFiles = event.openFiles;
-    console.log("encountered error", encounteredErrors);
     if (!encounteredErrors) {
       if (foundMatchingFile) {
         this.activeProjects[this.activeProject].files = event.files;
@@ -739,7 +755,6 @@ export default class Home extends Vue {
           event.activeFile
         ].unsaved = false;
       } else {
-        console.log("concat new file");
         this.activeProjects[this.activeProject].files = this.activeProjects[
           this.activeProject
         ].files.concat(event.files);
@@ -796,13 +811,13 @@ export default class Home extends Vue {
     ].file.path = (" " + event.openFiles[event.activeFile].file.path).slice(1);
   }
 
-  private setGetLintTries(): void {
-    this.activeProjects[this.activeProject].remainingLintChecks = 3;
-    this.activeProjects[this.activeProject].lintData.status = "processing";
-    this.activeProjects[this.activeProject].lintCheckTimer = setInterval(
+  private setGetLintTries(projectIndex: number): void {
+    this.activeProjects[projectIndex].remainingLintChecks = 3;
+    this.activeProjects[projectIndex].lintData.status = "processing";
+    this.activeProjects[projectIndex].lintCheckTimer = setInterval(
       this.handleLintTimer,
       1000,
-      this.activeProject
+      projectIndex
     );
   }
 
@@ -814,7 +829,7 @@ export default class Home extends Vue {
         linters: this.activeProjects[this.activeProject].settings.linters,
       }
     );
-    this.setGetLintTries();
+    this.setGetLintTries(this.activeProject);
   }
 
   private async handleLintTimer(projectIndex: number) {
