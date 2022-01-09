@@ -148,8 +148,12 @@ def create_project():
     project_name = post_content["name"]
 
     project_id = gfile.create_project_folder(project_name)
-    for file in post_content["files"]:
-        gfile.save_file(project_id + "/" + file["path"], file["content"])
+
+    if "zip" in post_content:
+        gfile.save_zip(project_id + "/file.zip", post_content["zip"])
+    else:
+        for file in post_content["files"]:
+            gfile.save_file(project_id + "/" + file["path"], file["content"])
 
     gfile.save_file(
         project_id + "/metadata.glint", json.dumps({"name": project_name})

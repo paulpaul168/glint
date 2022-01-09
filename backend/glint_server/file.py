@@ -2,6 +2,7 @@ from glint_server import app
 from glint_server.linter_collection.lint import lint_project_error_short
 import os, json, urllib.parse, shutil
 from pathlib import PurePath
+from base64 import b64decode
 
 
 def path_exists(path: str) -> bool:
@@ -54,6 +55,15 @@ def save_file(file_name: str, content: str) -> None:
         f.write(content)
 
 
+def save_zip(file_name: str, content: str) -> None:
+    file_name = os.path.join(app.config["LINT_DIR"], file_name)
+    os.makedirs(os.path.dirname(file_name), exist_ok=True)
+    with open(file_name, "bw+") as f:
+        f.write(b64decode(content))
+    shutil.unpack_archive(file_name, os.path.dirname(file_name))
+    os.remove(file_name)
+
+
 def move_file(file_name_old: str, file_name_new: str) -> None:
     file_path_old = os.path.join(app.config["LINT_DIR"], file_name_old)
     file_path_new = os.path.join(app.config["LINT_DIR"], file_name_new)
@@ -83,7 +93,9 @@ def get_project_files(project_id) -> tuple[dict, str]:
             with open(os.path.join(root, name)) as f:
                 content = f.read()
 
-            file_path = PurePath(os.path.join(path, name)).relative_to(path).as_posix()
+            file_path = (
+                PurePath(os.path.join(path, name)).relative_to(path).as_posix()
+            )
             file = {
                 "name": name,
                 "path": file_path,
