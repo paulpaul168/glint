@@ -386,6 +386,20 @@ export default class ContentView extends Vue {
     this.internalProject.filesViewMode = this.project.filesViewMode;
   }
 
+  @Watch("internalProject.activeFile")
+  private activeFileChange(): void {
+    if (
+      this.internalProject.activeFile != undefined &&
+      this.internalProject.openFiles?.[this.internalProject.activeFile] !=
+        undefined
+    ) {
+      this.$emit("open-files-change", {
+        openFiles: this.internalProject.openFiles,
+        activeFile: this.internalProject.activeFile,
+      });
+    }
+  }
+
   private selectViewMode(): void {
     if (this.project.filesViewMode == "auto") {
       if (this.internalProject.settings.data.projectId == "") {

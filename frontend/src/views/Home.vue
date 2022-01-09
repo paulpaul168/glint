@@ -5,7 +5,7 @@
         :projects="activeProjects"
         :activeProject="activeProject"
         :fetchingProjects="downloading"
-        @set-active-project="activeProject = $event"
+        @set-active-project="setActiveProject($event)"
         @linter-set="passLinter"
         @notification="passNotification"
         @create-project="createEmptyProject"
@@ -128,7 +128,55 @@ export default class Home extends Vue {
   private linter = "auto";
 
   created(): void {
-    this.loadProjects();
+    this.loadProjects(this.parseUrlParams);
+  }
+
+  private parseUrlParams(): void {
+    console.log("this.$route", this.$route.query);
+    if (this.$route.query.project != undefined) {
+      //if project is defined in URL, parse it and try to set the project
+      let foundProject = false;
+      this.activeProjects.forEach((project, index) => {
+        if (project.settings.data.projectId == this.$route.query.project) {
+          this.activeProject = index;
+          foundProject = true;
+          return;
+        }
+      });
+
+      if (foundProject) {
+        if (this.$route.query.file != undefined) {
+          this.openFile({
+            filePath: this.$route.query.file as string,
+          });
+        }
+      } else {
+        console.log("clearing params");
+        this.updateUrlParams(null);
+      }
+    }
+  }
+
+  private updateUrlParams(projectId: string | null, filePath?: string): void {
+    let query = {};
+    if (projectId != null) {
+      if (filePath != undefined) {
+        query = { project: projectId, file: encodeURIComponent(filePath) };
+      } else {
+        query = { project: projectId };
+      }
+    }
+    if (
+      this.$route.path == "/" &&
+      JSON.stringify(this.$route.query) == JSON.stringify(query)
+    ) {
+      //if the new location is the same old location, return, the rest would be unnecessary
+      return;
+    }
+    this.$router.push({
+      path: "/",
+      query: query,
+    });
   }
 
   @Watch("activeProject")
@@ -261,7 +309,7 @@ export default class Home extends Vue {
     }
   }
 
-  private async loadProjects(): Promise<void> {
+  private async loadProjects(callback?: () => void): Promise<void> {
     this.downloading = true;
     const respProjects: ProjectListResponse = await API.getProjects();
     if (respProjects.errorMessage != undefined) {
@@ -311,6 +359,7 @@ export default class Home extends Vue {
       this.activeProjects = newProjectList;
     }
     this.downloading = false;
+    callback?.();
   }
 
   private setLinters(linters: LinterMapping): void {
@@ -344,6 +393,13 @@ export default class Home extends Vue {
     //the project list is properly synced with no errors. I can't go through various error states
     //and check how to gracefully get out of them, it takes too long and the deadline is too close
     this.loadProjects();
+  }
+
+  private setActiveProject(projectIndex: number): void {
+    this.activeProject = projectIndex;
+    this.updateUrlParams(
+      this.activeProjects[projectIndex].settings.data.projectId
+    );
   }
 
   private openFile(data: GoToFileEvent): void {
@@ -613,9 +669,10 @@ export default class Home extends Vue {
             oldState.file.content == state.file.content
           ) {
             //console.log(oldState.file.content, "---", state.file.content);
+            //console.log("identical file");
             break;
           }
-          console.log("writing file");
+          //console.log("writing file");
           const projectId =
             this.activeProjects[this.activeProject].settings.data.projectId;
           let oldFilePath: string | undefined = undefined;
@@ -654,25 +711,45 @@ export default class Home extends Vue {
   }
 
   private storeOpenFileChanges(event: OpenFileChangeEvent): void {
+    this.updateUrlParams(
+      this.activeProjects[this.activeProject].settings.data.projectId,
+      event.openFiles[event.activeFile].file.path
+    );
     this.activeProjects[this.activeProject].openFiles = event.openFiles;
     this.activeProjects[this.activeProject].activeFile = event.activeFile;
   }
 
   private async handleFileRename(event: OpenFileChangeEvent): Promise<void> {
-    this.activeProjects[this.activeProject].files.forEach((state, index) => {
-      //go through all files to update the renamed one in the list
-      if (
-        state.file.path ==
-        this.activeProjects[this.activeProject].openFiles?.[event.activeFile]
-          .file.path
-      ) {
-        //if the file paths match, update name and path
-        this.activeProjects[this.activeProject].files[index].file.name =
-          event.openFiles[event.activeFile].file.name;
-        this.activeProjects[this.activeProject].files[index].file.path =
-          event.openFiles[event.activeFile].file.path;
+    this.activeProjects[this.activeProject].files.forEach(
+      async (state, index) => {
+        //go through all files to update the renamed one in the list
+        if (
+          state.file.path ==
+          this.activeProjects[this.activeProject].openFiles?.[event.activeFile]
+            .file.path
+        ) {
+          //if the file paths match, update file name and path on backend and then UI
+          //TODO: I'm sure this is horrible and there's a nicer way to fix the issue this is fixing
+          //but I don't have time to fix it properly
+          const renamedFiles = [
+            ...this.activeProjects[this.activeProject].files,
+          ];
+          renamedFiles[index].file.name =
+            event.openFiles[event.activeFile].file.name;
+          renamedFiles[index].file.path =
+            event.openFiles[event.activeFile].file.path;
+          await this.uploadFileChanges({
+            files: renamedFiles,
+            openFiles: event.openFiles,
+            activeFile: event.activeFile,
+          });
+          this.activeProjects[this.activeProject].files[index].file.name =
+            event.openFiles[event.activeFile].file.name;
+          this.activeProjects[this.activeProject].files[index].file.path =
+            event.openFiles[event.activeFile].file.path;
+        }
       }
-    });
+    );
 
     (this.activeProjects[this.activeProject].openFiles as FileState[])[
       event.activeFile
@@ -718,9 +795,17 @@ export default class Home extends Vue {
       if (this.activeProjects[projectIndex].lintData.status != "processing") {
         clearInterval(this.activeProjects[projectIndex].lintCheckTimer);
         if (this.activeProjects[projectIndex].lintData.status != "done") {
+          let errorMessage =
+            this.activeProjects[projectIndex].lintData.errorMessage;
+          if (this.activeProjects[projectIndex].lintData.status != "error") {
+            //if no generic error message is set (by my own backend API code) the error came from
+            //the backend and should be displayed
+            errorMessage = this.activeProjects[projectIndex].lintData.status;
+            //TODO this code feels *very* fragile, I really dislike that, should probably be handled in the backend API instead
+          }
           this.$emit("notification", {
             type: "error",
-            message: this.activeProjects[projectIndex].lintData.errorMessage,
+            message: errorMessage,
           });
         }
       }

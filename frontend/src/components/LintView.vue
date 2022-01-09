@@ -2,10 +2,27 @@
   <v-container class="lint-view">
     <div style="height: 100%" v-if="lints.length == 0">
       <h2 style="position: relative; top: 45%">
-        <span>{{ linter }}</span>
-        <span style="color: grey">
-          found no relevant problems in this file.
-        </span>
+        <div
+          v-if="
+            availableLinterMappings[
+              getLanguagePassthrough(fileState.file.name)
+            ] == undefined
+              ? false
+              : availableLinterMappings[
+                  getLanguagePassthrough(fileState.file.name)
+                ].length > 0
+          "
+        >
+          <span>{{ linter }}</span>
+          <span style="color: grey">
+            found no relevant problems in this file.
+          </span>
+        </div>
+        <div v-else>
+          <span style="color: grey">
+            No linters available for this source file language.
+          </span>
+        </div>
       </h2>
     </div>
     <v-alert :value="outdated" class="outdated-notif" dense type="warning">
@@ -29,6 +46,9 @@ import { Component, Prop, Vue } from "vue-property-decorator";
 import { FileState, Lint } from "./types/interfaces";
 
 import LintCard from "@/components/LintCard.vue";
+import * as API from "@/services/BackendAPI";
+import { getLanguage } from "@/services/LanguageDetection";
+import { LinterListResponse } from "@/services/types/api_responses_interfaces";
 
 @Component({
   components: {
@@ -53,6 +73,25 @@ export default class LintView extends Vue {
     }),
   })
   fileState!: FileState;
+
+  private availableLinterMappings: LinterListResponse = {};
+
+  created(): void {
+    this.fetchAvailableLinters();
+  }
+
+  private async fetchAvailableLinters(): Promise<void> {
+    const resp: LinterListResponse = await API.getLinters();
+    if (resp.errorMessage != undefined) {
+      this.$emit("notification", { type: "error", message: resp.errorMessage });
+      return;
+    }
+    this.availableLinterMappings = resp;
+  }
+
+  private getLanguagePassthrough(name: string): string {
+    return getLanguage(name);
+  }
 }
 </script>
 
