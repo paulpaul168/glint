@@ -106,8 +106,11 @@ def normalize_bandit(results: list[dict], project_path: str) -> dict:
     files = dict()
 
     for result in results:
+        path = result["filename"]
         path = (
-            PurePath(result["filename"]).relative_to(project_path).as_posix()
+            PurePath(project_path, result["filename"])
+            .relative_to(project_path)
+            .as_posix()
         )
 
         if path not in files:
