@@ -98,12 +98,7 @@
                       project.lintData.status == 'processing' &&
                       project.remainingLintChecks > 0
                     "
-                    :disabled="
-                      !(
-                        project.lintData.status == 'done' ||
-                        project.lintData.status == 'processing'
-                      )
-                    "
+                    :disabled="project.lintData.status != 'done'"
                     @click="handleLintSwitcher"
                   >
                     <v-icon
@@ -123,16 +118,6 @@
                     </v-icon>
                     <v-icon
                       v-else-if="
-                        internalProject.filesViewMode == 'source' &&
-                        project.lintData.status == 'processing' &&
-                        project.remainingLintChecks <= 0
-                      "
-                      small
-                    >
-                      mdi-reload
-                    </v-icon>
-                    <v-icon
-                      v-else-if="
                         project.lintData.status != 'done' &&
                         project.lintData.status != 'processing'
                       "
@@ -144,15 +129,6 @@
                 </template>
                 <span v-if="internalProject.filesViewMode == 'lint'">
                   Show Source
-                </span>
-                <span
-                  v-else-if="
-                    internalProject.filesViewMode == 'source' &&
-                    project.lintData.status == 'processing' &&
-                    project.remainingLintChecks <= 0
-                  "
-                >
-                  Retry fetching Lint result
                 </span>
                 <span v-if="internalProject.filesViewMode == 'source'">
                   Show Lint
@@ -418,13 +394,7 @@ export default class ContentView extends Vue {
               file: { name: "unnamed", path: "unnamed", content: "" },
             },
           ];
-          console.log("set open files");
         } else {
-          console.log(
-            "files:",
-            this.internalProject.files.length,
-            this.internalProject.files[0].file.name
-          );
           this.$emit("notification", {
             type: "error",
             message:
@@ -597,13 +567,6 @@ export default class ContentView extends Vue {
         this.internalProject.filesViewMode = "source";
       }
       this.$emit("files-view-change", this.internalProject.filesViewMode);
-    } else if (
-      this.project.lintData.status == "processing" &&
-      (this.project.remainingLintChecks || 0) <= 0
-    ) {
-      this.$emit("retry-get-lint");
-      //this.remainingLintChecks = 3;
-      //this.lintCheckTimer = setInterval(this.handleLintTimer, 1000);
     }
   }
 }
@@ -638,5 +601,32 @@ export default class ContentView extends Vue {
 .toolbar-element {
   margin-left: 0.2em;
   min-width: 43px !important;
+}
+
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--v-bg_secondary-base);
+  border-left: 1px solid var(--v-bg_secondary-base);
+}
+
+::-webkit-scrollbar-track:hover {
+  background: var(--v-bg_secondary-base);
+  border-left: 1px solid var(--v-bg_secondary-base);
+}
+
+::-webkit-scrollbar-thumb {
+  width: 8px;
+  background: var(--v-bg_secondary-base);
+  border-radius: 7px;
+  box-shadow: inset 0 0 10px 10px var(--v-bg_tertiary-lighten1);
+  border: solid 3px transparent;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  box-shadow: inset 0 0 10px 10px var(--v-bg_tertiary-lighten2);
+  border: solid 3px transparent;
 }
 </style>

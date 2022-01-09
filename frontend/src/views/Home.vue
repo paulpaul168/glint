@@ -141,7 +141,10 @@ export default class Home extends Vue {
       //if project is defined in URL, parse it and try to set the project
       let foundProject = false;
       this.activeProjects.forEach((project, index) => {
-        if (project.settings.data.projectId == this.$route.query.project) {
+        if (
+          project.settings.data.projectId ==
+          decodeURIComponent(this.$route.query.project as string)
+        ) {
           this.activeProject = index;
           foundProject = true;
           return;
@@ -151,11 +154,10 @@ export default class Home extends Vue {
       if (foundProject) {
         if (this.$route.query.file != undefined) {
           this.openFile({
-            filePath: this.$route.query.file as string,
+            filePath: decodeURIComponent(this.$route.query.file as string),
           });
         }
       } else {
-        console.log("clearing params");
         this.updateUrlParams(null);
       }
     }
@@ -165,7 +167,10 @@ export default class Home extends Vue {
     let query = {};
     if (projectId != null) {
       if (filePath != undefined) {
-        query = { project: projectId, file: encodeURIComponent(filePath) };
+        query = {
+          project: encodeURIComponent(projectId),
+          file: encodeURIComponent(filePath),
+        };
       } else {
         query = { project: projectId };
       }
@@ -763,10 +768,19 @@ export default class Home extends Vue {
   }
 
   private storeOpenFileChanges(event: OpenFileChangeEvent): void {
-    this.updateUrlParams(
-      this.activeProjects[this.activeProject].settings.data.projectId,
-      event.openFiles[event.activeFile].file.path
-    );
+    if (
+      event.activeFile == undefined ||
+      event.activeFile >= event.openFiles.length
+    ) {
+      this.updateUrlParams(
+        this.activeProjects[this.activeProject].settings.data.projectId
+      );
+    } else {
+      this.updateUrlParams(
+        this.activeProjects[this.activeProject].settings.data.projectId,
+        event.openFiles[event.activeFile].file.path
+      );
+    }
     this.activeProjects[this.activeProject].openFiles = event.openFiles;
     this.activeProjects[this.activeProject].activeFile = event.activeFile;
   }

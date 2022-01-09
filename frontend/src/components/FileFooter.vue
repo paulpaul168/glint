@@ -116,4 +116,31 @@ div.v-menu__content {
   background-color: var(--v-bg_tertiary-base) !important;
   /*TODO is there a better way to do this than a global important style?*/
 }
+
+.v-menu__content::-webkit-scrollbar {
+  width: 12px;
+}
+
+.v-menu__content::-webkit-scrollbar-track {
+  background: var(--v-bg_tertiary-base);
+  border-left: 1px solid var(--v-bg_tertiary-base);
+}
+
+.v-menu__content::-webkit-scrollbar-track:hover {
+  background: var(--v-bg_tertiary-base);
+  border-left: 1px solid var(--v-bg_tertiary-base);
+}
+
+.v-menu__content::-webkit-scrollbar-thumb {
+  width: 8px;
+  background: var(--v-bg_tertiary-base);
+  border-radius: 7px;
+  box-shadow: inset 0 0 10px 10px var(--v-bg_tertiary-lighten1);
+  border: solid 3px transparent;
+}
+
+.v-menu__content::-webkit-scrollbar-thumb:hover {
+  box-shadow: inset 0 0 10px 10px var(--v-bg_tertiary-lighten2);
+  border: solid 3px transparent;
+}
 </style>

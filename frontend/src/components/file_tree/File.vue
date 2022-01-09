@@ -9,11 +9,13 @@
       {{ state.file.name }}
     </v-btn>
     <v-spacer></v-spacer>
-    <span v-if="nrWarnings" style="margin: auto 0.2em; color: grey">{{ nrWarnings }}</span>
-    <v-icon v-if="nrWarnings" color="warning" small>mdi-alert-circle</v-icon>
     <v-btn v-if="active" class="delete-mapping-button" icon @click="deleteFile">
-      <v-icon small>mdi-delete</v-icon>
+      <v-icon color="#cccccc" small>mdi-delete</v-icon>
     </v-btn>
+    <span v-if="nrWarnings" style="margin: auto 0.2em; color: grey">
+      {{ nrWarnings }}
+    </span>
+    <v-icon v-if="nrWarnings" color="warning" small>mdi-alert-circle</v-icon>
   </div>
 </template>
 
@@ -47,7 +49,7 @@ export default class File extends Vue {
 
   private nrWarnings = 0;
 
-  @Watch("project.lintData")
+  @Watch("project.lintData", { immediate: true })
   lintsChange(): void {
     for (const lintFile of this.project.lintData.lintFiles) {
       if (lintFile.path == this.folderTree + this.state.file.path) {
@@ -86,7 +88,8 @@ export default class File extends Vue {
   justify-content: left;
   padding-left: 4px !important;
   padding-right: 8px !important; /*TODO: I'd like to have this auto expand to use the remaining space */
-  flex-grow: 1;
+  flex-grow: 100;
+  margin-right: 0.2em;
 }
 
 .file-name::v-deep .v-btn__content {

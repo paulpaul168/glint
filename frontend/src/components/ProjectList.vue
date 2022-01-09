@@ -188,4 +188,31 @@ export default class ProjectList extends Vue {
     transform: rotate(-360deg);
   }
 }
+
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--v-bg_tertiary-base);
+  border-left: 1px solid var(--v-bg_tertiary-base);
+}
+
+::-webkit-scrollbar-track:hover {
+  background: var(--v-bg_tertiary-base);
+  border-left: 1px solid var(--v-bg_tertiary-base);
+}
+
+::-webkit-scrollbar-thumb {
+  width: 8px;
+  background: var(--v-bg_tertiary-base);
+  border-radius: 7px;
+  box-shadow: inset 0 0 10px 10px var(--v-bg_tertiary-lighten1);
+  border: solid 3px transparent;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  box-shadow: inset 0 0 10px 10px var(--v-bg_tertiary-lighten2);
+  border: solid 3px transparent;
+}
 </style>
