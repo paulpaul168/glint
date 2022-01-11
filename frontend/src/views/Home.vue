@@ -136,7 +136,10 @@ export default class Home extends Vue {
   }
 
   private parseUrlParams(): void {
-    if (this.$route.query.project != undefined) {
+    if (
+      this.$route.query.project != undefined &&
+      this.$route.query.project != ""
+    ) {
       //if project is defined in URL, parse it and try to set the project
       let foundProject = false;
       this.activeProjects.forEach((project, index) => {
@@ -159,12 +162,14 @@ export default class Home extends Vue {
       } else {
         this.updateUrlParams(null);
       }
+    } else {
+      this.updateUrlParams(null);
     }
   }
 
   private updateUrlParams(projectId: string | null, filePath?: string): void {
     let query = {};
-    if (projectId != null) {
+    if (projectId != null && projectId != "") {
       if (filePath != undefined) {
         query = {
           project: encodeURIComponent(projectId),
@@ -284,7 +289,7 @@ export default class Home extends Vue {
       },
       contentViewMode: "files",
       filesViewMode: "auto",
-      remainingLintChecks: 5,
+      remainingLintChecks: 10,
     };
 
     let foundEmpty = false;
@@ -299,11 +304,12 @@ export default class Home extends Vue {
           });
           this.activeProject = index;
         } else if (index == this.activeProject) {
-          this.passNotification({
+          //this triggers in a normal usecase as well, need to either change the testing or just leave it out
+          /*this.passNotification({
             type: "info",
             message: "You are already in an empty project.",
             timeout: 2000,
-          });
+          });*/
         }
         foundEmpty = true;
       }
@@ -597,6 +603,7 @@ export default class Home extends Vue {
 
       this.activeProjects[this.activeProject] = bufferProject;
       (this.$refs["contentView"] as ContentView).projectChanged(); //this is a horrible fix and I don't know why I need it, the project watcher should see this. maybe because the original bufferproject is from the same list thus not changing the reference?
+      this.updateUrlParams(bufferProject.settings.data.projectId);
     }
   }
 
@@ -671,6 +678,9 @@ export default class Home extends Vue {
 
     //remove from UI if deletion succeeded
     this.closeActiveProject();
+
+    //remove project reference from URL
+    this.updateUrlParams(null);
   }
 
   private async uploadProject(
@@ -818,7 +828,7 @@ export default class Home extends Vue {
   }
 
   private setGetLintTries(projectIndex: number): void {
-    this.activeProjects[projectIndex].remainingLintChecks = 3;
+    this.activeProjects[projectIndex].remainingLintChecks = 10;
     this.activeProjects[projectIndex].lintData.status = "processing";
     this.activeProjects[projectIndex].lintCheckTimer = setInterval(
       this.handleLintTimer,
@@ -839,7 +849,7 @@ export default class Home extends Vue {
   }
 
   private async handleLintTimer(projectIndex: number) {
-    let remainingChecks = 5;
+    let remainingChecks = 10;
     if (this.activeProjects[projectIndex].remainingLintChecks != undefined) {
       remainingChecks = this.activeProjects[projectIndex]
         .remainingLintChecks as number;

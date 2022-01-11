@@ -116,13 +116,7 @@
                     >
                       mdi-format-list-bulleted
                     </v-icon>
-                    <v-icon
-                      v-else-if="
-                        project.lintData.status != 'done' &&
-                        project.lintData.status != 'processing'
-                      "
-                      small
-                    >
+                    <v-icon v-else-if="project.lintData.status != 'done'" small>
                       mdi-alert-circle
                     </v-icon>
                   </v-btn>
@@ -339,13 +333,15 @@ export default class ContentView extends Vue {
   }
 
   //consider moving the individual watchers into the "main" watcher (may increase code runtime but makes it a bit simpler?)
-  @Watch("project.lintData")
+  @Watch("project.lintData", { deep: true })
   convertLintsToDict(): void {
     //console.log("lint changed");
     //convert the array of lints of various files into a dict with one entry of many lints per file
+    this.lintsByFile = {};
     for (const lintFile of this.project.lintData.lintFiles) {
       this.lintsByFile[lintFile.name] = lintFile.lints;
     }
+    this.internalProject.lintData = this.project.lintData;
     this.lintOutdated = false;
   }
 

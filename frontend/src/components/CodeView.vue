@@ -90,6 +90,7 @@ export default class CodeView extends Vue {
     for (const child of editorContent) {
       if (child.nodeType == 1) {
         lastElementNode = child as HTMLElement;
+        console.log("last element");
       }
       if (child.nodeValue != null) {
         let pos = child.nodeValue.indexOf("\n");
@@ -110,6 +111,7 @@ export default class CodeView extends Vue {
 
     if (editor != undefined) {
       this.$nextTick(() => {
+        console.log("scrolling to lastElement", lastElementNode);
         editor.scrollTo(0, (lastElementNode as HTMLElement).offsetTop);
       });
     }
