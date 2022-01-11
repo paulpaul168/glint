@@ -213,8 +213,13 @@ export default class Home extends Vue {
           const matches = [...state.file.content.matchAll(regex)];
           for (const match of matches) {
             if (match.index != undefined) {
-              const lineStartPos =
+              let lineStartPos =
                 this.getLineStartPos(state.file.content, match.index) + 1;
+              if (lineStartPos == 1) {
+                //if line start pos is the first line we don't want to add the offset char
+                //otherwise needed to skip the \n character (because there is no newline to skip)
+                lineStartPos = 0;
+              }
               let lineEnd = state.file.content.indexOf("\n", lineStartPos);
               lineEnd = lineEnd == -1 ? state.file.content.length : lineEnd;
               const result: SearchResult = {
