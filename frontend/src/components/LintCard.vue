@@ -140,6 +140,7 @@ export default class LintCard extends Vue {
   padding-top: 0em;
   text-decoration: none;
   transition: 0.1s;
+  text-align: left;
 }
 
 .lint-url:hover {
