@@ -27,7 +27,7 @@
         ></v-text-field>
         <v-file-input
           class="rounded-md"
-          accept="text/*"
+          accept=""
           label="Select one or more files to upload or .zip of project"
           multiple
           show-size
