@@ -3,11 +3,11 @@
 ## Development instructions
 ### backend/RESTAPI documentation
 
-[backend/README.md](https://github.com/paulpaul168/glint/tree/main/backend#readme)
+[backend/README.md](backend/README.md)
 
 ### frontend documentation
 
-[frontend/README.md](https://github.com/paulpaul168/glint/tree/main/frontend#readme)
+[frontend/README.md](frontend/README.md)
 
 ---
 
@@ -26,7 +26,7 @@ chmod +x install.sh
 ```bash
 ./run.sh
 ```
-### Alternativly: run glint via docker
+### Alternativly: run glint via docker (untested)
 first build the docker container (might need sudo)
 ```bash
 docker build -t glint .
@@ -57,8 +57,8 @@ docker run -it -p 3000:3000 -p 5000:5000 --rm --name glint-container glint
 ### Milestone 3
 
 - [x] Manual linter selection
-- [ ] shareable links
-- [ ] Zip file handling (, URL download handling)
-- [ ] Docker file
+- [x] shareable links
+- [x] Zip file handling
+- [x] Docker file
 - [ ] Easter eggs
 - [x] User defined & stored secret finder regexes
