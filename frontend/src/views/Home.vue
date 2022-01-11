@@ -690,7 +690,7 @@ export default class Home extends Vue {
     if (result.errorMessage != undefined) {
       console.log(result.errorMessage);
       //this.uploading = false;
-      this.$emit("notification", {
+      this.passNotification({
         type: "error",
         message: result.errorMessage,
       });
@@ -871,7 +871,7 @@ export default class Home extends Vue {
             errorMessage = this.activeProjects[projectIndex].lintData.status;
             //TODO this code feels *very* fragile, I really dislike that, should probably be handled in the backend API instead
           }
-          this.$emit("notification", {
+          this.passNotification({
             type: "error",
             message: errorMessage,
           });
@@ -879,7 +879,7 @@ export default class Home extends Vue {
       }
     } else {
       clearInterval(this.activeProjects[projectIndex].lintCheckTimer);
-      this.$emit("notification", {
+      this.passNotification({
         type: "info",
         message:
           "Fetching lint results timed out. Server may still be processing, you can retry.",
