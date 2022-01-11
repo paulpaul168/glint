@@ -150,7 +150,7 @@
                 internalProject.filesViewMode == 'source' ||
                 internalProject.filesViewMode == 'uploader'
               "
-              :id="'prismeditor'"
+              :id="'prismeditor-' + state.id"
               :fileState="state"
               :language="
                 state.language == 'auto'
@@ -447,7 +447,9 @@ export default class ContentView extends Vue {
   }
 
   scrollTo(line: number): void {
-    (this.$refs.codeView as CodeView[])[0].scrollToLine(line);
+    (this.$refs.codeView as CodeView[])[
+      this.internalProject.activeFile || 0
+    ].scrollToLine(line);
   }
 
   private codeEdited(): void {

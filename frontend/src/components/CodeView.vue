@@ -1,7 +1,6 @@
 <template>
   <prism-editor
     :id="id"
-    ref="editor"
     :style="'height: ' + height"
     class="code-editor"
     v-model="internalState.file.content"
@@ -74,7 +73,10 @@ export default class CodeView extends Vue {
   }
 
   scrollToLine(line: number): void {
-    const editor = document.getElementById("prismeditor");
+    //could probably replace by a $refs?
+    const editor = document.getElementById(
+      "prismeditor-" + this.internalState.id
+    );
     const editorContainer = (
       editor?.getElementsByClassName(
         "prism-editor__container"
@@ -86,11 +88,14 @@ export default class CodeView extends Vue {
     let lastElementNode: HTMLElement;
     //let focusElement; //I can't do anything with the actual focus element as that's a
     //text node and I can't scroll to a text node. I'll keep this in, in case I find a way
-    //to utilise this in the future (highlighting?)
+    //to utilise this in the future (highlighting?). I can remove the "lastElementNode"
+    //because the current element has an element called "previousElementSibling" which is
+    //exactly the lastElementNode. I just can't figure out how to stop eslint from screaming at
+    //me because apparently "ChildNode" does not contain that property?
     for (const child of editorContent) {
       if (child.nodeType == 1) {
         lastElementNode = child as HTMLElement;
-        console.log("last element");
+        //console.log("last element");
       }
       if (child.nodeValue != null) {
         let pos = child.nodeValue.indexOf("\n");
@@ -111,7 +116,7 @@ export default class CodeView extends Vue {
 
     if (editor != undefined) {
       this.$nextTick(() => {
-        console.log("scrolling to lastElement", lastElementNode);
+        //console.log("scrolling to lastElement", lastElementNode);
         editor.scrollTo(0, (lastElementNode as HTMLElement).offsetTop);
       });
     }
