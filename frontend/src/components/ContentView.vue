@@ -26,7 +26,7 @@
           </v-tab>
         </v-tabs>
       </v-row>
-      <v-row style="height: calc(100% - 48px)">
+      <v-row style="height: calc(100% - 48px); position: relative">
         <v-tabs-items
           v-model="project.activeFile"
           class="main-file-view"
@@ -159,11 +159,6 @@
               "
               @input="codeEdited"
             ></code-view>
-            <upload-dialog
-              v-if="internalProject.filesViewMode == 'uploader'"
-              :uploading="uploading"
-              v-on="$listeners"
-            ></upload-dialog>
             <file-footer
               v-if="internalProject.filesViewMode == 'source'"
               :language="state.language"
@@ -174,13 +169,19 @@
           <div
             v-if="
               internalProject.openFiles == 0 &&
-              project.contentViewMode == 'files'
+              project.contentViewMode == 'files' &&
+              internalProject.filesViewMode != 'uploader'
             "
             style="height: 100%"
           >
             <h2 style="position: relative; top: 45%">No Files are open</h2>
           </div>
         </v-tabs-items>
+        <upload-dialog
+          v-if="internalProject.filesViewMode == 'uploader'"
+          :uploading="uploading"
+          v-on="$listeners"
+        ></upload-dialog>
       </v-row>
     </div>
     <project-overview
@@ -242,23 +243,14 @@ export default class ContentView extends Vue {
       linters: {},
     },
     files: [],
-    openFiles: [
-      {
-        id: 0,
-        edited: false,
-        unsaved: false,
-        language: "auto",
-        detectedLanguage: "txt",
-        file: { name: "unnamed", path: "unnamed", content: "" },
-      },
-    ],
+    openFiles: [],
     lintData: {
       status: "",
       linters: {},
       lintFiles: [],
     },
     contentViewMode: "files",
-    filesViewMode: "uploader",
+    filesViewMode: "source",
     remainingLintChecks: 5,
   };
 
@@ -266,10 +258,11 @@ export default class ContentView extends Vue {
   private lintOutdated = false;
 
   //this may need to be converted into a deep watcher, but for now I'll try not to as it makes the code a bit nicer and tidier if only a few things within a project change without the entire project being replaced
-  @Watch("project")
+  @Watch("project", { immediate: true })
   projectChanged(): void {
-    //console.log("project changed");
+    console.log("project changed");
     this.internalProject = { ...this.project };
+    this.selectViewMode();
     //this.convertLintsToDict();
     //this.filesChanged();
     //this.selectViewMode();
@@ -377,19 +370,11 @@ export default class ContentView extends Vue {
 
   private selectViewMode(): void {
     if (this.project.filesViewMode == "auto") {
+      console.log("selecting view mode because auto");
       if (this.internalProject.settings.data.projectId == "") {
         if (this.internalProject.files.length == 0) {
           this.internalProject.filesViewMode = "uploader";
-          this.internalProject.openFiles = [
-            {
-              id: 0,
-              edited: false,
-              unsaved: false,
-              language: "auto",
-              detectedLanguage: "txt",
-              file: { name: "unnamed", path: "unnamed", content: "" },
-            },
-          ];
+          this.internalProject.openFiles = [];
         } else {
           this.$emit("notification", {
             type: "error",
@@ -403,16 +388,7 @@ export default class ContentView extends Vue {
       this.$emit("files-view-change", this.internalProject.filesViewMode);
     } else {
       if (this.project.filesViewMode == "uploader") {
-        this.internalProject.openFiles = [
-          {
-            id: 0,
-            edited: false,
-            unsaved: false,
-            language: "auto",
-            detectedLanguage: "txt",
-            file: { name: "unnamed", path: "unnamed", content: "" },
-          },
-        ];
+        this.internalProject.openFiles = [];
       }
       this.internalProject.filesViewMode = this.project.filesViewMode;
     }

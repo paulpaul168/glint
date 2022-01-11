@@ -324,6 +324,7 @@ export default class Home extends Vue {
       this.activeProjects.push(emptyProject);
       this.activeProject = this.activeProjects.length - 1;
     }
+    this.updateUrlParams(null);
   }
 
   private async loadProjects(callback?: () => void): Promise<void> {
@@ -548,17 +549,9 @@ export default class Home extends Vue {
     //get files from user file event and show it in UI
     if (event.files.length == 0) {
       //somehow no files were submitted? how is this even possible
-      bufferProject.files = [
-        {
-          edited: false,
-          unsaved: false,
-          language: "auto",
-          detectedLanguage: "txt",
-          file: { name: "unnamed", path: "unnamed", content: "" },
-        },
-      ];
+      bufferProject.files = [];
       bufferProject.openFiles = bufferProject.files.slice();
-      (bufferProject.openFiles as FileState[])[0].id = 0;
+      //(bufferProject.openFiles as FileState[])[0].id = 0;
     } else {
       bufferProject.files = [];
       for (let file of event.files) {
@@ -572,6 +565,7 @@ export default class Home extends Vue {
         });
       }
       //bufferProject.openFiles = bufferProject.files.slice();
+      bufferProject.filesViewMode = "source";
 
       //upload files to backend
       this.uploading = true;
