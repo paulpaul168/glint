@@ -101,10 +101,7 @@ export default class LintCard extends Vue {
     this.internalFileState.file.content = codeSnippet;
     if (this.snippetEndLine - this.snippetStartLine > 1) {
       this.fileLinkText =
-        "lines " +
-        (this.snippetStartLine + 1) +
-        "-" +
-        (this.snippetEndLine + 1);
+        "lines " + (this.snippetStartLine + 1) + "-" + this.snippetEndLine;
     } else {
       this.fileLinkText = "line " + (this.snippetStartLine + 1);
     }
