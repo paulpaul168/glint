@@ -19,6 +19,7 @@ def get_supported_linters() -> dict[str, list[str]]:
         "python": ["bandit", "pylint"],
         "rust": ["clippy"],
         "c": ["cpplint"],
+        "cpp": ["cpplint"],
     }
 
 
@@ -31,6 +32,7 @@ def get_auto_linter(lang: str) -> str:
         "python": "bandit",
         "rust": "clippy",
         "c": "cpplint",
+        "cpp": "cpplint",
     }
     return mapping[lang]
 
@@ -75,9 +77,7 @@ def lint_project(path: str, linters: dict[str, str]) -> dict:
     return result
 
 
-def get_linters(
-    langs: set[str], linter_prefs: dict[str, str]
-) -> dict[str, str]:
+def get_linters(langs: set[str], linter_prefs: dict[str, str]) -> dict[str, str]:
     linters = dict()
 
     # We make a new set to avoid modifying the passed reference
@@ -92,9 +92,7 @@ def get_linters(
     return linters
 
 
-def lint_project_processing(
-    path: str, linter_prefs: dict[str, str]
-) -> dict[str, Any]:
+def lint_project_processing(path: str, linter_prefs: dict[str, str]) -> dict[str, Any]:
     """The temporary result while the linting process is still ongoing."""
 
     return lint_project_error(path, linter_prefs, "processing")
