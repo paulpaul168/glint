@@ -60,7 +60,7 @@ def normalize_cpplint(results: list[dict], project_path) -> dict:
 
     return {
         "status": "done",
-        "linters": {"c": "cpplint"},
+        "linters": {"c": "cpplint", "cpp": "cpplint"},
         "files": list(files.values()),
     }
 
