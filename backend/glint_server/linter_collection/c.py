@@ -8,12 +8,12 @@ from glint_server.linter_collection.exceptions import LintError
 
 def lint_c_project(path: str, linter: str):
     if linter == "cpplint":
-        return lint_c_project(path)
+        return lint_cpp_project(path)
     else:
         raise LintError(f"C/C++ linter '{linter}' is not known.")
 
 
-def lint_c_project(project_path: str):
+def lint_cpp_project(project_path: str):
     files = find_c_files(project_path)
     if files == []:
         return normalize_cpplint([])
