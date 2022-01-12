@@ -66,6 +66,8 @@ def lint_project(path: str, linters: dict[str, str]) -> dict:
                 lint = lint_rust_project(path, linter)
             elif lang == "c":
                 lint = lint_c_project(path, linter)
+            elif lang == "cpp":
+                lint = lint_c_project(path, linter)
 
             if lang not in result["linters"]:
                 result["linters"].update(lint["linters"])
@@ -77,7 +79,9 @@ def lint_project(path: str, linters: dict[str, str]) -> dict:
     return result
 
 
-def get_linters(langs: set[str], linter_prefs: dict[str, str]) -> dict[str, str]:
+def get_linters(
+    langs: set[str], linter_prefs: dict[str, str]
+) -> dict[str, str]:
     linters = dict()
 
     # We make a new set to avoid modifying the passed reference
@@ -92,7 +96,9 @@ def get_linters(langs: set[str], linter_prefs: dict[str, str]) -> dict[str, str]
     return linters
 
 
-def lint_project_processing(path: str, linter_prefs: dict[str, str]) -> dict[str, Any]:
+def lint_project_processing(
+    path: str, linter_prefs: dict[str, str]
+) -> dict[str, Any]:
     """The temporary result while the linting process is still ongoing."""
 
     return lint_project_error(path, linter_prefs, "processing")
@@ -132,18 +138,17 @@ def detect_languages(path: str) -> set[str]:
         ".py": "python",
         ".rs": "rust",
         ".c": "c",
-        "c": "c",
-        "c++": "c",
-        "cc": "c",
-        "cpp": "c",
-        "cu": "c",
-        "cuh": "c",
-        "cxx": "c",
-        "h": "c",
-        "h++": "c",
-        "hh": "c",
-        "hpp": "c",
-        "hxx": "c",
+        ".c++": "cpp",
+        ".cc": "cpp",
+        ".cpp": "cpp",
+        ".cu": "cpp",
+        ".cuh": "cpp",
+        ".cxx": "cpp",
+        ".h": "c",
+        ".h++": "cpp",
+        ".hh": "cpp",
+        ".hpp": "cpp",
+        ".hxx": "cpp",
     }
 
     languages = set()
