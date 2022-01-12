@@ -45,7 +45,6 @@ install_fedora(){
 
     go install github.com/securego/gosec/v2/cmd/gosec@latest
     npm install eslint --save-dev
-    #rustup component add clippy
 
     cd ../frontend
     npm install
