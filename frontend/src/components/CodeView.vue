@@ -136,6 +136,8 @@ export default class CodeView extends Vue {
     //TODO: on tab switch this is apparently called again for each tab and then the highlight language is incorrect because active tab is incorrect. investigate
     if (highlightLanguage == "txt") {
       return code;
+    } else if (highlightLanguage == "c" || highlightLanguage == "cpp") {
+      highlightLanguage = "clike";
     }
     return highlight(code, languages[highlightLanguage], highlightLanguage);
   }

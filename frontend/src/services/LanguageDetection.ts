@@ -4,6 +4,8 @@ export const supportedLanguages = [
   "typescript",
   "php",
   "go",
+  "c",
+  "cpp",
   "rust",
   "html",
   "plain",
@@ -34,6 +36,14 @@ export function getLanguage(fileName: string | undefined): string {
       break;
     case "go":
       language = "go";
+      break;
+    case "c":
+    case "h":
+      language = "c";
+      break;
+    case "cpp":
+    case "hpp":
+      language = "cpp";
       break;
     case "rs":
       language = "rust";
